@@ -102,6 +102,7 @@ the new passphrase.
 }
 
 func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathAccountsRead", "path", req.Path)
 	entry, err := req.Storage.Get(req.Path)
 	var account Account
 	err = entry.DecodeJSON(&account)
@@ -122,11 +123,11 @@ func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldDa
 }
 
 func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathAccountsCreate", "path", req.Path)
 	passphrase := data.Get("passphrase").(string)
 	generatePassphrase := data.Get("generate_passphrase").(bool)
 	words := data.Get("words").(int)
 	separator := data.Get("separator").(string)
-
 	if generatePassphrase {
 		list, _ := diceware.Generate(words)
 		passphrase = strings.Join(list, separator)
@@ -173,6 +174,7 @@ func (b *backend) rekeyJSONKeystore(keystorePath string, passphrase string, newP
 }
 
 func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathAccountsUpdate", "path", req.Path)
 	passphrase := data.Get("passphrase").(string)
 	generatePassphrase := data.Get("generate_passphrase").(bool)
 	words := data.Get("words").(int)
@@ -202,10 +204,10 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
 
 	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
+	b.removeTemporaryKeystore(req.Path)
 	if err != nil {
 		return nil, err
 	} else {
-		b.writeTemporaryKeystoreFile(keystorePath, jsonKeystore)
 		account.Passphrase = passphrase
 		account.JSONKeystore = jsonKeystore
 		entry, _ = logical.StorageEntryJSON(req.Path, account)
@@ -224,6 +226,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 }
 
 func (b *backend) pathAccountsDelete(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathAccountsDelete", "path", req.Path)
 	if err := req.Storage.Delete(req.Path); err != nil {
 		return nil, err
 	}
@@ -232,6 +235,7 @@ func (b *backend) pathAccountsDelete(req *logical.Request, data *framework.Field
 }
 
 func (b *backend) pathAccountsList(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathAccountsList", "path", req.Path)
 	vals, err := req.Storage.List("accounts/")
 	if err != nil {
 		return nil, err

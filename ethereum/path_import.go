@@ -56,6 +56,7 @@ func zeroKey(k *ecdsa.PrivateKey) {
 }
 
 func (b *backend) readJSONKeystore(keystorePath string) ([]byte, error) {
+	b.Logger().Info("readJSONKeystore", "keystorePath", keystorePath)
 	var jsonKeystore []byte
 	file, err := os.Open(keystorePath)
 	defer file.Close()
@@ -73,6 +74,7 @@ func (b *backend) readJSONKeystore(keystorePath string) ([]byte, error) {
 }
 
 func (b *backend) importJSONKeystore(keystorePath string, passphrase string) (string, []byte, error) {
+	b.Logger().Info("importJSONKeystore", "keystorePath", keystorePath)
 	var key *keystore.Key
 	jsonKeystore, err := b.readJSONKeystore(keystorePath)
 	if err != nil {
@@ -96,11 +98,13 @@ func pathExists(req *logical.Request, path string) (bool, error) {
 }
 
 func (b *backend) pathImportExistenceCheck(req *logical.Request, data *framework.FieldData) (bool, error) {
+	b.Logger().Info("pathImportExistenceCheck", "path", req.Path)
 	accountPath := strings.Replace(req.Path, PATH_IMPORT, PATH_ACCOUNTS, -1)
 	return pathExists(req, accountPath)
 }
 
 func (b *backend) pathImportCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathImportCreate", "path", req.Path)
 	accountPath := strings.Replace(req.Path, PATH_IMPORT, PATH_ACCOUNTS, -1)
 	exists, err := pathExists(req, accountPath)
 	if !exists || err != nil {
