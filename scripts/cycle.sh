@@ -2,6 +2,7 @@
 
 vault unmount ethereum/org/bar
 vault delete sys/plugins/catalog/ethereum-plugin
+cd ..
 go build
 sudo mv vault-ethereum /etc/vault.d/vault_plugins
 export SHA256=$(shasum -a 256 "/etc/vault.d/vault_plugins/vault-ethereum" | cut -d' ' -f1)
