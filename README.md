@@ -20,7 +20,7 @@ The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy 
 
 As stated, this is a first step towards building DevOps workflow-based tools around Ethereum. It is not the last step. I think there are 2 audiences who might be interested in this:
 
-1. The **infrastructure-as-code** community - those who are familiar with the HashiCorp stack. I am one of the organizers for the DC-Baltimore [HUG] (https://www.meetup.com/DC-Baltimore-HashiCorp-User-Group) (HashiCorp User Group), so I am somewhat familiar with this community.
+1. The **infrastructure-as-code** community - those who are familiar with the HashiCorp stack. I am one of the organizers for the [DC-Baltimore HashiCorp User Group](https://www.meetup.com/DC-Baltimore-HashiCorp-User-Group), so I am somewhat familiar with this community.
 
 2. The Ethereum development community - those who are developing smart contracts, dApps, and other technology around the Ethereum ecosystem. My focus is specifically on [geth](https://github.com/ethereum/go-ethereum) rather than on Parity or other node implementations.
 
