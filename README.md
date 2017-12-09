@@ -16,6 +16,22 @@ I had the great fortune to attend DevCon3 in November and hear Andy Milenius spe
 
 The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy and Mikael and Daniel Brockman) is a super warm and welcoming place that pointed me towards code that greatly helped this experiment.
 
+## Audience
+
+As stated, this is a first step towards building DevOps workflow-based tools around Ethereum. It is not the last step. I think there are 2 audiences who might be interested in this:
+
+1. The **infrastructure-as-code** community - those who are familiar with the HashiCorp stack. I am one of the organizers for the DC-Baltimore [HUG] (https://www.meetup.com/DC-Baltimore-HashiCorp-User-Group) (HashiCorp User Group), so I am somewhat familiar with this community.
+
+2. The Ethereum development community - those who are developing smart contracts, dApps, and other technology around the Ethereum ecosystem. My focus is specifically on [geth](https://github.com/ethereum/go-ethereum) rather than on Parity or other node implementations.
+
+I have a good deal of experience with the technology of #1 and a great deal less with the technology of #2. This is my way to bridge that gap.
+
+## Design and Purpose
+
+HashiCorp [Vault](https://www.vaultproject.io/) is a fantastic tool for secrets management. The design is especially elegant in how it separates concerns: storage, authentication, encryption, audit. You can pick and choose from a wide selection of authentication mechanisms (LDAP, PKI, GitHub, ...) to allow access to a even wider variety of credentials (many databases, AWS, Google, SSH, TOTP, ...)
+
+Vault encrypts all data and provides an excellent **cold storage** solution - when the Vault is sealed it requires a quorum of Shamir secret shards to bring it back online. This is functionally equivalent to what the Ethereum community would call a *multi-sig wallet*.
+
 ## Setup
 
 I assume some familiarity with Vault and Vault's plugin
