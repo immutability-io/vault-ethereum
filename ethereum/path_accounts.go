@@ -29,13 +29,22 @@ func accountsPaths(b *backend) []*framework.Path {
 			HelpSynopsis: "Create an Ethereum account using a generated or provided passphrase",
 			HelpDescription: `
 
-Generates a high-entropy password with the provided length and requirements,
-returning it as part of the response. The generated password is not stored.
+Creates an Ethereum externally owned account (EOAs): an account controlled by a private key.
+Optionally generates a high-entropy passphrase with the provided length and requirements. The passphrase
+is not returned, but it is stored at a separate path (accounts/<name>/passphrase) to allow fine
+grained access controls over exposure of the passphrase.
 
 `,
 			Fields: map[string]*framework.FieldSchema{
-				"passphrase":          &framework.FieldSchema{Type: framework.TypeString},
-				"generate_passphrase": &framework.FieldSchema{Type: framework.TypeBool},
+				"passphrase": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The passphrase used to encrypt the private key.",
+				},
+				"generate_passphrase": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Description: "Generate the passphrase.",
+					Default:     false,
+				},
 				"words": &framework.FieldSchema{
 					Type:        framework.TypeInt,
 					Description: "Number of words for the passphrase.",

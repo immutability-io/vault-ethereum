@@ -24,16 +24,21 @@ func importPaths(b *backend) []*framework.Path {
 	return []*framework.Path{
 		&framework.Path{
 			Pattern:      "import/" + framework.GenericNameRegex("name"),
-			HelpSynopsis: "Generate and return a random password",
+			HelpSynopsis: "Import a single Ethereum JSON keystore. ",
 			HelpDescription: `
 
-Generates a high-entropy password with the provided length and requirements,
-returning it as part of the response. The generated password is not stored.
+Reads a JSON keystore, decrypts it and stores the passphrase.
 
 `,
 			Fields: map[string]*framework.FieldSchema{
-				"path":       &framework.FieldSchema{Type: framework.TypeString},
-				"passphrase": &framework.FieldSchema{Type: framework.TypeString},
+				"path": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Path to the keystore file - not the parent directory.",
+				},
+				"passphrase": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Passphrase used to encrypt private key - will not be returned.",
+				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{

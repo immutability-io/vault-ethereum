@@ -1,6 +1,5 @@
 # Ethereum plugin for Vault
 
-
 This repository contains code for a HashiCorp Vault Plugin. It is
 intended to support Ethereum smart contract deployment - especially in a DevOps setting. Ultimately,
 it is intended to provide an enterprise *wallet* capability.
@@ -40,22 +39,10 @@ you use the published checksums to verify integrity.
   $ vault mount -path="ethereum" -plugin-name="ethereum-plugin" plugin
   ```
 
-## Authenticating with the Shared Secret
+## ToDo
 
-To authenticate, the user supplies the shared secret:
+More to come soon...
 
-```sh
-$ vault write ethereum/accounts/foo value=bar
-
-```
-
-The response will be a standard auth response with some token metadata:
-
-```text
-Key  	Value
----  	-----
-value	bar
-```
 ## License
 
 This code is licensed under the MPLv2 license.
