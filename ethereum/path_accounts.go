@@ -144,8 +144,6 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 	jsonKeystore, err := b.readJSONKeystore(keystorePath)
 	accountJSON := &Account{Address: account.Address.Hex(), Passphrase: passphrase, URL: account.URL.String(), JSONKeystore: jsonKeystore}
 	entry, err := logical.StorageEntryJSON(req.Path, accountJSON)
-	b.Logger().Info("Create account", "passphrase", passphrase)
-	b.Logger().Info("Create account", "url", account.URL.String())
 	err = req.Storage.Put(entry)
 	if err != nil {
 		return nil, err
