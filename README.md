@@ -32,6 +32,12 @@ HashiCorp [Vault](https://www.vaultproject.io/) is a fantastic tool for secrets 
 
 Vault encrypts all data and provides an excellent **cold storage** solution - when the Vault is sealed it requires a quorum of Shamir secret shards to bring it back online. This is functionally equivalent to what the Ethereum community would call a *multi-sig wallet*.
 
+Furthermore, if you are an enterprise and capable of paying for [Enterprise Vault](https://www.hashicorp.com/products/vault) you can leverage HSMs as a persistence mechanism for Vault keys. This makes Vault equivalent to what the Ethereum folks call a hardware wallet. (It is very comparable to what [Gemalto and Ledger](https://www.gemalto.com/press/Pages/Gemalto-and-Ledger-Join-Forces-to-Provide--Security-Infrastructure-for-Cryptocurrency-Based-Activities-.aspx) have developed.)
+
+### Vault as a Wallet
+
+So, I wanted to build a Vault plugin that turned Vault into an Ethereum Wallet. But, and this is a significant caveat, I wasn't going to worry about making `geth` interoperable with Vault. **My purpose was** to be able to sign Ethereum transactions - without having to unlock accounts (yuck!) - to deploy smart contracts using GitHub flows. However, once I got started, certain things started to avail themselves as opportunities.
+
 ## Setup
 
 I assume some familiarity with Vault and Vault's plugin
