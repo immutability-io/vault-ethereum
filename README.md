@@ -1,8 +1,20 @@
 # Ethereum plugin for Vault
 
-This repository contains code for a HashiCorp Vault Plugin. It is
-intended to support Ethereum smart contract deployment - especially in a DevOps setting. Ultimately,
-it is intended to provide an enterprise *wallet* capability.
+This repository contains code for a HashiCorp Vault Plugin. I am building this Plugin for a few reasons:
+
+1. To gain familiarity with using `geth` as a library.
+2. To get experience with Vault Plugins.
+3. As a *first step* towards developing a DevOps workflow for building Ethereum smart contracts.
+
+## Credits
+
+None of this would have been possible without the [fantastic tutorial on Vault Plugins by Seth Vargo] (https://www.hashicorp.com/blog/building-a-vault-secure-plugin). Seth is one of those rare individuals who can communicate the simple essence of a complex technology in practical terms.
+
+I have been developing DevOps workflow solutions using the **everything-as-code** mantra for a while. I build GitHub oriented workflows that leverage extensive automation to build VMs and containers, provision infrastructure and manage policies and credentials using immutable architecture principles. When I moved into the Ethereum ecosystem - where immutability is baked in from the ground up - I was a bit chagrined to discover that the developer experience seemed a bit immature in comparison: nearly every tutorial on smart contract deployment talked about "pasting code" into a Wallet GUI.
+
+I had the great fortune to attend DevCon3 in November and hear Andy Milenius speak with clarity and vision about how the Ethereum developer ecosystem should embrace the Unix philosophy - the same philosophy that makes **everything-as-code** possibly: simple tools, with clear focus and purpose, driven by repeatable and interoperable mechanics. So, when I returned from DevCon3 (and dug out from my work backlog - a week away is hard) I installed `seth` and `dapp` and found inspiration.
+
+The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy and Mikael and Daniel Brockman) is a super warm and welcoming place that pointed me towards code that greatly helped this experiment.
 
 ## Setup
 

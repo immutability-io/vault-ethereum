@@ -41,7 +41,6 @@ func Backend() *backend {
 	b.Backend = &framework.Backend{
 		Help: "",
 		Paths: framework.PathAppend(
-			errorPaths(&b),
 			importPaths(&b),
 			accountsPaths(&b),
 		),

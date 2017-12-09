@@ -58,8 +58,6 @@ func (b *backend) removeTemporaryKeystore(name string) error {
 
 }
 
-// accountsPaths is used to test CRUD and List operations. It is a simplified
-// version of the passthrough backend that only accepts string values.
 func accountsPaths(b *backend) []*framework.Path {
 	return []*framework.Path{
 		&framework.Path{
