@@ -1,6 +1,8 @@
 package ethereum
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
@@ -364,10 +367,10 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	keystorePath := strings.Replace(account.URL, PROTOCOL_KEYSTORE, "", -1)
 	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
 	key, _ := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
-	transactor := bind.NewKeyedTransactor(key.PrivateKey)
+	transactor := b.ContractTransactor(key.PrivateKey)
 	var rawTx *types.Transaction
 	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
-	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.StringToAddress(account.Address), rawTx)
+	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
 		return nil, err
 	}
@@ -378,4 +381,21 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 			"signed_tx": hexutil.Encode(encoded[:]),
 		},
 	}, nil
+}
+
+func (b *backend) ContractTransactor(key *ecdsa.PrivateKey) *bind.TransactOpts {
+	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
+	return &bind.TransactOpts{
+		From: keyAddr,
+		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			if address != keyAddr {
+				return nil, errors.New("not authorized to sign this account")
+			}
+			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key)
+			if err != nil {
+				return nil, err
+			}
+			return tx.WithSignature(signer, signature)
+		},
+	}
 }
