@@ -8,8 +8,8 @@ This plugin provides services to:
 
 * Create new externally controlled accounts (using a provided passphrase or a generated one.)
 * Import JSON keystores (with provided passphrase.)
-* Export JSON keystores.
-* Sign transactions
+* Export JSON keystores (in development.)
+* Sign transactions for contract deployment
 * Send transactions (in development.)
 
 All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. It is not necessary for this plugin to use a passphrase to protect private keys, however, at present that is the design choice.
@@ -342,27 +342,172 @@ The example below shows output for the successful re-encryption of the keystore 
 
 ```
 
+### DELETE ACCOUNT
+
+This endpoint will delete the account - and its passphrase - from Vault.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `DELETE`  | `:mount-path/accounts/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to update. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request DELETE \
+    https://localhost:8200/v1/ethereum/accounts/test3
+```
+
+#### Sample Response
+
+There is no response payload.
+
+### IMPORT ACCOUNT
+
+This endpoint will import a JSON Keystore and passphrase into Vault at a path. It will create an account and map it to the `:mount-path/accounts/:name`. If an account already exists for this name, the operation fails.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/import/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to create. This is specified as part of the URL.
+* `path` (`string: <required>`) - The path of the JSON keystore file.
+* `rpc_url` (`string: <optional> default:"localhost:8545"`) - Specifies the URL of the 'geth' node.
+* `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
+* `passphrase` (`string: <required>`) - The `passphrase` that was used to encrypt the keystore.
+
+#### Sample Payload
+
+Be careful with those passphrases!
+
+```sh
+read PASSPHRASE; read  PAYLOAD_WITH_PASSPHRASE <<EOF
+{"path":"/Users/tssbi08/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939", "passphrase":"$PASSPHRASE"}
+EOF
+unset PASSPHRASE
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data $PAYLOAD_WITH_PASSPHRASE \
+    https://localhost:8200/v1/ethereum/import/test3 | jq .
+    unset PAYLOAD_WITH_PASSPHRASE
+```
+
+#### Sample Response
+
+The example below shows output for the successful creation of `/ethereum/accounts/test3`. Note the encoding of the keystore.
+
+```
+{
+  "request_id": "c8b79326-74eb-c75e-a602-bd0609ba9a10",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0xa152E7a09267bcFf6C33388cAab403b76B889939"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+### SIGN ETHEREUM CONTRACT
+
+This endpoint will sign a provided Ethereum contract.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/sign-contract`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `transaction_data` (`string: <required>`) - The compiled Ethereum contract.
+* `value` (`string: <required>`) - The amount of ether.
+* `nonce` (`string: <optional> - defaults to "1"`) - The nonce for the transaction
+* `gas_price` (`string: <required>`) - The price in gas for the transaction.
+* `gas_limit` (`string: <required>`) - The gas limit for the transaction.
+
+#### Sample Payload
+
+```sh
+
+{
+  "transaction_data": "6060604052341561000f57600080fd5b60d38061001d6000396000f3006060604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c14606e575b600080fd5b3415605857600080fd5b606c60048080359060200190919050506094565b005b3415607857600080fd5b607e609e565b6040518082815260200191505060405180910390f35b8060008190555050565b600080549050905600a165627a7a72305820d4b4961183894cf1196bcafbbe4d2573a925296dff82a9dcbc0e8bd8027b153f0029",
+  "value":"3",
+  "gas_limit":"1000000",
+  "gas_price":"500000",
+  "nonce":"1"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test2/sign-contract | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful signing of a contract by the private key associated with  `/ethereum/accounts/test2`.
+
+```
+{
+  "request_id": "494f7e52-1e1b-e4b1-677d-acfd43e9c317",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "signed_tx": "0xf90231018307a120830f42408003b901e03630363036303430353233343135363130303066353736303030383066643562363064333830363130303164363030303339363030306633303036303630363034303532363030343336313036303439353736303030333537633031303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303039303034363366666666666666663136383036333630666534376231313436303465353738303633366434636536336331343630366535373562363030303830666435623334313536303538353736303030383066643562363036633630303438303830333539303630323030313930393139303530353036303934353635623030356233343135363037383537363030303830666435623630376536303965353635623630343035313830383238313532363032303031393135303530363034303531383039313033393066333562383036303030383139303535353035303536356236303030383035343930353039303536303061313635363237613761373233303538323064346234393631313833383934636631313936626361666262653464323537336139323532393664666638326139646362633065386264383032376231353366303032392ca0c63156377cc040bbf2be7d3a045bf4b8fa88f4969159f0d4377dfd0ac6fd76e2a02fa4f5dd0058d4343a4402918bfcb858a5da3fcb4023ebeb4de1bb469cb1122a"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
 
 ## Plugin Setup
 
-I assume some familiarity with Vault and Vault's plugin
-ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html)
+I assume some familiarity with Vault and Vault's plugin ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html). I realize that it is a lot to ask for someone to be so familiar with something so new. I will be writing a series of tutorials around this space in the near future. I will link them here when done. I will (eventually) provide a Vagrant box and scripts that configure a Vault server that supports this plugin.
 
-You must have a Vault server already running, unsealed, and
-authenticated. I will provide a Vagrant box and scripts that configure a Vault server that supports this plugin.
+For this to work, you must have a Vault server already running, unsealed, and authenticated.
 
-1. Download and decompress the latest plugin binary from the Releases tab on
-GitHub. Alternatively you can compile the plugin from source.
+### Build the plugin
 
-1. Move the compiled plugin into Vault's configured `plugin_directory`:
+You can use the `Makefile` or simply us `go build` from this project's root directory.
+
+## Install the plugin
+
+It is assumed that your Vault configuration specifies a `plugin_directory`. Mine is:
+
+```
+$ cat vault-config.hcl
+...
+plugin_directory="/etc/vault.d/vault_plugins"
+...
+```
+
+Move the compiled plugin into Vault's configured `plugin_directory`:
 
   ```sh
   $ mv vault-ethereum /etc/vault.d/vault_plugins/vault-ethereum
   ```
 
-1. Calculate the SHA256 of the plugin and register it in Vault's plugin catalog.
-If you are downloading the pre-compiled binary, it is highly recommended that
-you use the published checksums to verify integrity.
+Calculate the SHA256 of the plugin and register it in Vault's plugin catalog.
 
   ```sh
   $ export SHA256=$(shasum -a 256 "/etc/vault.d/vault_plugins/vault-ethereum" | cut -d' ' -f1)
@@ -372,7 +517,9 @@ you use the published checksums to verify integrity.
       command="vault-ethereum --ca-cert=/etc/vault.d/root.crt --client-cert=/etc/vault.d/vault.crt --client-key=/etc/vault.d/vault.key"
   ```
 
-1. Mount the auth method:
+If you are using Vault in `dev` mode, you don't need to supply the certificate parameters. For any real Vault installation, however, you will be using TLS.
+
+## Mount the Ethereum secret backend
 
   ```sh
   $ vault mount -path="ethereum" -plugin-name="ethereum-plugin" plugin
@@ -380,8 +527,16 @@ you use the published checksums to verify integrity.
 
 ## ToDo
 
-More to come soon...
+More (much) to come soon...
+
+## Credits
+
+None of this would have been possible without the fantastic [tutorial](https://www.hashicorp.com/blog/building-a-vault-secure-plugin) on Vault Plugins by Seth Vargo. Seth is one of those rare individuals who can communicate the simple essence of a complex technology in practical terms.
+
+I had the great fortune to attend DevCon3 in November and hear Andy Milenius speak with clarity and vision about how the Ethereum developer ecosystem should embrace the Unix philosophy - the same philosophy that makes **everything-as-code** possibly: simple tools, with clear focus and purpose, driven by repeatable and interoperable mechanics. So, when I returned from DevCon3 (and dug out from my work backlog - a week away is hard) I installed `seth` and `dapp` and found inspiration.
+
+The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy and Mikael and Daniel Brockman) is a super warm and welcoming place that pointed me towards code that greatly helped this experiment.
 
 ## License
 
-This code is licensed under the MPLv2 license.
+This code is licensed under the MPLv2 license. Please feel free to use it. Please feel free to contribute.

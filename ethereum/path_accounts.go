@@ -128,6 +128,7 @@ Sign and create an Ethereum contract transaction from a given Ethereum account.
 				"nonce": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The transaction nonce.",
+					Default:     "1",
 				},
 				"gas_price": &framework.FieldSchema{
 					Type:        framework.TypeString,
