@@ -185,6 +185,163 @@ The example below shows output for a query path of `/ethereum/accounts/` when th
 
 ```
 
+### READ ACCOUNT
+
+This endpoint will list details about the Ethereum account at a path. The passphrase will **NOT** be revealed.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/accounts/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/accounts/test | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/accounts/test`. Note the encoding of the keystore.
+
+```
+{
+  "request_id": "f6f15161-12f6-e0bf-32de-700d5a40bab7",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x87f12ea8D186B9aDd3209C0Ee8B8C4672d8b1A43",
+    "chain_id": "4",
+    "keystore": "{\"address\":\"87f12ea8d186b9add3209c0ee8b8c4672d8b1a43\",\"crypto\":{\"cipher\":\"aes-128-ctr\",\"ciphertext\":\"d440dcacd5d74bf2aa7d716ee2381e165f3434d3c5f42948e7aef315daea430d\",\"cipherparams\":{\"iv\":\"1d2dba8aae7f213634d175b29f2598ce\"},\"kdf\":\"scrypt\",\"kdfparams\":{\"dklen\":32,\"n\":262144,\"p\":1,\"r\":8,\"salt\":\"eb625d810cf5813e15de74f23f72802bcb5aadef4557a24097e6d9ff1c482fd0\"},\"mac\":\"2d9d3b5242971336e5966e0e94622c889b53e6fffbea43deb7ba0738a31dd63a\"},\"id\":\"006f9432-b125-4c2c-9ad3-edbac905b671\",\"version\":3}",
+    "rpc_url": "localhost:8545"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+### CREATE ACCOUNT
+
+This endpoint will create an Ethereum account at a path.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to create. This is specified as part of the URL.
+* `rpc_url` (`string: <optional> default:"localhost:8545"`) - Specifies the URL of the 'geth' node.
+* `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
+* `generate_passphrase` (`boolean: <optional> default:false`) - Determines whether the passphrase will be generated.
+* `passphrase` (`string: <optional>`) - If `generate_passphrase` is false, a `passphrase` must be provided.
+* `words` (`integer: <optional> default:"6"`) - Specifies the number of words to use in the generated passphrase.
+* `separator` (`string: <optional> default:"-"`) - Specifies the delimiter used to separate the words in the generated passphrase.
+
+#### Sample Payload
+
+```
+{
+  "rpc_url": "localhost:8545",
+  "chain_id": "1977",
+  "generate_passphrase": true
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test3 | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful creation of `/ethereum/accounts/test3`. Note the encoding of the keystore.
+
+```
+{
+  "request_id": "914c5797-815e-3d4e-d9de-b4978ac1e267",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "account": "0x55BcB4ba4BdE352B828deFaA45ae1880DbDb9A22",
+    "chain_id": "1977",
+    "keystore": "{\"address\":\"55bcb4ba4bde352b828defaa45ae1880dbdb9a22\",\"crypto\":{\"cipher\":\"aes-128-ctr\",\"ciphertext\":\"3b81d2e79fdd76400c5fa2e2afe3c425f2c063027d51f0e006fb9575da54c70a\",\"cipherparams\":{\"iv\":\"d1646e44ece77140a9bdf86f01444329\"},\"kdf\":\"scrypt\",\"kdfparams\":{\"dklen\":32,\"n\":262144,\"p\":1,\"r\":8,\"salt\":\"87af64f3696ebb0d4595fefca4070f960361701a7600e5fa90b75e63d1094e90\"},\"mac\":\"63ca10b230fa2d438ebb873a133368eb7bb972e528fe2fd6985b1ac4bfca7dc8\"},\"id\":\"49e2446b-48fd-4159-bc6f-4476662dbc83\",\"version\":3}",
+    "rpc_url": "localhost:8545"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+### UPDATE ACCOUNT/RE-ENCRYPT KEYSTORE
+
+This endpoint will re-encrypt the keystore for an Ethereum account with a new passphrase.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `PUT`  | `:mount-path/accounts/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to update. This is specified as part of the URL.
+* `generate_passphrase` (`boolean: <optional> default:false`) - Determines whether the passphrase will be generated.
+* `passphrase` (`string: <optional>`) - If `generate_passphrase` is false, a `passphrase` must be provided.
+* `words` (`integer: <optional> default:"6"`) - Specifies the number of words to use in the generated passphrase.
+* `separator` (`string: <optional> default:"-"`) - Specifies the delimiter used to separate the words in the generated passphrase.
+
+#### Sample Payload
+
+```
+{
+  "generate_passphrase": true
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request PUT \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test3 | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful re-encryption of the keystore for `/ethereum/accounts/test3`. Note the encoding of the keystore.
+
+```
+{
+  "request_id": "4dd998b7-40e0-fa86-23f2-b39da925cbfb",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x55BcB4ba4BdE352B828deFaA45ae1880DbDb9A22",
+    "chain_id": "1977",
+    "keystore": "{\"address\":\"55bcb4ba4bde352b828defaa45ae1880dbdb9a22\",\"crypto\":{\"cipher\":\"aes-128-ctr\",\"ciphertext\":\"d52bf4c5fe0bed07e489c2463646b0cef28e0f825d15d828bf10cff7191075e6\",\"cipherparams\":{\"iv\":\"508706acf516376cac47a94d4134888b\"},\"kdf\":\"scrypt\",\"kdfparams\":{\"dklen\":32,\"n\":262144,\"p\":1,\"r\":8,\"salt\":\"94b89865d53bec30d05c534d53a16553bea14b9c3797571ad67f3735eca2350c\"},\"mac\":\"657340088ef77777b7dcf789e2f669acc723f58b9dd74f89bc4d97b2867330b8\"},\"id\":\"49e2446b-48fd-4159-bc6f-4476662dbc83\",\"version\":3}",
+    "rpc_url": "localhost:8545"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+
+```
+
 
 ## Plugin Setup
 
