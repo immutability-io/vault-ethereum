@@ -140,12 +140,50 @@ Furthermore, if you are an enterprise and capable of paying for [Enterprise Vaul
 
 ## Vault Ethereum API
 
-Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (including the Vault CLI) can be used for accessing the API.
+Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (including the Vault CLI) can be used for accessing the API. Since the REST API produces JSON, I use the wonderful [jq](https://stedolan.github.io/jq/) for the examples.
 
 ### LIST ACCOUNTS
 
 This endpoint will list all accounts stores at a path.
 
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `LIST`  | `:mount-path/accounts`  | `200 application/json` |
+
+#### Parameters
+
+* `path` (`string: <required>`) - Specifies the path of the accounts to list. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request LIST \
+    https://localhost:8200/v1/ethereum/accounts | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a query path of `/ethereum/accounts/` when there are 2 accounts at `/ethereum/accounts/test` and `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "f5689b77-ff54-8aed-27e0-1be52ab4fd61",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "keys": [
+      "test",
+      "test2"
+    ]
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+
+```
 
 
 ## Plugin Setup
