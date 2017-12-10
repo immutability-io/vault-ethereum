@@ -38,6 +38,8 @@ Furthermore, if you are an enterprise and capable of paying for [Enterprise Vaul
 
 So, I wanted to build a Vault plugin that turned Vault into an Ethereum Wallet. But, and this is a significant caveat, I wasn't going to worry about making `geth` interoperable with Vault. **My purpose was** to be able to sign Ethereum transactions - without having to unlock accounts (yuck!) - to deploy smart contracts using GitHub flows. However, once I got started, certain things started to avail themselves as opportunities.
 
+![Vault and Geth Topology](/doc/vault-geth.png?raw=true "Vault Ethereum Plugin")
+
 ## Setup
 
 I assume some familiarity with Vault and Vault's plugin
