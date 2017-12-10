@@ -14,10 +14,39 @@ import (
 )
 
 const (
+	FS_TEMPORARY      string = "/tmp/"
+	PROTOCOL_KEYSTORE string = "keystore://"
 	MAX_KEYSTORE_SIZE int64  = 1024 // Just a heuristic to prevent reading stupid big files
 	PATH_IMPORT       string = "import"
 	PATH_ACCOUNTS     string = "accounts"
 )
+
+func (b *backend) buildKeystoreURL(filename string) string {
+	return PROTOCOL_KEYSTORE + FS_TEMPORARY + filename
+}
+
+func (b *backend) writeTemporaryKeystoreFile(path string, data []byte) error {
+	return ioutil.WriteFile(path, data, 0644)
+}
+
+func (b *backend) createTemporaryKeystore(name string) (string, error) {
+	file, _ := os.Open(FS_TEMPORARY + name)
+	if file != nil {
+		file.Close()
+		return "", fmt.Errorf("account already exists at %s", FS_TEMPORARY+name)
+	}
+	return FS_TEMPORARY + name, os.MkdirAll(FS_TEMPORARY+name, os.FileMode(0522))
+}
+
+func (b *backend) removeTemporaryKeystore(name string) error {
+	file, _ := os.Open(FS_TEMPORARY + name)
+	if file != nil {
+		return os.RemoveAll(FS_TEMPORARY + name)
+	} else {
+		return fmt.Errorf("keystore doesn't exist at %s", FS_TEMPORARY+name)
+	}
+
+}
 
 func convertMapToStringValue(initial map[string]interface{}) map[string]string {
 	result := map[string]string{}

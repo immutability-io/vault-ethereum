@@ -4,8 +4,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -21,11 +19,6 @@ import (
 	"github.com/sethvargo/go-diceware/diceware"
 )
 
-const (
-	FS_TEMPORARY      string = "/tmp/"
-	PROTOCOL_KEYSTORE string = "keystore://"
-)
-
 type Account struct {
 	Address      string `json:"address"` // Ethereum account address derived from the key
 	Passphrase   string `json:"passphrase"`
@@ -33,29 +26,6 @@ type Account struct {
 	RPC          string `json:"rpc_url"`
 	ChainID      string `json:"chain_id"`
 	JSONKeystore []byte `json:"json_keystore"`
-}
-
-func (b *backend) writeTemporaryKeystoreFile(path string, data []byte) error {
-	return ioutil.WriteFile(path, data, 0644)
-}
-
-func (b *backend) createTemporaryKeystore(name string) (string, error) {
-	file, _ := os.Open(FS_TEMPORARY + name)
-	if file != nil {
-		file.Close()
-		return "", fmt.Errorf("account already exists at %s", FS_TEMPORARY+name)
-	}
-	return FS_TEMPORARY + name, os.MkdirAll(FS_TEMPORARY+name, os.FileMode(0522))
-}
-
-func (b *backend) removeTemporaryKeystore(name string) error {
-	file, _ := os.Open(FS_TEMPORARY + name)
-	if file != nil {
-		return os.RemoveAll(FS_TEMPORARY + name)
-	} else {
-		return fmt.Errorf("keystore doesn't exist at %s", FS_TEMPORARY+name)
-	}
-
 }
 
 func accountsPaths(b *backend) []*framework.Path {
@@ -71,9 +41,10 @@ func accountsPaths(b *backend) []*framework.Path {
 			HelpSynopsis: "Create an Ethereum account using a generated or provided passphrase",
 			HelpDescription: `
 
-Creates (or updates) an Ethereum externally owned account (EOAs): an account controlled by a private key.
-Optionally generates a high-entropy passphrase with the provided length and requirements. The passphrase
-is not returned, but it is stored at a separate path (accounts/<name>/passphrase) to allow fine
+Creates (or updates) an Ethereum externally owned account (EOAs): an account controlled by a private key. Also
+creates a geth compatible keystore that is protected by a passphrase that can be supplied or optionally
+generated. The generator produces a high-entropy passphrase with the provided length and requirements.
+The passphrase is not returned, but it is stored at a separate path (accounts/<name>/passphrase) to allow fine
 grained access controls over exposure of the passphrase. The update operation will create a new keystore using
 the new passphrase.
 
@@ -214,8 +185,9 @@ func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldDa
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"address":  account.Address,
-			"rpc_url":  account.RPC,
 			"chain_id": account.ChainID,
+			"keystore": fmt.Sprintf("%s", account.JSONKeystore),
+			"rpc_url":  account.RPC,
 		},
 	}, nil
 }
@@ -258,9 +230,9 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"account":  accountJSON.Address,
+			"chain_id": accountJSON.ChainID,
 			"keystore": fmt.Sprintf("%s", jsonKeystore),
 			"rpc_url":  accountJSON.RPC,
-			"chain_id": accountJSON.ChainID,
 		},
 	}, nil
 }
@@ -312,9 +284,9 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"address":  account.Address,
+			"chain_id": account.ChainID,
 			"keystore": fmt.Sprintf("%s", account.JSONKeystore),
 			"rpc_url":  account.RPC,
-			"chain_id": account.ChainID,
 		},
 	}, nil
 }
@@ -374,6 +346,7 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	}
 	encoded, _ := rlp.EncodeToBytes(signedTx)
 	hexutil.Encode(encoded[:])
+	b.removeTemporaryKeystore(req.Path)
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"signed_tx": hexutil.Encode(encoded[:]),

@@ -1,6 +1,6 @@
 # !/usr/bash
 
-vault unmount ethereum/org/bar
+vault unmount ethereum
 vault delete sys/plugins/catalog/ethereum-plugin
 cd ..
 go build
@@ -9,4 +9,4 @@ export SHA256=$(shasum -a 256 "/etc/vault.d/vault_plugins/vault-ethereum" | cut 
 vault write sys/plugins/catalog/ethereum-plugin \
       sha_256="${SHA256}" \
       command="vault-ethereum --ca-cert=/etc/vault.d/root.crt --client-cert=/etc/vault.d/vault.crt --client-key=/etc/vault.d/vault.key"
- vault mount -path="ethereum/org/bar" -plugin-name="ethereum-plugin" plugin
+ vault mount -path="ethereum" -plugin-name="ethereum-plugin" plugin
