@@ -9,7 +9,11 @@ import (
 	"strings"
 
 	accounts "github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/hashicorp/vault/logical"
 )
 
@@ -45,7 +49,6 @@ func (b *backend) removeTemporaryKeystore(name string) error {
 	} else {
 		return fmt.Errorf("keystore doesn't exist at %s", PathTempDir+name)
 	}
-
 }
 
 func convertMapToStringValue(initial map[string]interface{}) map[string]string {
@@ -148,4 +151,51 @@ func (b *backend) readJSONKeystore(keystorePath string) ([]byte, error) {
 		}
 		return jsonKeystore, nil
 	}
+}
+
+func (b *backend) ContractTransactor(key *ecdsa.PrivateKey) *bind.TransactOpts {
+	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
+	return &bind.TransactOpts{
+		From: keyAddr,
+		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			if address != keyAddr {
+				return nil, errors.New("not authorized to sign this account")
+			}
+			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key)
+			if err != nil {
+				return nil, err
+			}
+			return tx.WithSignature(signer, signature)
+		},
+	}
+}
+
+func (b *backend) readAccount(req *logical.Request, path string) (*Account, error) {
+	accountEntry, err := req.Storage.Get(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var account Account
+	err = accountEntry.DecodeJSON(&account)
+
+	if err != nil {
+		return nil, err
+	}
+	if accountEntry == nil {
+		return nil, nil
+	}
+	return &account, nil
+}
+
+func (b *backend) getAccountPrivateKey(path string, account Account) (*keystore.Key, error) {
+	_, err := b.createTemporaryKeystore(path)
+	if err != nil {
+		return nil, err
+	}
+	keystorePath := strings.Replace(account.URL, ProtocolKeystore, "", -1)
+	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
+	key, err := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
+	b.removeTemporaryKeystore(path)
+	return key, nil
 }

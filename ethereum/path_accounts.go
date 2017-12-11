@@ -1,12 +1,9 @@
 package ethereum
 
 import (
-	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -142,6 +139,25 @@ Sign and create an Ethereum contract transaction from a given Ethereum account.
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.CreateOperation: b.pathTransactionSign,
+			},
+		},
+		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign",
+			HelpSynopsis: "Hash and sign data",
+			HelpDescription: `
+
+Hash and sign data using a given Ethereum account.
+
+`,
+			Fields: map[string]*framework.FieldSchema{
+				"data": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The data to hash (keccak) and sign.",
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathSign,
 			},
 		},
 	}
@@ -327,31 +343,16 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	input := []byte(data.Get("transaction_data").(string))
 
 	prunedPath := strings.Replace(req.Path, "/sign-contract", "", -1)
-	accountEntry, err := req.Storage.Get(prunedPath)
+	account, err := b.readAccount(req, prunedPath)
 	if err != nil {
 		return nil, err
-	}
-
-	var account Account
-	err = accountEntry.DecodeJSON(&account)
-
-	if err != nil {
-		return nil, err
-	}
-	if accountEntry == nil {
-		return nil, nil
 	}
 	chainID := math.MustParseBig256(account.ChainID)
-	_, err = b.createTemporaryKeystore(req.Path)
+	key, err := b.getAccountPrivateKey(prunedPath, *account)
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.URL, ProtocolKeystore, "", -1)
-	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
-	key, err := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
-	if err != nil {
-		return nil, err
-	}
+	defer zeroKey(key.PrivateKey)
 
 	transactor := b.ContractTransactor(key.PrivateKey)
 	var rawTx *types.Transaction
@@ -365,8 +366,10 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 		return nil, err
 	}
 
-	hexutil.Encode(encoded[:])
-	b.removeTemporaryKeystore(req.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"signed_tx": hexutil.Encode(encoded[:]),
@@ -374,19 +377,29 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	}, nil
 }
 
-func (b *backend) ContractTransactor(key *ecdsa.PrivateKey) *bind.TransactOpts {
-	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
-	return &bind.TransactOpts{
-		From: keyAddr,
-		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
-			if address != keyAddr {
-				return nil, errors.New("not authorized to sign this account")
-			}
-			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key)
-			if err != nil {
-				return nil, err
-			}
-			return tx.WithSignature(signer, signature)
-		},
+func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathSign", "path", req.Path)
+
+	input := []byte(data.Get("data").(string))
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
+	hash := crypto.Keccak256([]byte(msg))
+	prunedPath := strings.Replace(req.Path, "/sign", "", -1)
+	account, err := b.readAccount(req, prunedPath)
+	if err != nil {
+		return nil, err
 	}
+	key, err := b.getAccountPrivateKey(prunedPath, *account)
+	if err != nil {
+		return nil, err
+	}
+	defer zeroKey(key.PrivateKey)
+	signature, err := crypto.Sign(hash, key.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"signature": hexutil.Encode(signature[:]),
+		},
+	}, nil
 }

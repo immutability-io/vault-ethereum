@@ -10,6 +10,7 @@ This plugin provides services to:
 * Import JSON keystores (with provided passphrase.)
 * Export JSON keystores (in development.)
 * Sign transactions for contract deployment
+* Sign arbitrary data
 * Send transactions (in development.)
 
 All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. It is not necessary for this plugin to use a passphrase to protect private keys, however, at present that is the design choice.
@@ -113,6 +114,15 @@ Now, we can use the imported account as we did with our generated account:
 
 ```sh
 $ vault write ethereum/accounts/test2/sign-contract transaction_data=@./out/Helloworld.bin value=3 gas_limit=1000000 gas_price=500000 nonce=1
+```
+
+We can also sign arbitrary data using the `sign` endpoint:
+
+```sh
+$ vault write ethereum/accounts/test2/sign  data=@../data/test.txt
+Key      	Value
+---      	-----
+signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027daed083675b5af5c99b3f1608b53620cd02ca51a65b67773b1580552deb501
 ```
 
 ## Storing passphrases
@@ -473,6 +483,57 @@ The example below shows output for the successful signing of a contract by the p
   "lease_duration": 0,
   "data": {
     "signed_tx": "0xf90231018307a120830f42408003b901e03630363036303430353233343135363130303066353736303030383066643562363064333830363130303164363030303339363030306633303036303630363034303532363030343336313036303439353736303030333537633031303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303039303034363366666666666666663136383036333630666534376231313436303465353738303633366434636536336331343630366535373562363030303830666435623334313536303538353736303030383066643562363036633630303438303830333539303630323030313930393139303530353036303934353635623030356233343135363037383537363030303830666435623630376536303965353635623630343035313830383238313532363032303031393135303530363034303531383039313033393066333562383036303030383139303535353035303536356236303030383035343930353039303536303061313635363237613761373233303538323064346234393631313833383934636631313936626361666262653464323537336139323532393664666638326139646362633065386264383032376231353366303032392ca0c63156377cc040bbf2be7d3a045bf4b8fa88f4969159f0d4377dfd0ac6fd76e2a02fa4f5dd0058d4343a4402918bfcb858a5da3fcb4023ebeb4de1bb469cb1122a"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+
+### SIGN DATA
+
+This endpoint will sign the provided data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/sign`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some data.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "this is very important"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test9/sign | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful signing of some data by the private key associated with  `/ethereum/accounts/test2`.
+
+```
+{
+  "request_id": "5491a21c-7541-f48c-d573-0d241f12bfd3",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "signature": "0xb5d19f676208d20861336cfc38da1012716d15ca8e23a18fd46f65a18e6fef8f313d2ba6aa424f9c096076ceb8d6cd4bd48fac520e9df592e51869fd5cebad0801"
   },
   "wrap_info": null,
   "warnings": null,
