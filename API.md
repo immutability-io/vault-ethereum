@@ -425,7 +425,7 @@ The following sends 10 ETH to `0xa152E7a09267bcFf6C33388cAab403b76B889939`.
 
 {
   "value":"10000000000000000000",
-  "to": "0xa152E7a09267bcFf6C33388cAab403b76B889939"
+  "to": "0x0374E76DA2f0bE85a9FdC6763864c1087e6Ed28b"
 }
 ```
 
@@ -436,4 +436,24 @@ $ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" 
     --request POST \
     --data @payload.json \
     https://localhost:8200/v1/ethereum/accounts/test2/debit | jq .
+```
+
+#### Sample Response
+
+The example below shows the output for the successfully sending ETH from `/ethereum/accounts/test2`. The Transaction hash is returned.
+
+```
+{
+  "request_id": "3660838f-2ddc-f92b-8796-9351f7d123dd",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "tx_hash": "0xdd675f368e5002212f8bdb50f17a0cd8e4433dd0fda9d7dd181a4c28e4dccb83"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+
 ```

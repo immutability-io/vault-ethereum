@@ -490,6 +490,11 @@ func (b *backend) pathSendEth(req *logical.Request, data *framework.FieldData) (
 	if err != nil {
 		return nil, err
 	}
+	txHash := rawTx.Hash().Hex()
 
-	return nil, err
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"tx_hash": txHash,
+		},
+	}, nil
 }

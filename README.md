@@ -122,6 +122,9 @@ We can also sign arbitrary data using the `sign` endpoint:
 
 ```sh
 $ vault write ethereum/accounts/test2/sign  data=@../data/test.txt
+```
+
+```
 Key      	Value
 ---      	-----
 signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027daed083675b5af5c99b3f1608b53620cd02ca51a65b67773b1580552deb501
@@ -133,6 +136,13 @@ Now that we have accounts in Vault, we can drain them! We can send ETH to other 
 
 ```sh
 $ vault write ethereum/accounts/test3/debit to=0x0374E76DA2f0bE85a9FdC6763864c1087e6Ed28b value=10000000000000000000
+```
+
+```
+Key    	Value
+---    	-----
+tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
+
 ```
 
 This defaults `gas_limit` to 50000 with a default `gas_price` of 20 gwei.
