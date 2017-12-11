@@ -23,7 +23,6 @@ const (
 	MaxKeystoreSize     int64  = 1024 // Just a heuristic to prevent reading stupid big files
 	RequestPathImport   string = "import"
 	RequestPathAccounts string = "accounts"
-	DefaultGasPrice     int64  = 20000000000
 )
 
 func (b *backend) buildKeystoreURL(filename string) string {

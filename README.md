@@ -11,7 +11,9 @@ This plugin provides services to:
 * Export JSON keystores (in development.)
 * Sign transactions for contract deployment
 * Sign arbitrary data
-* Send transactions (in development.)
+* Send Ethereum
+* Deploy contracts (in development.)
+* Execute contracts (in development.)
 
 All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. It is not necessary for this plugin to use a passphrase to protect private keys, however, at present that is the design choice.
 
@@ -124,6 +126,16 @@ Key      	Value
 ---      	-----
 signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027daed083675b5af5c99b3f1608b53620cd02ca51a65b67773b1580552deb501
 ```
+
+## Sending Ethereum
+
+Now that we have accounts in Vault, we can drain them! We can send ETH to other accounts on the network. (In my case, it must be emphasized: this is a private test network or Rinkeby.) Assuming there are funds in the account, we can send ETH to another address. In this case, we write a `debit` to the `test3` account:
+
+```sh
+$ vault write ethereum/accounts/test3/debit to=0x0374E76DA2f0bE85a9FdC6763864c1087e6Ed28b value=10000000000000000000
+```
+
+This defaults `gas_limit` to 50000 with a default `gas_price` of 20 gwei.
 
 ## Storing passphrases
 
@@ -539,6 +551,43 @@ The example below shows output for the successful signing of some data by the pr
   "warnings": null,
   "auth": null
 }
+```
+
+### SEND ETHEREUM/DEBIT ACCOUNT
+
+This endpoint will debit an Ethereum account.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/debit`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `to` (`string: <required>`) - A Hex string specifying the Ethereum address to send the Ether `to`.
+* `value` (`string: <required>`) - The amount of ether - in wei.
+* `gas_price` (`string: <optional> - defaults to 20000000000`) - The price in gas for the transaction.
+* `gas_limit` (`string: <optional> - defaults to 50000`) - The gas limit for the transaction.
+
+#### Sample Payload
+
+The following sends 10 ETH to `0xa152E7a09267bcFf6C33388cAab403b76B889939`.
+
+```sh
+
+{
+  "value":"10000000000000000000",
+  "to": "0xa152E7a09267bcFf6C33388cAab403b76B889939"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test2/debit | jq .
 ```
 
 ## Plugin Setup

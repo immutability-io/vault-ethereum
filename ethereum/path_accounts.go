@@ -3,7 +3,6 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strings"
 	"time"
 
@@ -147,7 +146,7 @@ Sign and create an Ethereum contract transaction from a given Ethereum account.
 			},
 		},
 		&framework.Path{
-			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/send-eth",
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/debit",
 			HelpSynopsis: "Sign and create an Ethereum contract transaction",
 			HelpDescription: `
 
@@ -167,6 +166,11 @@ Sign and create an Ethereum contract transaction from a given Ethereum account.
 					Type:        framework.TypeString,
 					Description: "The gas limit for the transaction.",
 					Default:     "50000",
+				},
+				"gas_price": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The gas price for the transaction in wei.",
+					Default:     "20000000000",
 				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
@@ -439,11 +443,11 @@ func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*lo
 
 func (b *backend) pathSendEth(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	b.Logger().Info("pathSendEth", "path", req.Path)
-	prunedPath := strings.Replace(req.Path, "/send-eth", "", -1)
+	prunedPath := strings.Replace(req.Path, "/debit", "", -1)
 	value := math.MustParseBig256(data.Get("value").(string))
 	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
+	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
 	toAddress := common.HexToAddress(data.Get("to").(string))
-	gasPrice := big.NewInt(DefaultGasPrice)
 
 	account, err := b.readAccount(req, prunedPath)
 	if err != nil {
