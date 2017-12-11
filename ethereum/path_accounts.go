@@ -1,8 +1,11 @@
 package ethereum
 
 import (
+	"context"
 	"fmt"
+	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
@@ -10,7 +13,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rlp"
+	rpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 	"github.com/sethvargo/go-diceware/diceware"
@@ -50,7 +55,7 @@ the new passphrase.
 				"rpc_url": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The RPC URL for the Ethereum node.",
-					Default:     "localhost:8545",
+					Default:     "http://localhost:8545",
 				},
 				"chain_id": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -138,7 +143,35 @@ Sign and create an Ethereum contract transaction from a given Ethereum account.
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.CreateOperation: b.pathTransactionSign,
+				logical.CreateOperation: b.pathSignContract,
+			},
+		},
+		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/send-eth",
+			HelpSynopsis: "Sign and create an Ethereum contract transaction",
+			HelpDescription: `
+
+		Sign and create an Ethereum contract transaction from a given Ethereum account.
+
+		`,
+			Fields: map[string]*framework.FieldSchema{
+				"to": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The address of the account to send ETH to.",
+				},
+				"value": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Value in ETH.",
+				},
+				"gas_limit": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The gas limit for the transaction.",
+					Default:     "50000",
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathSendEth,
 			},
 		},
 		&framework.Path{
@@ -333,8 +366,8 @@ func (b *backend) pathAccountsList(req *logical.Request, data *framework.FieldDa
 	return logical.ListResponse(vals), nil
 }
 
-func (b *backend) pathTransactionSign(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathTransactionSign", "path", req.Path)
+func (b *backend) pathSignContract(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathSignContract", "path", req.Path)
 
 	value := math.MustParseBig256(data.Get("value").(string))
 	nonce := math.MustParseUint64(data.Get("nonce").(string))
@@ -354,7 +387,7 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	}
 	defer zeroKey(key.PrivateKey)
 
-	transactor := b.ContractTransactor(key.PrivateKey)
+	transactor := b.NewTransactor(key.PrivateKey)
 	var rawTx *types.Transaction
 	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
@@ -402,4 +435,57 @@ func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*lo
 			"signature": hexutil.Encode(signature[:]),
 		},
 	}, nil
+}
+
+func (b *backend) pathSendEth(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathSendEth", "path", req.Path)
+	prunedPath := strings.Replace(req.Path, "/send-eth", "", -1)
+	value := math.MustParseBig256(data.Get("value").(string))
+	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
+	toAddress := common.HexToAddress(data.Get("to").(string))
+	gasPrice := big.NewInt(DefaultGasPrice)
+
+	account, err := b.readAccount(req, prunedPath)
+	if err != nil {
+		return nil, err
+	}
+	chainID := math.MustParseBig256(account.ChainID)
+	key, err := b.getAccountPrivateKey(prunedPath, *account)
+	if err != nil {
+		return nil, err
+	}
+	defer zeroKey(key.PrivateKey)
+
+	transactor := b.NewTransactor(key.PrivateKey)
+	var rawTx *types.Transaction
+
+	client, err := rpc.Dial(account.RPC)
+	if err != nil {
+		return nil, err
+	}
+	ethClient := ethclient.NewClient(client)
+	fromAddress := common.HexToAddress(account.Address)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	nonce, err := ethClient.NonceAt(ctx, fromAddress, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	rawTx = types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
+	if err != nil {
+		return nil, err
+	}
+	ethClient.SendTransaction(ctx, signedTx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, err
 }

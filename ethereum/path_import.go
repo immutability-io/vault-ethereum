@@ -31,7 +31,7 @@ Reads a JSON keystore, decrypts it and stores the passphrase.
 				"rpc_url": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The RPC URL for the Ethereum node.",
-					Default:     "localhost:8545",
+					Default:     "http://localhost:8545",
 				},
 				"chain_id": &framework.FieldSchema{
 					Type:        framework.TypeString,
