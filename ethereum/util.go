@@ -14,15 +14,15 @@ import (
 )
 
 const (
-	FS_TEMPORARY      string = "/tmp/"
-	PROTOCOL_KEYSTORE string = "keystore://"
-	MAX_KEYSTORE_SIZE int64  = 1024 // Just a heuristic to prevent reading stupid big files
-	PATH_IMPORT       string = "import"
-	PATH_ACCOUNTS     string = "accounts"
+	PathTempDir         string = "/tmp/"
+	ProtocolKeystore    string = "keystore://"
+	MaxKeystoreSize     int64  = 1024 // Just a heuristic to prevent reading stupid big files
+	RequestPathImport   string = "import"
+	RequestPathAccounts string = "accounts"
 )
 
 func (b *backend) buildKeystoreURL(filename string) string {
-	return PROTOCOL_KEYSTORE + FS_TEMPORARY + filename
+	return ProtocolKeystore + PathTempDir + filename
 }
 
 func (b *backend) writeTemporaryKeystoreFile(path string, data []byte) error {
@@ -30,20 +30,20 @@ func (b *backend) writeTemporaryKeystoreFile(path string, data []byte) error {
 }
 
 func (b *backend) createTemporaryKeystore(name string) (string, error) {
-	file, _ := os.Open(FS_TEMPORARY + name)
+	file, _ := os.Open(PathTempDir + name)
 	if file != nil {
 		file.Close()
-		return "", fmt.Errorf("account already exists at %s", FS_TEMPORARY+name)
+		return "", fmt.Errorf("account already exists at %s", PathTempDir+name)
 	}
-	return FS_TEMPORARY + name, os.MkdirAll(FS_TEMPORARY+name, os.FileMode(0522))
+	return PathTempDir + name, os.MkdirAll(PathTempDir+name, os.FileMode(0522))
 }
 
 func (b *backend) removeTemporaryKeystore(name string) error {
-	file, _ := os.Open(FS_TEMPORARY + name)
+	file, _ := os.Open(PathTempDir + name)
 	if file != nil {
-		return os.RemoveAll(FS_TEMPORARY + name)
+		return os.RemoveAll(PathTempDir + name)
 	} else {
-		return fmt.Errorf("keystore doesn't exist at %s", FS_TEMPORARY+name)
+		return fmt.Errorf("keystore doesn't exist at %s", PathTempDir+name)
 	}
 
 }
@@ -133,8 +133,12 @@ func (b *backend) readJSONKeystore(keystorePath string) ([]byte, error) {
 	var jsonKeystore []byte
 	file, err := os.Open(keystorePath)
 	defer file.Close()
-	stat, _ := file.Stat()
-	if stat.Size() > MAX_KEYSTORE_SIZE {
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	if stat.Size() > MaxKeystoreSize {
 		err = fmt.Errorf("keystore is suspiciously large at %d bytes", stat.Size())
 		return nil, err
 	} else {

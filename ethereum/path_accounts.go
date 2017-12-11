@@ -214,15 +214,22 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.URL.String(), PROTOCOL_KEYSTORE, "", -1)
-	jsonKeystore, _ := b.readJSONKeystore(keystorePath)
+	keystorePath := strings.Replace(account.URL.String(), ProtocolKeystore, "", -1)
+	jsonKeystore, err := b.readJSONKeystore(keystorePath)
+	if err != nil {
+		return nil, err
+	}
 	accountJSON := &Account{Address: account.Address.Hex(),
 		RPC:          rpc,
 		ChainID:      chainID,
 		Passphrase:   passphrase,
 		URL:          account.URL.String(),
 		JSONKeystore: jsonKeystore}
-	entry, _ := logical.StorageEntryJSON(req.Path, accountJSON)
+	entry, err := logical.StorageEntryJSON(req.Path, accountJSON)
+	if err != nil {
+		return nil, err
+	}
+
 	err = req.Storage.Put(entry)
 	if err != nil {
 		return nil, err
@@ -265,7 +272,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.URL, PROTOCOL_KEYSTORE, "", -1)
+	keystorePath := strings.Replace(account.URL, ProtocolKeystore, "", -1)
 	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
 
 	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
@@ -320,9 +327,13 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	input := []byte(data.Get("transaction_data").(string))
 
 	prunedPath := strings.Replace(req.Path, "/sign-contract", "", -1)
-	accountEntry, _ := req.Storage.Get(prunedPath)
+	accountEntry, err := req.Storage.Get(prunedPath)
+	if err != nil {
+		return nil, err
+	}
+
 	var account Account
-	err := accountEntry.DecodeJSON(&account)
+	err = accountEntry.DecodeJSON(&account)
 
 	if err != nil {
 		return nil, err
@@ -335,9 +346,13 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.URL, PROTOCOL_KEYSTORE, "", -1)
+	keystorePath := strings.Replace(account.URL, ProtocolKeystore, "", -1)
 	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
-	key, _ := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
+	key, err := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
+	if err != nil {
+		return nil, err
+	}
+
 	transactor := b.ContractTransactor(key.PrivateKey)
 	var rawTx *types.Transaction
 	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
@@ -345,7 +360,11 @@ func (b *backend) pathTransactionSign(req *logical.Request, data *framework.Fiel
 	if err != nil {
 		return nil, err
 	}
-	encoded, _ := rlp.EncodeToBytes(signedTx)
+	encoded, err := rlp.EncodeToBytes(signedTx)
+	if err != nil {
+		return nil, err
+	}
+
 	hexutil.Encode(encoded[:])
 	b.removeTemporaryKeystore(req.Path)
 	return &logical.Response{

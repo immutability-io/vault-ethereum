@@ -49,7 +49,7 @@ Reads a JSON keystore, decrypts it and stores the passphrase.
 
 func (b *backend) pathImportExistenceCheck(req *logical.Request, data *framework.FieldData) (bool, error) {
 	b.Logger().Info("pathImportExistenceCheck", "path", req.Path)
-	accountPath := strings.Replace(req.Path, PATH_IMPORT, PATH_ACCOUNTS, -1)
+	accountPath := strings.Replace(req.Path, RequestPathImport, RequestPathAccounts, -1)
 	return pathExists(req, accountPath)
 }
 
@@ -57,7 +57,7 @@ func (b *backend) pathImportCreate(req *logical.Request, data *framework.FieldDa
 	b.Logger().Info("pathImportCreate", "path", req.Path)
 	rpc := data.Get("rpc_url").(string)
 	chainID := data.Get("chain_id").(string)
-	accountPath := strings.Replace(req.Path, PATH_IMPORT, PATH_ACCOUNTS, -1)
+	accountPath := strings.Replace(req.Path, RequestPathImport, RequestPathAccounts, -1)
 	exists, err := pathExists(req, accountPath)
 	if !exists || err != nil {
 		keystorePath := data.Get("path").(string)
@@ -75,7 +75,10 @@ func (b *backend) pathImportCreate(req *logical.Request, data *framework.FieldDa
 			URL:          b.buildKeystoreURL(filename),
 			JSONKeystore: jsonKeystore}
 
-		entry, _ := logical.StorageEntryJSON(accountPath, accountJSON)
+		entry, err := logical.StorageEntryJSON(accountPath, accountJSON)
+		if err != nil {
+			return nil, err
+		}
 
 		err = req.Storage.Put(entry)
 		if err != nil {
