@@ -39,7 +39,7 @@ Key     	Value
 account 	0xD010BB32d6243d70Eb863610674a50EaEdfF8474
 chain_id	4
 keystore	{"address":"d010bb32d6243d70eb863610674a50eaedff8474","crypto":{"cipher":"aes-128-ctr","ciphertext":"fddf50de1041e87d45049fb7c1a2826487d08fc4f0664ab1decbf271e141d706","cipherparams":{"iv":"50d40092713acc1fb915d95b7e896f8b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"c274e45dfdfc8c912f96130936b48102dfe5c216f3fab417d3109446de448f0a"},"mac":"a51ce95867fefadc2846b30ddb8ba3d911faf5649718c9344ecb61c337ae806c"},"id":"a04d13d2-2319-481f-82e1-e86b3fc6a86a","version":3}
-rpc_url 	localhost:8545
+rpc_url 	http://localhost:8545
 ```
 
 The parameters `chain_id` and `rpc_url` are defaults and can be customized when writing an account. The `keystore` can be copied to the `geth` keystore directory, if desired. Also note that the passphrase that is used to encrypt the `keystore` is **NOT** returned.
@@ -56,7 +56,7 @@ Key     	Value
 address 	0xD010BB32d6243d70Eb863610674a50EaEdfF8474
 chain_id	4
 keystore	{"address":"d010bb32d6243d70eb863610674a50eaedff8474","crypto":{"cipher":"aes-128-ctr","ciphertext":"fddf50de1041e87d45049fb7c1a2826487d08fc4f0664ab1decbf271e141d706","cipherparams":{"iv":"50d40092713acc1fb915d95b7e896f8b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"c274e45dfdfc8c912f96130936b48102dfe5c216f3fab417d3109446de448f0a"},"mac":"a51ce95867fefadc2846b30ddb8ba3d911faf5649718c9344ecb61c337ae806c"},"id":"a04d13d2-2319-481f-82e1-e86b3fc6a86a","version":3}
-rpc_url 	localhost:8545
+rpc_url 	http://localhost:8545
 ```
 
 If we need to access the passphrase, we can do the following:
