@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rlp"
 	rpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
@@ -23,7 +22,7 @@ import (
 type Account struct {
 	Address      string `json:"address"` // Ethereum account address derived from the key
 	Passphrase   string `json:"passphrase"`
-	URL          string `json:"url"`
+	KeystoreURL  string `json:"keystore_url"`
 	RPC          string `json:"rpc_url"`
 	ChainID      string `json:"chain_id"`
 	JSONKeystore []byte `json:"json_keystore"`
@@ -73,7 +72,7 @@ the new passphrase.
 				"words": &framework.FieldSchema{
 					Type:        framework.TypeInt,
 					Description: "Number of words for the passphrase.",
-					Default:     6,
+					Default:     8,
 				},
 				"separator": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -87,6 +86,25 @@ the new passphrase.
 				logical.CreateOperation: b.pathAccountsCreate,
 				logical.UpdateOperation: b.pathAccountsUpdate,
 				logical.DeleteOperation: b.pathAccountsDelete,
+			},
+		},
+		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/export",
+			HelpSynopsis: "Export a single Ethereum JSON keystore from vault into the provided directory.",
+			HelpDescription: `
+
+Writes a JSON keystore to a folder (e.g., /Users/immutability/.ethereum/keystore).
+
+`,
+			Fields: map[string]*framework.FieldSchema{
+				"directory": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Directory to export the keystore into - must be an absolute path.",
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathExportCreate,
 			},
 		},
 		&framework.Path{
@@ -110,47 +128,11 @@ stored as an encrypted JSON keystore, so to use it you need to decrypt it.
 			},
 		},
 		&framework.Path{
-			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign-contract",
-			HelpSynopsis: "Sign and create an Ethereum contract transaction",
-			HelpDescription: `
-
-Sign and create an Ethereum contract transaction from a given Ethereum account.
-
-`,
-			Fields: map[string]*framework.FieldSchema{
-				"transaction_data": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The transaction data.",
-				},
-				"value": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "Value in ETH.",
-				},
-				"nonce": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The transaction nonce.",
-					Default:     "1",
-				},
-				"gas_price": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The price in gas for the transaction.",
-				},
-				"gas_limit": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The gas limit for the transaction.",
-				},
-			},
-			ExistenceCheck: b.pathExistenceCheck,
-			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.CreateOperation: b.pathSignContract,
-			},
-		},
-		&framework.Path{
 			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/debit",
 			HelpSynopsis: "Sign and create an Ethereum contract transaction",
 			HelpDescription: `
 
-		Sign and create an Ethereum contract transaction from a given Ethereum account.
+		Send ether from a given Ethereum account.
 
 		`,
 			Fields: map[string]*framework.FieldSchema{
@@ -175,7 +157,7 @@ Sign and create an Ethereum contract transaction from a given Ethereum account.
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.CreateOperation: b.pathSendEth,
+				logical.CreateOperation: b.pathDebit,
 			},
 		},
 		&framework.Path{
@@ -235,13 +217,37 @@ func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldDa
 		return nil, nil
 	}
 
+	client, err := rpc.Dial(account.RPC)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	ethClient := ethclient.NewClient(client)
+	accountAddr := common.HexToAddress(account.Address)
+	pendingBalance, err := ethClient.PendingBalanceAt(ctx, accountAddr)
+	if err != nil {
+		return nil, err
+	}
+	pendingNonce, err := ethClient.PendingNonceAt(ctx, accountAddr)
+	if err != nil {
+		return nil, err
+	}
+	pendingTxCount, err := ethClient.PendingTransactionCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// Return the secret
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"address":  account.Address,
-			"chain_id": account.ChainID,
-			"keystore": fmt.Sprintf("%s", account.JSONKeystore),
-			"rpc_url":  account.RPC,
+			"pending_balance":           pendingBalance.String(),
+			"pending_nonce":             fmt.Sprintf("%d", pendingNonce),
+			"pending_transaction_count": fmt.Sprintf("%d", pendingTxCount),
+			"address":                   account.Address,
+			"chain_id":                  account.ChainID,
+			"keystore":                  fmt.Sprintf("%s", account.JSONKeystore),
+			"rpc_url":                   account.RPC,
 		},
 	}, nil
 }
@@ -276,7 +282,7 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		RPC:          rpc,
 		ChainID:      chainID,
 		Passphrase:   passphrase,
-		URL:          account.URL.String(),
+		KeystoreURL:  account.URL.String(),
 		JSONKeystore: jsonKeystore}
 	entry, err := logical.StorageEntryJSON(req.Path, accountJSON)
 	if err != nil {
@@ -325,7 +331,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.URL, ProtocolKeystore, "", -1)
+	keystorePath := strings.Replace(account.KeystoreURL, ProtocolKeystore, "", -1)
 	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
 
 	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
@@ -370,50 +376,6 @@ func (b *backend) pathAccountsList(req *logical.Request, data *framework.FieldDa
 	return logical.ListResponse(vals), nil
 }
 
-func (b *backend) pathSignContract(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathSignContract", "path", req.Path)
-
-	value := math.MustParseBig256(data.Get("value").(string))
-	nonce := math.MustParseUint64(data.Get("nonce").(string))
-	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
-	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
-	input := []byte(data.Get("transaction_data").(string))
-
-	prunedPath := strings.Replace(req.Path, "/sign-contract", "", -1)
-	account, err := b.readAccount(req, prunedPath)
-	if err != nil {
-		return nil, err
-	}
-	chainID := math.MustParseBig256(account.ChainID)
-	key, err := b.getAccountPrivateKey(prunedPath, *account)
-	if err != nil {
-		return nil, err
-	}
-	defer zeroKey(key.PrivateKey)
-
-	transactor := b.NewTransactor(key.PrivateKey)
-	var rawTx *types.Transaction
-	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
-	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
-	if err != nil {
-		return nil, err
-	}
-	encoded, err := rlp.EncodeToBytes(signedTx)
-	if err != nil {
-		return nil, err
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &logical.Response{
-		Data: map[string]interface{}{
-			"signed_tx": hexutil.Encode(encoded[:]),
-		},
-	}, nil
-}
-
 func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	b.Logger().Info("pathSign", "path", req.Path)
 
@@ -441,8 +403,8 @@ func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*lo
 	}, nil
 }
 
-func (b *backend) pathSendEth(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathSendEth", "path", req.Path)
+func (b *backend) pathDebit(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathDebit", "path", req.Path)
 	prunedPath := strings.Replace(req.Path, "/debit", "", -1)
 	value := math.MustParseBig256(data.Get("value").(string))
 	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
@@ -495,6 +457,25 @@ func (b *backend) pathSendEth(req *logical.Request, data *framework.FieldData) (
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"tx_hash": txHash,
+		},
+	}, nil
+}
+
+func (b *backend) pathExportCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathExportCreate", "path", req.Path)
+	directory := data.Get("directory").(string)
+	prunedPath := strings.Replace(req.Path, "/export", "", -1)
+	account, err := b.readAccount(req, prunedPath)
+	if err != nil {
+		return nil, err
+	}
+	filePath, err := b.exportKeystore(directory, prunedPath, account)
+	if err != nil {
+		return nil, err
+	}
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"path": filePath,
 		},
 	}, nil
 }

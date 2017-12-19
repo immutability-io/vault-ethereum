@@ -193,9 +193,30 @@ func (b *backend) getAccountPrivateKey(path string, account Account) (*keystore.
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.URL, ProtocolKeystore, "", -1)
+	keystorePath := strings.Replace(account.KeystoreURL, ProtocolKeystore, "", -1)
 	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
 	key, err := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
 	b.removeTemporaryKeystore(path)
 	return key, nil
+}
+
+func (b *backend) exportKeystore(path string, accountPath string, account *Account) (string, error) {
+	keystorePath := strings.Replace(account.KeystoreURL, ProtocolKeystore, "", -1)
+	b.Logger().Info("Directory", "path", path)
+	b.Logger().Info("Starting Keystore path", "keystorePath", keystorePath)
+	directory := path
+	pieces := strings.Split(keystorePath, "/tmp/"+accountPath+"/")
+	if len(pieces) == 2 {
+		b.Logger().Info("Piece", "pieces[1]", pieces[1])
+		if !strings.HasSuffix(path, "/") {
+			directory = directory + "/" + pieces[1]
+		} else {
+			directory = directory + pieces[1]
+		}
+	} else {
+		return "", fmt.Errorf("can't parse path: %s", keystorePath)
+	}
+	b.Logger().Info("Keystore path", "directory", directory)
+	b.writeTemporaryKeystoreFile(directory, account.JSONKeystore)
+	return directory, nil
 }

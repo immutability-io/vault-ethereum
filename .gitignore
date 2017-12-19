@@ -14,3 +14,7 @@
 .glide/
 **/.DS_Store
 data
+**/scripts
+scripts/**
+**/todo
+todo/**

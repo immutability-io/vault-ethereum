@@ -43,6 +43,7 @@ func Backend() *backend {
 		Paths: framework.PathAppend(
 			importPaths(&b),
 			accountsPaths(&b),
+			contractsPaths(&b),
 		),
 		Secrets:     []*framework.Secret{},
 		BackendType: logical.TypeLogical,
