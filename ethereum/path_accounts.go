@@ -211,34 +211,7 @@ func (b *backend) pathPassphraseRead(req *logical.Request, data *framework.Field
 
 func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	b.Logger().Info("pathAccountsRead", "path", req.Path)
-	entry, err := req.Storage.Get(req.Path)
-	var account Account
-	err = entry.DecodeJSON(&account)
-
-	if err != nil {
-		return nil, err
-	}
-	if entry == nil {
-		return nil, nil
-	}
-
-	client, err := rpc.Dial(account.RPC)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	ethClient := ethclient.NewClient(client)
-	accountAddr := common.HexToAddress(account.Address)
-	pendingBalance, err := ethClient.PendingBalanceAt(ctx, accountAddr)
-	if err != nil {
-		return nil, err
-	}
-	pendingNonce, err := ethClient.PendingNonceAt(ctx, accountAddr)
-	if err != nil {
-		return nil, err
-	}
-	pendingTxCount, err := ethClient.PendingTransactionCount(ctx)
+	account, err := b.readAccount(req, req.Path, true)
 	if err != nil {
 		return nil, err
 	}
@@ -246,9 +219,9 @@ func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldDa
 	// Return the secret
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"pending_balance":  pendingBalance.String(),
-			"pending_nonce":    fmt.Sprintf("%d", pendingNonce),
-			"pending_tx_count": fmt.Sprintf("%d", pendingTxCount),
+			"pending_balance":  account.PendingBalance.String(),
+			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
+			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
 			"address":          account.Address,
 			"chain_id":         account.ChainID,
 			"rpc_url":          account.RPC,
@@ -323,12 +296,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	} else if passphrase == "" {
 		return nil, fmt.Errorf("nothing to update - no passphrase supplied")
 	}
-	entry, err := req.Storage.Get(req.Path)
-	if err != nil {
-		return nil, err
-	}
-	var account Account
-	err = entry.DecodeJSON(&account)
+	account, err := b.readAccount(req, req.Path, true)
 
 	if err != nil {
 		return nil, err
@@ -349,7 +317,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	} else {
 		account.Passphrase = passphrase
 		account.JSONKeystore = jsonKeystore
-		entry, _ = logical.StorageEntryJSON(req.Path, account)
+		entry, _ := logical.StorageEntryJSON(req.Path, account)
 
 		err = req.Storage.Put(entry)
 		if err != nil {
@@ -358,10 +326,12 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	}
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"address":  account.Address,
-			"chain_id": account.ChainID,
-			"keystore": fmt.Sprintf("%s", account.JSONKeystore),
-			"rpc_url":  account.RPC,
+			"pending_balance":  account.PendingBalance.String(),
+			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
+			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
+			"address":          account.Address,
+			"chain_id":         account.ChainID,
+			"rpc_url":          account.RPC,
 		},
 	}, nil
 }

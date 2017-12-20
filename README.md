@@ -14,13 +14,15 @@ This plugin provides services to:
 * Send Ethereum
 * Deploy contracts
 
-All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. It is not necessary for this plugin to use a passphrase to protect private keys, however, at present that is the design choice.
+All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. 
 
 ![Vault and Geth Topology](/doc/vault-geth.png?raw=true "Vault Ethereum Plugin")
 
 ## Quick start
 
 Building the plugin and installing it will be covered later, but let's assume that has been done. It is important to note that the Vault Ethereum plugin can be mounted at any path. A common model is to use a well defined namespace for mounting Vault backends - for example, using the GitHub org/repo namespace: `ethereum/immutability-io/world-domination-token`. For this discussion, we assume that the Vault Ethereum plugin has been mounted at `ethereum`.
+
+### Create new externally controlled accounts
 
 Let's create an Ethereum account:
 
@@ -35,13 +37,14 @@ The Ethereum plugin will return the following information from the above command
 ```
 Key     	Value
 ---     	-----
-account 	0xD010BB32d6243d70Eb863610674a50EaEdfF8474
+account 	0x2D9A87873C3735207bBcBBcb6f8Bc320CfcA8A5e
 chain_id	4
-keystore	{"address":"d010bb32d6243d70eb863610674a50eaedff8474","crypto":{"cipher":"aes-128-ctr","ciphertext":"fddf50de1041e87d45049fb7c1a2826487d08fc4f0664ab1decbf271e141d706","cipherparams":{"iv":"50d40092713acc1fb915d95b7e896f8b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"c274e45dfdfc8c912f96130936b48102dfe5c216f3fab417d3109446de448f0a"},"mac":"a51ce95867fefadc2846b30ddb8ba3d911faf5649718c9344ecb61c337ae806c"},"id":"a04d13d2-2319-481f-82e1-e86b3fc6a86a","version":3}
 rpc_url 	http://localhost:8545
 ```
 
-The parameters `chain_id` and `rpc_url` are defaults and can be customized when writing an account. The `keystore` can be copied to the `geth` keystore directory, if desired. Also note that the passphrase that is used to encrypt the `keystore` is **NOT** returned.
+The parameters `chain_id` and `rpc_url` are defaults and can be customized when writing an account. **NOTE**: the passphrase that is used to encrypt the keystore is **NOT** returned.
+
+### Read externally controlled accounts
 
 We can read the account stored at `ethereum/accounts/test` as follows:
 
@@ -50,13 +53,17 @@ $ vault read ethereum/accounts/test
 ```
 
 ```
-Key     	Value
----     	-----
-address 	0xD010BB32d6243d70Eb863610674a50EaEdfF8474
-chain_id	4
-keystore	{"address":"d010bb32d6243d70eb863610674a50eaedff8474","crypto":{"cipher":"aes-128-ctr","ciphertext":"fddf50de1041e87d45049fb7c1a2826487d08fc4f0664ab1decbf271e141d706","cipherparams":{"iv":"50d40092713acc1fb915d95b7e896f8b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"c274e45dfdfc8c912f96130936b48102dfe5c216f3fab417d3109446de448f0a"},"mac":"a51ce95867fefadc2846b30ddb8ba3d911faf5649718c9344ecb61c337ae806c"},"id":"a04d13d2-2319-481f-82e1-e86b3fc6a86a","version":3}
-rpc_url 	http://localhost:8545
+Key             	Value
+---             	-----
+address         	0x2D9A87873C3735207bBcBBcb6f8Bc320CfcA8A5e
+chain_id        	4
+pending_balance 	0
+pending_nonce   	0
+pending_tx_count	0
+rpc_url         	http://localhost:8545
 ```
+
+### Read passphrase
 
 If we need to access the passphrase, we can do the following:
 
@@ -72,17 +79,54 @@ passphrase	durable-wrongdoer-keenness-clergyman-dorsal-registrar
 
 The passphrase is accessible at a different path than the account. We do this because Vault ACLs are path based and this allows Vault administrators to parcel out different policies to different actors based on their roles.
 
-Now suppose we have an Ethereum contract we need to sign - the compiled binary in the file `./out/Helloworld.bin`. Signing is simple:
+### Create contracts
+
+Suppose you have written a smart contract. Likely, it is only one or 2 deployment cycles away from yielding ICO riches. So, you better deploy it. The Vault plugin allows you to deploy a compiled smart contract.
+
+Sending any transaction on the Ethereum network requires the payment of fees. So, you send the transaction that deploys a contract **from** an Ethereum account with a positive balance.
+
+Assume that the compiled binary in the file `./out/Helloworld.bin`. Deployment is simple:
 
 ```sh
-$ vault write ethereum/accounts/test/sign-contract transaction_data=@./out/Helloworld.bin value=3 gas_limit=1000000 gas_price=500000 nonce=1
+$ vault write ethereum/accounts/test/contracts/helloworld transaction_data=@Helloworld.bin value=10000000000000000000 gas_price=21000000000 gas_limit=1500000
+```
+
+The above command says: *Deploy a contract, named `helloworld`, from the account named `test`*
+
+```
+Key             	Value
+---             	-----
+account_address 	0x206d4B8aB00F1D3FdD3683A318776942f82A7F28
+pending_balance 	200779500000000000000
+pending_nonce   	7
+pending_tx_count	0
+tx_hash         	0x206ba52b1edd32510e6ab607bbfbba70369595210d22885b3067868a376e9677
+```
+
+When you deploy a contract, the contract address isn't immediately available. What is returned from the Vault-Ethereum plugin after a contract deployment is:
+
+* `account_address`: The account that was used to sign and deploy the contract.
+* `pending_balance`: The *pending* balance on the account that was used to sign and deploy the contract.
+* `pending_nonce`: The *pending* nonce  on the account that was used to sign and deploy the contract.
+* `pending_tx_count`: The *pending* transaction count  on the account that was used to sign and deploy the contract.
+* `tx_hash`: The hash of the contract deployment transaction.
+
+### Read contract address
+
+Since the contract address isn't known at the point when the transaction is sent, so you have to **revisit** the contract (with a read operation) to determine the address:
+
+```sh
+$ vault read ethereum/accounts/test/contracts/helloworld
 ```
 
 ```
-Key      	Value
----      	-----
-signed_tx	0xf90231018307a120830f42408003b901e03630363036303430353233343135363130303066353736303030383066643562363064333830363130303164363030303339363030306633303036303630363034303532363030343336313036303439353736303030333537633031303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303039303034363366666666666666663136383036333630666534376231313436303465353738303633366434636536336331343630366535373562363030303830666435623334313536303538353736303030383066643562363036633630303438303830333539303630323030313930393139303530353036303934353635623030356233343135363037383537363030303830666435623630376536303965353635623630343035313830383238313532363032303031393135303530363034303531383039313033393066333562383036303030383139303535353035303536356236303030383035343930353039303536303061313635363237613761373233303538323064346234393631313833383934636631313936626361666262653464323537336139323532393664666638326139646362633065386264383032376231353366303032392ba0d26ac3ecfa8e7f23dea90e87d56b9985717c39ef66754cd103549ff0c211861da079fa8aff47bd2adc8d7549b043354203eff44a035b8c8d0216b9eb7bbbe35731
+Key             	Value
+---             	-----
+contract_address	0x9dC730499BbAe80F4241a2523C516919C69339Af
+tx_hash         	0x206ba52b1edd32510e6ab607bbfbba70369595210d22885b3067868a376e9677
 ```
+
+### Import keystores from other wallets
 
 Lastly, suppose we already have Ethereum keystores and we are convinced that storing them (and their passphrases) in Vault is something we want to do. The plugin supports importing JSON keystores. **NOTE:** you have to provide the path to a single keystore - this plugin doesn't support importing an entire directory yet.
 
@@ -111,11 +155,24 @@ Key    	Value
 address	0xa152E7a09267bcFf6C33388cAab403b76B889939
 ```
 
-Now, we can use the imported account as we did with our generated account:
+Now, we can use the imported account as we did with our generated account.
+
+### Export keystores
+
+If we wish to export Vault managed keystores into a external wallet, we can:
 
 ```sh
-$ vault write ethereum/accounts/test2/sign-contract transaction_data=@./out/Helloworld.bin value=3 gas_limit=1000000 gas_price=500000 nonce=1
+$ vault write ethereum/accounts/test/export directory=/Users/immutability/.ethereum/keystore
 ```
+
+```
+Key 	Value
+--- 	-----
+path	/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939
+```
+
+
+### Signing arbitrary data
 
 We can also sign arbitrary data using the `sign` endpoint:
 
@@ -129,7 +186,7 @@ Key      	Value
 signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027daed083675b5af5c99b3f1608b53620cd02ca51a65b67773b1580552deb501
 ```
 
-## Sending Ethereum
+### Sending Ethereum
 
 Now that we have accounts in Vault, we can drain them! We can send ETH to other accounts on the network. (In my case, it must be emphasized: this is a private test network or Rinkeby.) Assuming there are funds in the account, we can send ETH to another address. In this case, we write a `debit` to the `test3` account:
 
@@ -146,37 +203,6 @@ tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
 
 This defaults `gas_limit` to 50000 with a default `gas_price` of 20 gwei.
 
-## Deploying a smart contract
-
-You have written a smart contract. Likely, it is only one or 2 deployment cycles away from yielding ICO riches. So, you better deploy it. The Vault plugin allows you to deploy a compiled smart contract.
-
-Sending any transaction on the Ethereum network requires the payment of fees. So, you send the transaction that deploys a contract **from** an Ethereum account with a positive balance.
-
-```sh
-$ vault write ethereum/accounts/test-account1/contracts/helloworld transaction_data=@Helloworld.bin value=10000000000000000000 gas_price=21000000000 gas_limit=1500000
-```
-
-```
-Key             	Value
----             	-----
-transaction_hash	0x6083810f570851ae8556aa464747284899ec7d93ad3bd07bbe0bb8f58bf2fd72
-```
-
-The above command says: *Deploy a contract, named `helloworld`, from the `test-account1`*
-
-The contract address isn't known at the point when the transaction is sent, so you have to **revisit** the contract (with a read operation) to determine the address:
-
-```sh
-$ vault read ethereum/accounts/test-account1/contracts/helloworld
-```
-
-```
-Key             	Value
----             	-----
-contract_address	0x512A5630Df33dFBE985Dd2abc7a278488335c9d1
-transaction_hash	0x6083810f570851ae8556aa464747284899ec7d93ad3bd07bbe0bb8f58bf2fd72
-
-```
 
 ## Storing passphrases
 
