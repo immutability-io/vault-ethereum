@@ -8,11 +8,11 @@ This plugin provides services to:
 
 * Create new externally controlled accounts (using a provided passphrase or a generated one.)
 * Import JSON keystores (with provided passphrase.)
-* Export JSON keystores (in development.)
+* Export JSON keystores
 * Sign transactions for contract deployment
 * Sign arbitrary data
 * Send Ethereum
-* Deploy contracts (in development.)
+* Deploy contracts
 * Execute contracts (in development.)
 
 All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. It is not necessary for this plugin to use a passphrase to protect private keys, however, at present that is the design choice.
@@ -146,6 +146,38 @@ tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
 ```
 
 This defaults `gas_limit` to 50000 with a default `gas_price` of 20 gwei.
+
+## Deploying a smart contract
+
+You have written a smart contract. Likely, it is only one or 2 deployment cycles away from yielding ICO riches. So, you better deploy it. The Vault plugin allows you to deploy a compiled smart contract.
+
+Sending any transaction on the Ethereum network requires the payment of fees. So, you send the transaction that deploys a contract **from** an Ethereum account with a positive balance.
+
+```sh
+$ vault write ethereum/accounts/test-account1/contracts/helloworld transaction_data=@Helloworld.bin value=10000000000000000000 gas_price=21000000000 gas_limit=1500000
+```
+
+```
+Key             	Value
+---             	-----
+transaction_hash	0x6083810f570851ae8556aa464747284899ec7d93ad3bd07bbe0bb8f58bf2fd72
+```
+
+The above command says: *Deploy a contract, named `helloworld`, from the `test-account1`*
+
+The contract address isn't known at the point when the transaction is sent, so you have to **revisit** the contract (with a read operation) to determine the address:
+
+```sh
+$ vault read ethereum/accounts/test-account1/contracts/helloworld
+```
+
+```
+Key             	Value
+---             	-----
+contract_address	0x512A5630Df33dFBE985Dd2abc7a278488335c9d1
+transaction_hash	0x6083810f570851ae8556aa464747284899ec7d93ad3bd07bbe0bb8f58bf2fd72
+
+```
 
 ## Storing passphrases
 
