@@ -72,7 +72,7 @@ func (b *backend) pathImportCreate(req *logical.Request, data *framework.FieldDa
 			RPC:          rpc,
 			ChainID:      chainID,
 			Passphrase:   passphrase,
-			KeystoreURL:  b.buildKeystoreURL(filename),
+			KeystoreName: filename,
 			JSONKeystore: jsonKeystore}
 
 		entry, err := logical.StorageEntryJSON(accountPath, accountJSON)

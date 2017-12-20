@@ -16,8 +16,8 @@ import (
 )
 
 type Contract struct {
-	Address string `json:"address"` // Ethereum account address derived from the key
-	Hash    string `json:"hash"`    // Ethereum account address derived from the key
+	Address string `json:"contract_address"`
+	Hash    string `json:"tx_hash"`
 }
 
 func contractsPaths(b *backend) []*framework.Path {
@@ -79,50 +79,6 @@ func (b *backend) pathContractsList(req *logical.Request, data *framework.FieldD
 	return logical.ListResponse(vals), nil
 }
 
-// func (b *backend) createContract(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-//
-// 	value := math.MustParseBig256(data.Get("value").(string))
-// 	nonce := math.MustParseUint64(data.Get("nonce").(string))
-// 	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
-// 	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
-// 	input := []byte(data.Get("transaction_data").(string))
-// 	chainID := math.MustParseBig256(account.ChainID)
-//
-// 	prunedPath := strings.Replace(req.Path, "/sign-contract", "", -1)
-// 	account, err := b.readAccount(req, prunedPath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	key, err := b.getAccountPrivateKey(prunedPath, *account)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer zeroKey(key.PrivateKey)
-//
-// 	transactor := b.NewTransactor(key.PrivateKey)
-// 	var rawTx *types.Transaction
-// 	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
-// 	//contract := &Contract{Address: rawTx.Hash().Hex()}
-// 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	encoded, err := rlp.EncodeToBytes(signedTx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	return &logical.Response{
-// 		Data: map[string]interface{}{
-// 			"signed_tx": hexutil.Encode(encoded[:]),
-// 		},
-// 	}, nil
-// }
-//
 func (b *backend) pathCreateContract(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	b.Logger().Info("pathCreateContract", "path", req.Path)
 
@@ -138,7 +94,7 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 	} else {
 		return nil, fmt.Errorf("something sketchy with the path: %s", req.Path)
 	}
-	account, err := b.readAccount(req, accountPath)
+	account, err := b.readAccount(req, accountPath, true)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +107,6 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 
 	transactor := b.NewTransactor(key.PrivateKey)
 	var rawTx *types.Transaction
-	b.Logger().Info("Transaction Nonce", "nonce", nonce)
 	client, err := rpc.Dial(account.RPC)
 	if err != nil {
 		return nil, err
@@ -165,19 +120,16 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 		return nil, err
 	}
 	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
-	//contract := &Contract{Address: rawTx.Hash().Hex()}
+
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
 		return nil, err
 	}
-	b.Logger().Info("Signed Transaction", "signedTx", signedTx.String())
 	err = ethClient.SendTransaction(ctx, signedTx)
 	if err != nil {
-		b.Logger().Info("Error sending TX", "error", err)
 		return nil, err
-	} else {
-		b.Logger().Info("Sent TX", "signedTx", signedTx.Hash().Hex())
 	}
+
 	contractJSON := &Contract{Hash: signedTx.Hash().Hex()}
 	entry, err := logical.StorageEntryJSON(req.Path, contractJSON)
 	if err != nil {
@@ -191,8 +143,11 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-
-			"transaction_hash": signedTx.Hash().Hex(),
+			"pending_balance":  account.PendingBalance.String(),
+			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
+			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
+			"account_address":  account.Address,
+			"tx_hash":          signedTx.Hash().Hex(),
 		},
 	}, nil
 }
@@ -217,7 +172,7 @@ func (b *backend) pathReadContract(req *logical.Request, data *framework.FieldDa
 	} else {
 		return nil, fmt.Errorf("something sketchy with the path: %s", req.Path)
 	}
-	account, err := b.readAccount(req, accountPath)
+	account, err := b.readAccount(req, accountPath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +188,6 @@ func (b *backend) pathReadContract(req *logical.Request, data *framework.FieldDa
 	receipt, err := ethClient.TransactionReceipt(ctx, hash)
 	var receiptAddress string
 	if err != nil {
-		b.Logger().Info("Error reading receipt", "err", fmt.Sprintf("%s", err))
 		receiptAddress = "Receipt not available"
 	} else {
 		receiptAddress = receipt.ContractAddress.Hex()
@@ -242,7 +196,7 @@ func (b *backend) pathReadContract(req *logical.Request, data *framework.FieldDa
 	return &logical.Response{
 		Data: map[string]interface{}{
 
-			"transaction_hash": contract.Hash,
+			"tx_hash":          contract.Hash,
 			"contract_address": receiptAddress,
 		},
 	}, nil

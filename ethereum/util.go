@@ -1,12 +1,14 @@
 package ethereum
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	accounts "github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -14,6 +16,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
+	rpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/hashicorp/vault/logical"
 )
 
@@ -29,11 +33,13 @@ func (b *backend) buildKeystoreURL(filename string) string {
 	return ProtocolKeystore + PathTempDir + filename
 }
 
-func (b *backend) writeTemporaryKeystoreFile(path string, data []byte) error {
-	return ioutil.WriteFile(path, data, 0644)
+func (b *backend) writeTemporaryKeystoreFile(path string, filename string, data []byte) (string, error) {
+	keystorePath := path + "/" + filename
+	err := ioutil.WriteFile(keystorePath, data, 0644)
+	return keystorePath, err
 }
 
-func (b *backend) createTemporaryKeystore(name string) (string, error) {
+func (b *backend) createTemporaryKeystoreDirectory(name string) (string, error) {
 	file, _ := os.Open(PathTempDir + name)
 	if file != nil {
 		file.Close()
@@ -170,53 +176,65 @@ func (b *backend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpts {
 	}
 }
 
-func (b *backend) readAccount(req *logical.Request, path string) (*Account, error) {
-	accountEntry, err := req.Storage.Get(path)
+func (b *backend) getAccountPrivateKey(path string, account Account) (*keystore.Key, error) {
+	tmpDir, err := b.createTemporaryKeystoreDirectory(path)
 	if err != nil {
 		return nil, err
 	}
 
+	keystorePath, err := b.writeTemporaryKeystoreFile(tmpDir, account.KeystoreName, account.JSONKeystore)
+	if err != nil {
+		return nil, err
+	}
+	key, err := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
+	if err != nil {
+		return nil, err
+	}
+	err = b.removeTemporaryKeystore(path)
+	return key, err
+}
+
+func (b *backend) exportKeystore(path string, account *Account) (string, error) {
+	directory, err := b.writeTemporaryKeystoreFile(path, account.KeystoreName, account.JSONKeystore)
+	return directory, err
+}
+
+func (b *backend) readAccount(req *logical.Request, path string, deep bool) (*Account, error) {
+	entry, err := req.Storage.Get(path)
 	var account Account
-	err = accountEntry.DecodeJSON(&account)
+	err = entry.DecodeJSON(&account)
 
 	if err != nil {
 		return nil, err
 	}
-	if accountEntry == nil {
+	if entry == nil {
 		return nil, nil
 	}
-	return &account, nil
-}
 
-func (b *backend) getAccountPrivateKey(path string, account Account) (*keystore.Key, error) {
-	_, err := b.createTemporaryKeystore(path)
-	if err != nil {
-		return nil, err
-	}
-	keystorePath := strings.Replace(account.KeystoreURL, ProtocolKeystore, "", -1)
-	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
-	key, err := b.readKeyFromJSONKeystore(keystorePath, account.Passphrase)
-	b.removeTemporaryKeystore(path)
-	return key, nil
-}
-
-func (b *backend) exportKeystore(path string, accountPath string, account *Account) (string, error) {
-	keystorePath := strings.Replace(account.KeystoreURL, ProtocolKeystore, "", -1)
-	b.Logger().Info("Directory", "path", path)
-	b.Logger().Info("Starting Keystore path", "keystorePath", keystorePath)
-	directory := path
-	pieces := strings.Split(keystorePath, "/tmp/"+accountPath+"/")
-	if len(pieces) == 2 {
-		b.Logger().Info("Piece", "pieces[1]", pieces[1])
-		if !strings.HasSuffix(path, "/") {
-			directory = directory + "/" + pieces[1]
-		} else {
-			directory = directory + pieces[1]
+	if deep {
+		client, err := rpc.Dial(account.RPC)
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		return "", fmt.Errorf("can't parse path: %s", keystorePath)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		ethClient := ethclient.NewClient(client)
+		accountAddr := common.HexToAddress(account.Address)
+		pendingBalance, err := ethClient.PendingBalanceAt(ctx, accountAddr)
+		if err != nil {
+			return nil, err
+		}
+		pendingNonce, err := ethClient.PendingNonceAt(ctx, accountAddr)
+		if err != nil {
+			return nil, err
+		}
+		pendingTxCount, err := ethClient.PendingTransactionCount(ctx)
+		if err != nil {
+			return nil, err
+		}
+		account.PendingNonce = pendingNonce
+		account.PendingBalance = pendingBalance
+		account.PendingTxCount = pendingTxCount
 	}
-	b.Logger().Info("Keystore path", "directory", directory)
-	b.writeTemporaryKeystoreFile(directory, account.JSONKeystore)
-	return directory, nil
+	return &account, nil
 }

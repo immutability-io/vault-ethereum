@@ -3,6 +3,8 @@ package ethereum
 import (
 	"context"
 	"fmt"
+	"math/big"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,12 +22,15 @@ import (
 )
 
 type Account struct {
-	Address      string `json:"address"` // Ethereum account address derived from the key
-	Passphrase   string `json:"passphrase"`
-	KeystoreURL  string `json:"keystore_url"`
-	RPC          string `json:"rpc_url"`
-	ChainID      string `json:"chain_id"`
-	JSONKeystore []byte `json:"json_keystore"`
+	Address        string   `json:"address"` // Ethereum account address derived from the key
+	Passphrase     string   `json:"passphrase"`
+	KeystoreName   string   `json:"keystore_name"`
+	RPC            string   `json:"rpc_url"`
+	ChainID        string   `json:"chain_id"`
+	JSONKeystore   []byte   `json:"json_keystore"`
+	PendingBalance *big.Int `json:"pending_balance"`
+	PendingNonce   uint64   `json:"pending_nonce"`
+	PendingTxCount uint     `json:"pending_tx_count"`
 }
 
 func accountsPaths(b *backend) []*framework.Path {
@@ -241,13 +246,12 @@ func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldDa
 	// Return the secret
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"pending_balance":           pendingBalance.String(),
-			"pending_nonce":             fmt.Sprintf("%d", pendingNonce),
-			"pending_transaction_count": fmt.Sprintf("%d", pendingTxCount),
-			"address":                   account.Address,
-			"chain_id":                  account.ChainID,
-			"keystore":                  fmt.Sprintf("%s", account.JSONKeystore),
-			"rpc_url":                   account.RPC,
+			"pending_balance":  pendingBalance.String(),
+			"pending_nonce":    fmt.Sprintf("%d", pendingNonce),
+			"pending_tx_count": fmt.Sprintf("%d", pendingTxCount),
+			"address":          account.Address,
+			"chain_id":         account.ChainID,
+			"rpc_url":          account.RPC,
 		},
 	}, nil
 }
@@ -264,7 +268,7 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		list, _ := diceware.Generate(words)
 		passphrase = strings.Join(list, separator)
 	}
-	tmpDir, err := b.createTemporaryKeystore(req.Path)
+	tmpDir, err := b.createTemporaryKeystoreDirectory(req.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -274,6 +278,7 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		return nil, err
 	}
 	keystorePath := strings.Replace(account.URL.String(), ProtocolKeystore, "", -1)
+
 	jsonKeystore, err := b.readJSONKeystore(keystorePath)
 	if err != nil {
 		return nil, err
@@ -282,7 +287,7 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		RPC:          rpc,
 		ChainID:      chainID,
 		Passphrase:   passphrase,
-		KeystoreURL:  account.URL.String(),
+		KeystoreName: filepath.Base(account.URL.String()),
 		JSONKeystore: jsonKeystore}
 	entry, err := logical.StorageEntryJSON(req.Path, accountJSON)
 	if err != nil {
@@ -298,7 +303,6 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		Data: map[string]interface{}{
 			"account":  accountJSON.Address,
 			"chain_id": accountJSON.ChainID,
-			"keystore": fmt.Sprintf("%s", jsonKeystore),
 			"rpc_url":  accountJSON.RPC,
 		},
 	}, nil
@@ -327,12 +331,14 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	_, err = b.createTemporaryKeystore(req.Path)
+	tmpDir, err := b.createTemporaryKeystoreDirectory(req.Path)
 	if err != nil {
 		return nil, err
 	}
-	keystorePath := strings.Replace(account.KeystoreURL, ProtocolKeystore, "", -1)
-	b.writeTemporaryKeystoreFile(keystorePath, account.JSONKeystore)
+	keystorePath, err := b.writeTemporaryKeystoreFile(tmpDir, account.KeystoreName, account.JSONKeystore)
+	if err != nil {
+		return nil, err
+	}
 
 	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
 	b.removeTemporaryKeystore(req.Path)
@@ -383,7 +389,7 @@ func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*lo
 	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
 	hash := crypto.Keccak256([]byte(msg))
 	prunedPath := strings.Replace(req.Path, "/sign", "", -1)
-	account, err := b.readAccount(req, prunedPath)
+	account, err := b.readAccount(req, prunedPath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +417,7 @@ func (b *backend) pathDebit(req *logical.Request, data *framework.FieldData) (*l
 	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
 	toAddress := common.HexToAddress(data.Get("to").(string))
 
-	account, err := b.readAccount(req, prunedPath)
+	account, err := b.readAccount(req, prunedPath, true)
 	if err != nil {
 		return nil, err
 	}
@@ -456,7 +462,11 @@ func (b *backend) pathDebit(req *logical.Request, data *framework.FieldData) (*l
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"tx_hash": txHash,
+			"pending_balance":  account.PendingBalance.String(),
+			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
+			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
+			"address":          account.Address,
+			"tx_hash":          txHash,
 		},
 	}, nil
 }
@@ -465,11 +475,11 @@ func (b *backend) pathExportCreate(req *logical.Request, data *framework.FieldDa
 	b.Logger().Info("pathExportCreate", "path", req.Path)
 	directory := data.Get("directory").(string)
 	prunedPath := strings.Replace(req.Path, "/export", "", -1)
-	account, err := b.readAccount(req, prunedPath)
+	account, err := b.readAccount(req, prunedPath, false)
 	if err != nil {
 		return nil, err
 	}
-	filePath, err := b.exportKeystore(directory, prunedPath, account)
+	filePath, err := b.exportKeystore(directory, account)
 	if err != nil {
 		return nil, err
 	}
