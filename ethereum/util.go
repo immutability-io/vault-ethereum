@@ -201,14 +201,14 @@ func (b *backend) exportKeystore(path string, account *Account) (string, error) 
 
 func (b *backend) readAccount(req *logical.Request, path string, deep bool) (*Account, error) {
 	entry, err := req.Storage.Get(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find account at %s", path)
+	}
 	var account Account
 	err = entry.DecodeJSON(&account)
 
-	if err != nil {
-		return nil, err
-	}
 	if entry == nil {
-		return nil, nil
+		return nil, fmt.Errorf("failed to deserialize account at %s", path)
 	}
 
 	if deep {
