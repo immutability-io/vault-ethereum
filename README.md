@@ -13,7 +13,6 @@ This plugin provides services to:
 * Sign arbitrary data
 * Send Ethereum
 * Deploy contracts
-* Execute contracts (in development.)
 
 All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. It is not necessary for this plugin to use a passphrase to protect private keys, however, at present that is the design choice.
 

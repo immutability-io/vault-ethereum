@@ -267,6 +267,8 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 	if generatePassphrase {
 		list, _ := diceware.Generate(words)
 		passphrase = strings.Join(list, separator)
+	} else if passphrase == "" {
+		return nil, fmt.Errorf("must provide a passphrase to encrypt the keystore")
 	}
 	tmpDir, err := b.createTemporaryKeystoreDirectory(req.Path)
 	if err != nil {
