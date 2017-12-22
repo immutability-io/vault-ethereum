@@ -22,16 +22,11 @@ import (
 )
 
 const (
-	PathTempDir         string = "/tmp/"
 	ProtocolKeystore    string = "keystore://"
 	MaxKeystoreSize     int64  = 1024 // Just a heuristic to prevent reading stupid big files
 	RequestPathImport   string = "import"
 	RequestPathAccounts string = "accounts"
 )
-
-func (b *backend) buildKeystoreURL(filename string) string {
-	return ProtocolKeystore + PathTempDir + filename
-}
 
 func (b *backend) writeTemporaryKeystoreFile(path string, filename string, data []byte) (string, error) {
 	keystorePath := path + "/" + filename
