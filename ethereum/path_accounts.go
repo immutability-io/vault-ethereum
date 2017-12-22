@@ -243,7 +243,7 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 	} else if passphrase == "" {
 		return nil, fmt.Errorf("must provide a passphrase to encrypt the keystore")
 	}
-	tmpDir, err := b.createTemporaryKeystoreDirectory(req.Path)
+	tmpDir, err := b.createTemporaryKeystoreDirectory()
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	b.removeTemporaryKeystore(req.Path)
+	b.removeTemporaryKeystore(tmpDir)
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"account":  accountJSON.Address,
@@ -301,7 +301,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	tmpDir, err := b.createTemporaryKeystoreDirectory(req.Path)
+	tmpDir, err := b.createTemporaryKeystoreDirectory()
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +311,7 @@ func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.Field
 	}
 
 	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
-	b.removeTemporaryKeystore(req.Path)
+	b.removeTemporaryKeystore(tmpDir)
 	if err != nil {
 		return nil, err
 	} else {

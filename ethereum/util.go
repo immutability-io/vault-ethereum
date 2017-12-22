@@ -39,22 +39,13 @@ func (b *backend) writeTemporaryKeystoreFile(path string, filename string, data 
 	return keystorePath, err
 }
 
-func (b *backend) createTemporaryKeystoreDirectory(name string) (string, error) {
-	file, _ := os.Open(PathTempDir + name)
-	if file != nil {
-		file.Close()
-		return "", fmt.Errorf("account already exists at %s", PathTempDir+name)
-	}
-	return PathTempDir + name, os.MkdirAll(PathTempDir+name, os.FileMode(0522))
+func (b *backend) createTemporaryKeystoreDirectory() (string, error) {
+	dir, err := ioutil.TempDir("", "keystore")
+	return dir, err
 }
 
-func (b *backend) removeTemporaryKeystore(name string) error {
-	file, _ := os.Open(PathTempDir + name)
-	if file != nil {
-		return os.RemoveAll(PathTempDir + name)
-	} else {
-		return fmt.Errorf("keystore doesn't exist at %s", PathTempDir+name)
-	}
+func (b *backend) removeTemporaryKeystore(path string) error {
+	return os.RemoveAll(path)
 }
 
 func convertMapToStringValue(initial map[string]interface{}) map[string]string {
@@ -177,7 +168,7 @@ func (b *backend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpts {
 }
 
 func (b *backend) getAccountPrivateKey(path string, account Account) (*keystore.Key, error) {
-	tmpDir, err := b.createTemporaryKeystoreDirectory(path)
+	tmpDir, err := b.createTemporaryKeystoreDirectory()
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +181,7 @@ func (b *backend) getAccountPrivateKey(path string, account Account) (*keystore.
 	if err != nil {
 		return nil, err
 	}
-	err = b.removeTemporaryKeystore(path)
+	err = b.removeTemporaryKeystore(tmpDir)
 	return key, err
 }
 
