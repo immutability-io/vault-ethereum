@@ -27,6 +27,8 @@ type Account struct {
 	KeystoreName   string   `json:"keystore_name"`
 	RPC            string   `json:"rpc_url"`
 	ChainID        string   `json:"chain_id"`
+	Whitelist      []string `json:"whitelist"`
+	Blacklist      []string `json:"blacklist"`
 	JSONKeystore   []byte   `json:"json_keystore"`
 	PendingBalance *big.Int `json:"pending_balance"`
 	PendingNonce   uint64   `json:"pending_nonce"`
@@ -40,6 +42,10 @@ func accountsPaths(b *backend) []*framework.Path {
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.ListOperation: b.pathAccountsList,
 			},
+			HelpSynopsis: "List all the Ethereum accounts at a path",
+			HelpDescription: `
+			All the Ethereum accounts will be listed.
+			`,
 		},
 		&framework.Path{
 			Pattern:      "accounts/" + framework.GenericNameRegex("name"),
@@ -65,44 +71,33 @@ the new passphrase.
 					Description: "The Ethereum network that is being used.",
 					Default:     "4", // Rinkeby
 				},
-				"passphrase": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The passphrase used to encrypt the private key.",
+				"whitelist": &framework.FieldSchema{
+					Type:        framework.TypeCommaStringSlice,
+					Description: "The list of accounts that this account can send ETH to.",
 				},
-				"generate_passphrase": &framework.FieldSchema{
-					Type:        framework.TypeBool,
-					Description: "Generate the passphrase.",
-					Default:     false,
-				},
-				"words": &framework.FieldSchema{
-					Type:        framework.TypeInt,
-					Description: "Number of words for the passphrase.",
-					Default:     8,
-				},
-				"separator": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "Character to separate words in passphrase.",
-					Default:     "-",
+				"blacklist": &framework.FieldSchema{
+					Type:        framework.TypeCommaStringSlice,
+					Description: "The list of accounts that this account can't send ETH to.",
 				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.ReadOperation:   b.pathAccountsRead,
 				logical.CreateOperation: b.pathAccountsCreate,
-				logical.UpdateOperation: b.pathAccountsUpdate,
+				logical.UpdateOperation: b.pathAccountUpdate,
 				logical.DeleteOperation: b.pathAccountsDelete,
 			},
 		},
 		&framework.Path{
 			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/export",
-			HelpSynopsis: "Export a single Ethereum JSON keystore from vault into the provided directory.",
+			HelpSynopsis: "Export a single Ethereum JSON keystore from vault into the provided path.",
 			HelpDescription: `
 
 Writes a JSON keystore to a folder (e.g., /Users/immutability/.ethereum/keystore).
 
 `,
 			Fields: map[string]*framework.FieldSchema{
-				"directory": &framework.FieldSchema{
+				"path": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "Directory to export the keystore into - must be an absolute path.",
 				},
@@ -113,23 +108,16 @@ Writes a JSON keystore to a folder (e.g., /Users/immutability/.ethereum/keystore
 			},
 		},
 		&framework.Path{
-			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/passphrase",
-			HelpSynopsis: "Read an Ethereum account's passphrase",
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/balance",
+			HelpSynopsis: "Convenience method to read the balance of an account.",
 			HelpDescription: `
 
-Passphrases are use to encrypt keystores - to protect private keys. The private key is always
-stored as an encrypted JSON keystore, so to use it you need to decrypt it.
+Queries the Ethereum blockchain (chain_id) for the balance of an account.
 
 `,
-			Fields: map[string]*framework.FieldSchema{
-				"passphrase": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The passphrase used to encrypt the private key.",
-				},
-			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.ReadOperation: b.pathPassphraseRead,
+				logical.ReadOperation: b.pathAccountBalanceRead,
 			},
 		},
 		&framework.Path{
@@ -145,9 +133,9 @@ stored as an encrypted JSON keystore, so to use it you need to decrypt it.
 					Type:        framework.TypeString,
 					Description: "The address of the account to send ETH to.",
 				},
-				"value": &framework.FieldSchema{
+				"amount": &framework.FieldSchema{
 					Type:        framework.TypeString,
-					Description: "Value in ETH.",
+					Description: "Amount of ETH (in Gwei).",
 				},
 				"gas_limit": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -187,31 +175,27 @@ Hash and sign data using a given Ethereum account.
 	}
 }
 
-func (b *backend) pathPassphraseRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathPassphraseRead", "path", req.Path)
-	prunedPath := strings.Replace(req.Path, "/passphrase", "", -1)
-	entry, err := req.Storage.Get(prunedPath)
-	var account Account
-	err = entry.DecodeJSON(&account)
-
+func (b *backend) pathAccountsRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	account, err := b.readAccount(ctx, req, req.Path, false)
 	if err != nil {
 		return nil, err
-	}
-	if entry == nil {
-		return nil, nil
 	}
 
 	// Return the secret
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"passphrase": account.Passphrase,
+			"address":   account.Address,
+			"chain_id":  account.ChainID,
+			"whitelist": account.Whitelist,
+			"blacklist": account.Blacklist,
+			"rpc_url":   account.RPC,
 		},
 	}, nil
 }
 
-func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathAccountsRead", "path", req.Path)
-	account, err := b.readAccount(req, req.Path, true)
+func (b *backend) pathAccountBalanceRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	prunedPath := strings.Replace(req.Path, "/balance", "", -1)
+	account, err := b.readAccount(ctx, req, prunedPath, true)
 	if err != nil {
 		return nil, err
 	}
@@ -219,30 +203,22 @@ func (b *backend) pathAccountsRead(req *logical.Request, data *framework.FieldDa
 	// Return the secret
 	return &logical.Response{
 		Data: map[string]interface{}{
+			"address":          account.Address,
 			"pending_balance":  account.PendingBalance.String(),
 			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
 			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
-			"address":          account.Address,
-			"chain_id":         account.ChainID,
-			"rpc_url":          account.RPC,
 		},
 	}, nil
 }
 
-func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathAccountsCreate", "path", req.Path)
+func (b *backend) pathAccountsCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	b.Logger().Info("pathAccountsCreate")
 	rpc := data.Get("rpc_url").(string)
 	chainID := data.Get("chain_id").(string)
-	passphrase := data.Get("passphrase").(string)
-	generatePassphrase := data.Get("generate_passphrase").(bool)
-	words := data.Get("words").(int)
-	separator := data.Get("separator").(string)
-	if generatePassphrase {
-		list, _ := diceware.Generate(words)
-		passphrase = strings.Join(list, separator)
-	} else if passphrase == "" {
-		return nil, fmt.Errorf("must provide a passphrase to encrypt the keystore")
-	}
+	whitelist := data.Get("whitelist").([]string)
+	blacklist := data.Get("blacklist").([]string)
+	list, _ := diceware.Generate(PassphraseWords)
+	passphrase := strings.Join(list, PassphraseSeparator)
 	tmpDir, err := b.createTemporaryKeystoreDirectory()
 	if err != nil {
 		return nil, err
@@ -262,6 +238,8 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		RPC:          rpc,
 		ChainID:      chainID,
 		Passphrase:   passphrase,
+		Whitelist:    dedup(whitelist),
+		Blacklist:    dedup(blacklist),
 		KeystoreName: filepath.Base(account.URL.String()),
 		JSONKeystore: jsonKeystore}
 	entry, err := logical.StorageEntryJSON(req.Path, accountJSON)
@@ -269,99 +247,68 @@ func (b *backend) pathAccountsCreate(req *logical.Request, data *framework.Field
 		return nil, err
 	}
 
-	err = req.Storage.Put(entry)
+	err = req.Storage.Put(ctx, entry)
 	if err != nil {
 		return nil, err
 	}
 	b.removeTemporaryKeystore(tmpDir)
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"account":  accountJSON.Address,
-			"chain_id": accountJSON.ChainID,
-			"rpc_url":  accountJSON.RPC,
+			"address":   accountJSON.Address,
+			"chain_id":  accountJSON.ChainID,
+			"whitelist": accountJSON.Whitelist,
+			"blacklist": accountJSON.Blacklist,
+			"rpc_url":   accountJSON.RPC,
 		},
 	}, nil
 }
 
-func (b *backend) pathAccountsUpdate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathAccountsUpdate", "path", req.Path)
-	passphrase := data.Get("passphrase").(string)
-	generatePassphrase := data.Get("generate_passphrase").(bool)
-	words := data.Get("words").(int)
-	separator := data.Get("separator").(string)
+func (b *backend) pathAccountUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	whitelist := data.Get("whitelist").([]string)
+	blacklist := data.Get("blacklist").([]string)
+	account, err := b.readAccount(ctx, req, req.Path, false)
+	account.Whitelist = dedup(whitelist)
+	account.Blacklist = dedup(blacklist)
 
-	if generatePassphrase {
-		list, _ := diceware.Generate(words)
-		passphrase = strings.Join(list, separator)
-	} else if passphrase == "" {
-		return nil, fmt.Errorf("nothing to update - no passphrase supplied")
-	}
-	account, err := b.readAccount(req, req.Path, true)
+	entry, _ := logical.StorageEntryJSON(req.Path, account)
 
+	err = req.Storage.Put(ctx, entry)
 	if err != nil {
 		return nil, err
-	}
-	tmpDir, err := b.createTemporaryKeystoreDirectory()
-	if err != nil {
-		return nil, err
-	}
-	keystorePath, err := b.writeTemporaryKeystoreFile(tmpDir, account.KeystoreName, account.JSONKeystore)
-	if err != nil {
-		return nil, err
-	}
-
-	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
-	b.removeTemporaryKeystore(tmpDir)
-	if err != nil {
-		return nil, err
-	} else {
-		account.Passphrase = passphrase
-		account.JSONKeystore = jsonKeystore
-		entry, _ := logical.StorageEntryJSON(req.Path, account)
-
-		err = req.Storage.Put(entry)
-		if err != nil {
-			return nil, err
-		}
 	}
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"pending_balance":  account.PendingBalance.String(),
-			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
-			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
-			"address":          account.Address,
-			"chain_id":         account.ChainID,
-			"rpc_url":          account.RPC,
+			"address":   account.Address,
+			"chain_id":  account.ChainID,
+			"whitelist": account.Whitelist,
+			"blacklist": account.Blacklist,
+			"rpc_url":   account.RPC,
 		},
 	}, nil
 }
 
-func (b *backend) pathAccountsDelete(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathAccountsDelete", "path", req.Path)
-	if err := req.Storage.Delete(req.Path); err != nil {
+func (b *backend) pathAccountsDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	if err := req.Storage.Delete(ctx, req.Path); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (b *backend) pathAccountsList(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathAccountsList", "path", req.Path)
-	vals, err := req.Storage.List("accounts/")
+func (b *backend) pathAccountsList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	vals, err := req.Storage.List(ctx, "accounts/")
 	if err != nil {
 		return nil, err
 	}
 	return logical.ListResponse(vals), nil
 }
 
-func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathSign", "path", req.Path)
-
+func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	input := []byte(data.Get("data").(string))
 	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
 	hash := crypto.Keccak256([]byte(msg))
 	prunedPath := strings.Replace(req.Path, "/sign", "", -1)
-	account, err := b.readAccount(req, prunedPath, false)
+	account, err := b.readAccount(ctx, req, prunedPath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -381,16 +328,19 @@ func (b *backend) pathSign(req *logical.Request, data *framework.FieldData) (*lo
 	}, nil
 }
 
-func (b *backend) pathDebit(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathDebit", "path", req.Path)
+func (b *backend) pathDebit(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	prunedPath := strings.Replace(req.Path, "/debit", "", -1)
-	value := math.MustParseBig256(data.Get("value").(string))
+	amount := math.MustParseBig256(data.Get("amount").(string))
 	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
 	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
 	toAddress := common.HexToAddress(data.Get("to").(string))
 
-	account, err := b.readAccount(req, prunedPath, true)
+	account, err := b.readAccount(ctx, req, prunedPath, true)
 	if err != nil {
+		return nil, err
+	}
+	allowed, err := b.isDebitAllowed(account, data.Get("to").(string), amount)
+	if !allowed {
 		return nil, err
 	}
 	chainID := math.MustParseBig256(account.ChainID)
@@ -417,7 +367,7 @@ func (b *backend) pathDebit(req *logical.Request, data *framework.FieldData) (*l
 		return nil, err
 	}
 
-	rawTx = types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+	rawTx = types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, nil)
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
 		return nil, err
@@ -434,22 +384,38 @@ func (b *backend) pathDebit(req *logical.Request, data *framework.FieldData) (*l
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"pending_balance":  account.PendingBalance.String(),
-			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
-			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
-			"address":          account.Address,
-			"tx_hash":          txHash,
+			"from_address": account.Address,
+			"to_address":   toAddress.String(),
+			"tx_hash":      txHash,
 		},
 	}, nil
 }
 
-func (b *backend) pathExportCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathExportCreate", "path", req.Path)
-	directory := data.Get("directory").(string)
+func (b *backend) pathExportCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	directory := data.Get("path").(string)
 	prunedPath := strings.Replace(req.Path, "/export", "", -1)
-	account, err := b.readAccount(req, prunedPath, false)
+	account, err := b.readAccount(ctx, req, prunedPath, false)
 	if err != nil {
 		return nil, err
+	}
+	list, _ := diceware.Generate(PassphraseWords)
+	passphrase := strings.Join(list, PassphraseSeparator)
+	tmpDir, err := b.createTemporaryKeystoreDirectory()
+	if err != nil {
+		return nil, err
+	}
+	keystorePath, err := b.writeTemporaryKeystoreFile(tmpDir, account.KeystoreName, account.JSONKeystore)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonKeystore, err := b.rekeyJSONKeystore(keystorePath, account.Passphrase, passphrase)
+	b.removeTemporaryKeystore(tmpDir)
+	if err != nil {
+		return nil, err
+	} else {
+		account.Passphrase = passphrase
+		account.JSONKeystore = jsonKeystore
 	}
 	filePath, err := b.exportKeystore(directory, account)
 	if err != nil {
@@ -457,7 +423,8 @@ func (b *backend) pathExportCreate(req *logical.Request, data *framework.FieldDa
 	}
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"path": filePath,
+			"path":       filePath,
+			"passphrase": passphrase,
 		},
 	}, nil
 }

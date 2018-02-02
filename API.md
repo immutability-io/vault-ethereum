@@ -4,6 +4,7 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 
 * [List Accounts](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-accounts)
 * [Read Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-account)
+* [Read Account Balance](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-account-balance)
 * [Create Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-account)
 * [Update Account/Re-Encrypt Keystore](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#update-accountre-encrypt-keystore)
 * [Delete Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#delete-account)
@@ -58,7 +59,7 @@ The example below shows output for a query path of `/ethereum/accounts/` when th
 
 ### READ ACCOUNT
 
-This endpoint will list details about the Ethereum account at a path. The passphrase will **NOT** be revealed.
+This endpoint will list details about the Ethereum account at a path.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
@@ -82,23 +83,68 @@ The example below shows output for a read of `/ethereum/accounts/test`.
 
 ```
 {
-  "request_id": "173769b1-ca18-a103-7669-535aac1cdf44",
+  "request_id": "fe52ec63-80a4-08f5-3780-ac8bd68a8450",
   "lease_id": "",
   "renewable": false,
   "lease_duration": 0,
   "data": {
-    "address": "0xa152E7a09267bcFf6C33388cAab403b76B889939",
-    "chain_id": "1977",
-    "pending_balance": "211304270429080000000000",
-    "pending_nonce": "20",
-    "pending_tx_count": "0",
-    "rpc_url": "http://localhost:8545"
+    "address": "0x3943FF61FF803316cF02938b5b0b3Ba3bbE183e4",
+    "blacklist": null,
+    "chain_id": "4",
+    "rpc_url": "http://localhost:8545",
+    "whitelist": [
+      "0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8",
+      "0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572"
+    ]
   },
   "wrap_info": null,
   "warnings": null,
   "auth": null
 }
 ```
+
+### READ ACCOUNT BALANCE
+
+This endpoint will list the current balance of the Ethereum account at a path.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/accounts/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/accounts/test/balance | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "018a03db-5560-acc5-f1d8-d568521dcff0",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x3943FF61FF803316cF02938b5b0b3Ba3bbE183e4",
+    "pending_balance": "0",
+    "pending_nonce": "0",
+    "pending_tx_count": "0"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 
 ### CREATE ACCOUNT
 
@@ -113,10 +159,8 @@ This endpoint will create an Ethereum account at a path.
 * `name` (`string: <required>`) - Specifies the name of the account to create. This is specified as part of the URL.
 * `rpc_url` (`string: <optional> default:"localhost:8545"`) - Specifies the URL of the 'geth' node.
 * `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
-* `generate_passphrase` (`boolean: <optional> default:false`) - Determines whether the passphrase will be generated.
-* `passphrase` (`string: <optional>`) - If `generate_passphrase` is false, a `passphrase` must be provided.
-* `words` (`integer: <optional> default:"6"`) - Specifies the number of words to use in the generated passphrase.
-* `separator` (`string: <optional> default:"-"`) - Specifies the delimiter used to separate the words in the generated passphrase.
+* `whitelist` (`string array: <optional>`) - Comma delimited list of allowed accounts.
+* `blacklist` (`string array: <optional>`) - Comma delimited list of disallowed accounts. Note: `blacklist` overrides `whitelist`.
 
 #### Sample Payload
 
@@ -124,7 +168,7 @@ This endpoint will create an Ethereum account at a path.
 {
   "rpc_url": "localhost:8545",
   "chain_id": "1977",
-  "generate_passphrase": true
+  "whitelist": ["0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8","0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572"]
 }
 ```
 
@@ -143,14 +187,19 @@ The example below shows output for the successful creation of `/ethereum/account
 
 ```
 {
-  "request_id": "5f0bdd1d-3bb4-35db-1577-cf50fe5e9952",
+  "request_id": "8bfbe4f9-5f8b-1599-27da-172b04c5b8df",
   "lease_id": "",
   "renewable": false,
   "lease_duration": 0,
   "data": {
-    "account": "0xfFDFC08B4e1ce1eF7d3d9347e9ECed326bcb1cE9",
+    "address": "0xb7633a740Df793CbF7530b251c89aecA4F4df748",
+    "blacklist": null,
     "chain_id": "1977",
-    "rpc_url": "http://localhost:8545"
+    "rpc_url": "localhost:8545",
+    "whitelist": [
+      "0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8",
+      "0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572"
+    ]
   },
   "wrap_info": null,
   "warnings": null,
@@ -158,7 +207,7 @@ The example below shows output for the successful creation of `/ethereum/account
 }
 ```
 
-### UPDATE ACCOUNT/RE-ENCRYPT KEYSTORE
+### UPDATE ACCOUNT
 
 This endpoint will re-encrypt the keystore for an Ethereum account with a new passphrase.
 
@@ -169,16 +218,18 @@ This endpoint will re-encrypt the keystore for an Ethereum account with a new pa
 #### Parameters
 
 * `name` (`string: <required>`) - Specifies the name of the account to update. This is specified as part of the URL.
-* `generate_passphrase` (`boolean: <optional> default:false`) - Determines whether the passphrase will be generated.
-* `passphrase` (`string: <optional>`) - If `generate_passphrase` is false, a `passphrase` must be provided.
-* `words` (`integer: <optional> default:"6"`) - Specifies the number of words to use in the generated passphrase.
-* `separator` (`string: <optional> default:"-"`) - Specifies the delimiter used to separate the words in the generated passphrase.
+* `rpc_url` (`string: <optional> default:"localhost:8545"`) - Specifies the URL of the 'geth' node.
+* `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
+* `whitelist` (`string array: <optional>`) - Comma delimited list of allowed accounts.
+* `blacklist` (`string array: <optional>`) - Comma delimited list of disallowed accounts. Note: `blacklist` overrides `whitelist`.
 
 #### Sample Payload
 
 ```
 {
-  "generate_passphrase": true
+  "rpc_url": "localhost:8545",
+  "chain_id": "1977",
+  "whitelist": ["0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8","0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572"]
 }
 ```
 
@@ -197,17 +248,19 @@ The example below shows output for the successful re-encryption of the keystore 
 
 ```
 {
-  "request_id": "b3142f59-322e-54f0-cfdb-a0b0504fcf5e",
+  "request_id": "c4d7bae9-269a-d8b9-0171-c6284524c2b5",
   "lease_id": "",
   "renewable": false,
   "lease_duration": 0,
   "data": {
-    "address": "0xfFDFC08B4e1ce1eF7d3d9347e9ECed326bcb1cE9",
+    "address": "0xb7633a740Df793CbF7530b251c89aecA4F4df748",
+    "blacklist": null,
     "chain_id": "1977",
-    "pending_balance": "0",
-    "pending_nonce": "0",
-    "pending_tx_count": "0",
-    "rpc_url": "http://localhost:8545"
+    "rpc_url": "localhost:8545",
+    "whitelist": [
+      "0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8",
+      "0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572"
+    ]
   },
   "wrap_info": null,
   "warnings": null,
@@ -251,8 +304,6 @@ This endpoint will import a JSON Keystore and passphrase into Vault at a path. I
 
 * `name` (`string: <required>`) - Specifies the name of the account to create. This is specified as part of the URL.
 * `path` (`string: <required>`) - The path of the JSON keystore file.
-* `rpc_url` (`string: <optional> default:"localhost:8545"`) - Specifies the URL of the 'geth' node.
-* `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
 * `passphrase` (`string: <required>`) - The `passphrase` that was used to encrypt the keystore.
 
 #### Sample Payload
@@ -260,7 +311,7 @@ This endpoint will import a JSON Keystore and passphrase into Vault at a path. I
 Be careful with those passphrases!
 
 ```sh
-read PASSPHRASE; read  PAYLOAD_WITH_PASSPHRASE <<EOF
+read -s PASSPHRASE; read  PAYLOAD_WITH_PASSPHRASE <<EOF
 {"path":"/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939", "passphrase":"$PASSPHRASE"}
 EOF
 unset PASSPHRASE
@@ -278,7 +329,7 @@ $ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" 
 
 #### Sample Response
 
-The example below shows output for the successful creation of `/ethereum/accounts/test3`. 
+The example below shows output for the successful creation of `/ethereum/accounts/test3`.
 
 ```
 {
@@ -306,13 +357,13 @@ This endpoint will export a JSON Keystore for use in another wallet.
 #### Parameters
 
 * `name` (`string: <required>`) - Specifies the name of the account to export. This is specified as part of the URL.
-* `directory` (`string: <required>`) - The directory where the JSON keystore file will be exported to.
+* `path` (`string: <required>`) - The directory where the JSON keystore file will be exported to.
 
 #### Sample Payload
 
 ```sh
 {
-  "directory":"/Users/immutability/.ethereum/keystore"
+  "path":"/Users/immutability/.ethereum/keystore"
 }
 ```
 #### Sample Request
@@ -330,16 +381,15 @@ The example below shows output for the successful export of the keystore for `/e
 
 ```
 {
-  "request_id": "3af59bb2-9c1a-efde-b64b-fdf2329de576",
+  "request_id": "9443b8cf-9bde-0790-5b5f-1a01e14629bc",
   "lease_id": "",
-  "renewable": false,
   "lease_duration": 0,
+  "renewable": false,
   "data": {
-    "path": "/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939"
+    "passphrase": "synthesis-augmented-playhouse-squeeze-reapply-curry-sprite-surround-coleslaw",
+    "path": "/Users/immutability/.ethereum/keystore/UTC--2018-02-02T00-19-34.618912520Z--060b8e95956b8e0423b011ea496e69eec0db136f"
   },
-  "wrap_info": null,
-  "warnings": null,
-  "auth": null
+  "warnings": null
 }
 ```
 
@@ -395,10 +445,6 @@ The example below shows output for the successful deployment of a contract by th
   "renewable": false,
   "lease_duration": 0,
   "data": {
-    "account_address": "0x206d4B8aB00F1D3FdD3683A318776942f82A7F28",
-    "pending_balance": "200716500000000000000",
-    "pending_nonce": "9",
-    "pending_tx_count": "0",
     "tx_hash": "0x5edffe3d8e1c43dff0d17f720219721582e16bd82ddfe4d3c9b7e70cefb968d3"
   },
   "wrap_info": null,
@@ -440,7 +486,7 @@ $ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" 
   "renewable": false,
   "lease_duration": 0,
   "data": {
-    "contract_address": "0xCA3986C32beaD6c434773CD41107537f7dDe0c98",
+    "address": "0xCA3986C32beaD6c434773CD41107537f7dDe0c98",
     "tx_hash": "0x62fd378e374ea1166ccb2087ffca49cf1ffcb5162ff3a9651c5b77a781fdfeab"
   },
   "wrap_info": null,
@@ -522,8 +568,8 @@ The following sends 10 ETH to `0xa152E7a09267bcFf6C33388cAab403b76B889939`.
 ```sh
 
 {
-  "value":"100000000000000000000",
-  "to": "0x5fbA821454866a6E949bEf31c56DC133c9d3960D"
+  "amount":"100000000000",
+  "to": "0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572"
 }
 ```
 
@@ -542,19 +588,15 @@ The example below shows the output for the successfully sending ETH from `/ether
 
 ```
 {
-  "request_id": "de2b8395-800b-f20b-2ee8-fd94498a5f3a",
+  "request_id": "ac79079d-9e8c-e340-b718-fe19a27ff914",
   "lease_id": "",
-  "renewable": false,
   "lease_duration": 0,
+  "renewable": false,
   "data": {
-    "address": "0x206d4B8aB00F1D3FdD3683A318776942f82A7F28",
-    "pending_balance": "200685000000000000000",
-    "pending_nonce": "10",
-    "pending_tx_count": "0",
-    "tx_hash": "0x42c61a38441330ceeea9f1cf7cec596edcf3cfa14170ec5e6eb98075b4f8e072"
+    "from_address": "0x060B8e95956b8E0423b011ea496e69EeC0db136F",
+    "to_address": "0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572",
+    "tx_hash": "0x536e6ed12214886fa546baa8d72c67cdf45b8bc07d42676b794b474d021a43ff"
   },
-  "wrap_info": null,
-  "warnings": null,
-  "auth": null
+  "warnings": null
 }
 ```

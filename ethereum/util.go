@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -26,6 +27,8 @@ const (
 	MaxKeystoreSize     int64  = 1024 // Just a heuristic to prevent reading stupid big files
 	RequestPathImport   string = "import"
 	RequestPathAccounts string = "accounts"
+	PassphraseWords     int    = 9
+	PassphraseSeparator string = "-"
 )
 
 func (b *backend) writeTemporaryKeystoreFile(path string, filename string, data []byte) (string, error) {
@@ -99,14 +102,16 @@ func zeroKey(k *ecdsa.PrivateKey) {
 	}
 }
 
-func (b *backend) importJSONKeystore(keystorePath string, passphrase string) (string, []byte, error) {
-	b.Logger().Info("importJSONKeystore", "keystorePath", keystorePath)
+func (b *backend) importJSONKeystore(ctx context.Context, keystorePath string, passphrase string) (string, []byte, error) {
 	var key *keystore.Key
 	jsonKeystore, err := b.readJSONKeystore(keystorePath)
 	if err != nil {
 		return "", nil, err
 	}
 	key, err = keystore.DecryptKey(jsonKeystore, passphrase)
+	if err != nil {
+		return "", nil, err
+	}
 
 	if key != nil && key.PrivateKey != nil {
 		defer zeroKey(key.PrivateKey)
@@ -114,8 +119,8 @@ func (b *backend) importJSONKeystore(keystorePath string, passphrase string) (st
 	return key.Address.Hex(), jsonKeystore, err
 }
 
-func pathExists(req *logical.Request, path string) (bool, error) {
-	out, err := req.Storage.Get(path)
+func pathExists(ctx context.Context, req *logical.Request, path string) (bool, error) {
+	out, err := req.Storage.Get(ctx, path)
 	if err != nil {
 		return false, fmt.Errorf("existence check failed for %s: %v", path, err)
 	}
@@ -124,7 +129,6 @@ func pathExists(req *logical.Request, path string) (bool, error) {
 }
 
 func (b *backend) readJSONKeystore(keystorePath string) ([]byte, error) {
-	b.Logger().Info("readJSONKeystore", "keystorePath", keystorePath)
 	var jsonKeystore []byte
 	file, err := os.Open(keystorePath)
 	defer file.Close()
@@ -185,8 +189,8 @@ func (b *backend) exportKeystore(path string, account *Account) (string, error) 
 	return directory, err
 }
 
-func (b *backend) readAccount(req *logical.Request, path string, deep bool) (*Account, error) {
-	entry, err := req.Storage.Get(path)
+func (b *backend) readAccount(ctx context.Context, req *logical.Request, path string, deep bool) (*Account, error) {
+	entry, err := req.Storage.Get(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find account at %s", path)
 	}
@@ -223,4 +227,57 @@ func (b *backend) readAccount(req *logical.Request, path string, deep bool) (*Ac
 		account.PendingTxCount = pendingTxCount
 	}
 	return &account, nil
+}
+
+func (b *backend) contains(stringSlice []string, searchString string) bool {
+	for _, value := range stringSlice {
+		b.Logger().Info("Value", "address", value)
+		b.Logger().Info("Value", "searchString", searchString)
+		if value == searchString {
+			b.Logger().Info("Value", "boolean", true)
+			return true
+		}
+	}
+	return false
+}
+
+func contains(stringSlice []string, searchString string) bool {
+	for _, value := range stringSlice {
+		if value == searchString {
+			return true
+		}
+	}
+	return false
+}
+
+func dedup(stringSlice []string) []string {
+	var returnSlice []string
+	for _, value := range stringSlice {
+		if !contains(returnSlice, value) {
+			returnSlice = append(returnSlice, value)
+		}
+	}
+	return returnSlice
+}
+
+func (b *backend) isDebitAllowed(account *Account, toAddress string, amount *big.Int) (bool, error) {
+	b.Logger().Info("Blacklist", "list", account.Blacklist)
+	b.Logger().Info("Address", "address", toAddress)
+	if b.contains(account.Blacklist, toAddress) {
+		return false, fmt.Errorf("%s is blacklisted", toAddress)
+	}
+	if len(account.Whitelist) > 0 && !b.contains(account.Whitelist, toAddress) {
+		return false, fmt.Errorf("%s is not in the whitelist", toAddress)
+	}
+	if amount.Cmp(account.PendingBalance) > 0 {
+		return false, fmt.Errorf("Insufficient funds to debit %v because the current account balance is %v", amount, account.PendingBalance)
+	}
+	return true, nil
+}
+
+func (b *backend) isDeployAllowed(account *Account, amount *big.Int) (bool, error) {
+	if amount.Cmp(account.PendingBalance) > 0 {
+		return false, fmt.Errorf("Insufficient funds to fund contract with %v because the current account balance is %v", amount, account.PendingBalance)
+	}
+	return true, nil
 }

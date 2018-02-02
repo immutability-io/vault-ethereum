@@ -6,7 +6,7 @@ The Ethereum secret backend is intended to provide many of the capabilities of a
 
 This plugin provides services to:
 
-* Create new externally controlled accounts (using a provided passphrase or a generated one.)
+* Create new externally controlled accounts.
 * Import JSON keystores (with provided passphrase.)
 * Export JSON keystores
 * Sign transactions for contract deployment
@@ -14,7 +14,7 @@ This plugin provides services to:
 * Send Ethereum
 * Deploy contracts
 
-All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format. 
+All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format.
 
 ![Vault and Geth Topology](/doc/vault-geth.png?raw=true "Vault Ethereum Plugin")
 
@@ -24,25 +24,27 @@ Building the plugin and installing it will be covered later, but let's assume th
 
 ### Create new externally controlled accounts
 
-Let's create an Ethereum account:
+Let's create an Ethereum account using our private chain (w/ chain ID `1977`):
 
 ```sh
-$ vault write ethereum/accounts/test generate_passphrase=true
+$ vault write ethereum/accounts/test chain_id=1977
 ```
 
-That's all that is needed. The passphrase will be generated and stored in Vault. **NOTE:** we also assume that the vault client has been authenticated and has permission `write` to `ethereum/accounts/test`. Discussion of the [Vault authentication model can be found here](https://www.vaultproject.io/docs/concepts/auth.html).
+That's all that is needed. **NOTE:** we also assume that the vault client has been authenticated and has permission `write` to `ethereum/accounts/test`. Discussion of the [Vault authentication model can be found here](https://www.vaultproject.io/docs/concepts/auth.html).
 
 The Ethereum plugin will return the following information from the above command:
 
 ```
-Key     	Value
----     	-----
-account 	0x2D9A87873C3735207bBcBBcb6f8Bc320CfcA8A5e
-chain_id	4
-rpc_url 	http://localhost:8545
+Key          Value
+---          -----
+address      0x98FE39097a0eA57A2D8bC4f7A654F180b962be7f
+blacklist    <nil>
+chain_id     1977
+rpc_url      http://localhost:8545
+whitelist    <nil>
 ```
 
-The parameters `chain_id` and `rpc_url` are defaults and can be customized when writing an account. **NOTE**: the passphrase that is used to encrypt the keystore is **NOT** returned.
+The parameters `rpc_url` defaults to `http://localhost:8545` but it can be customized when creating an account.
 
 ### Read externally controlled accounts
 
@@ -55,29 +57,24 @@ $ vault read ethereum/accounts/test
 ```
 Key             	Value
 ---             	-----
-address         	0x2D9A87873C3735207bBcBBcb6f8Bc320CfcA8A5e
-chain_id        	4
-pending_balance 	0
-pending_nonce   	0
-pending_tx_count	0
-rpc_url         	http://localhost:8545
+address      0x98FE39097a0eA57A2D8bC4f7A654F180b962be7f
+blacklist    <nil>
+chain_id     1977
+rpc_url      http://localhost:8545
+whitelist    <nil>
 ```
 
-### Read passphrase
-
-If we need to access the passphrase, we can do the following:
-
-```sh
-$ vault read ethereum/accounts/test/passphrase
-```
+For convenience, we can read the balance for this account:
 
 ```
-Key       	Value
----       	-----
-passphrase	durable-wrongdoer-keenness-clergyman-dorsal-registrar
+$ vault read ethereum/accounts/test/balance
+Key                 Value
+---                 -----
+address             0x98FE39097a0eA57A2D8bC4f7A654F180b962be7f
+pending_balance     10000000000000000000
+pending_nonce       0
+pending_tx_count    0
 ```
-
-The passphrase is accessible at a different path than the account. We do this because Vault ACLs are path based and this allows Vault administrators to parcel out different policies to different actors based on their roles.
 
 ### Create contracts
 
@@ -85,7 +82,7 @@ Suppose you have written a smart contract. Likely, it is only one or 2 deploymen
 
 Sending any transaction on the Ethereum network requires the payment of fees. So, you send the transaction that deploys a contract **from** an Ethereum account with a positive balance.
 
-Assume that the compiled binary in the file `./out/Helloworld.bin`. Deployment is simple:
+Assume that the compiled contract is the file `Helloworld.bin`. Deployment is simple:
 
 ```sh
 $ vault write ethereum/accounts/test/contracts/helloworld transaction_data=@Helloworld.bin value=10000000000000000000 gas_price=21000000000 gas_limit=1500000
@@ -94,21 +91,14 @@ $ vault write ethereum/accounts/test/contracts/helloworld transaction_data=@Hell
 The above command says: *Deploy a contract, named `helloworld`, from the account named `test`*
 
 ```
-Key             	Value
----             	-----
-account_address 	0x206d4B8aB00F1D3FdD3683A318776942f82A7F28
-pending_balance 	200779500000000000000
-pending_nonce   	7
-pending_tx_count	0
-tx_hash         	0x206ba52b1edd32510e6ab607bbfbba70369595210d22885b3067868a376e9677
+Key        Value
+---        -----
+tx_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1ba70f4c
+
 ```
 
-When you deploy a contract, the contract address isn't immediately available. What is returned from the Vault-Ethereum plugin after a contract deployment is:
+When you deploy a contract, the contract address isn't immediately available. What is returned from the Vault-Ethereum plugin after a contract deployment is just:
 
-* `account_address`: The account that was used to sign and deploy the contract.
-* `pending_balance`: The *pending* balance on the account that was used to sign and deploy the contract.
-* `pending_nonce`: The *pending* nonce  on the account that was used to sign and deploy the contract.
-* `pending_tx_count`: The *pending* transaction count  on the account that was used to sign and deploy the contract.
 * `tx_hash`: The hash of the contract deployment transaction.
 
 ### Read contract address
@@ -120,15 +110,15 @@ $ vault read ethereum/accounts/test/contracts/helloworld
 ```
 
 ```
-Key             	Value
----             	-----
-contract_address	0x9dC730499BbAe80F4241a2523C516919C69339Af
-tx_hash         	0x206ba52b1edd32510e6ab607bbfbba70369595210d22885b3067868a376e9677
+Key        Value
+---        -----
+address    0x78545F1100912B001418741177b5b1eFB00DfaF1
+tx_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1ba70f4c
 ```
 
 ### Import keystores from other wallets
 
-Lastly, suppose we already have Ethereum keystores and we are convinced that storing them (and their passphrases) in Vault is something we want to do. The plugin supports importing JSON keystores. **NOTE:** you have to provide the path to a single keystore - this plugin doesn't support importing an entire directory yet.
+Lastly, suppose we already have an Ethereum wallet and we are convinced that storing the private key in Vault is something we want to do. The plugin supports importing JSON keystores. **NOTE:** you have to provide the path to a single keystore - this plugin doesn't support importing an entire directory yet.
 
 ```sh
 $ ls -la ~/.ethereum/keystore
@@ -146,7 +136,7 @@ drwxr-xr-x  3 immutability  admin  102 Dec  2 11:55 ..
 As will be discussed in the next section, handling passphrases is always problematic. Care should be taken when importing a keystore not to leak the passphrase to the shell's history file or to the environment:
 
 ```sh
-$ read PASSPHRASE; vault write ethereum/import/test2 path=/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939 passphrase=$PASSPHRASE; unset PASSPHRASE
+$ read -s PASSPHRASE; vault write ethereum/import/test2 path=/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939 passphrase=$PASSPHRASE; unset PASSPHRASE
 ```
 
 ```
@@ -157,20 +147,32 @@ address	0xa152E7a09267bcFf6C33388cAab403b76B889939
 
 Now, we can use the imported account as we did with our generated account.
 
-### Export keystores
+### Export JSON keystores
 
-If we wish to export Vault managed keystores into a external wallet, we can:
+If we wish to export the account (private key) as a JSON keystore if we want to import it into a external wallet. Each time we export it, a cryptographically strong passphrase is generated to encrypt the JSON keystore. **You need to take care not to reveal this passphrase**:
 
 ```sh
-$ vault write ethereum/accounts/test/export directory=/Users/immutability/.ethereum/keystore
+$ vault write ethereum/accounts/test/export path=$(pwd)
 ```
 
 ```
-Key 	Value
---- 	-----
-path	/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939
+Key 	         Value
+--- 	         -----
+passphrase     resource-ladybug-subzero-childish-nutrient-flyer-macaw-whacky-flagship
+path	         /Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939
 ```
 
+#### Export passphrase to clipboard
+
+There is a [nifty Golang utility](https://github.com/atotto/clipboard) that works in OSX, Windows and Linux that allows you to pipe the output of a command into the clipboard. I have installed this (as well as the [awesome jq utility](https://github.com/stedolan/jq)) in my environment. This allows me to do this:
+
+```sh
+$ vault write -format=json ethereum/accounts/test/export path=$(pwd) | jq .data.passphrase | tr -d '"' | gocopy
+```
+
+When you export like this, nothing is revealed to the screen but the JSON keystore is exported and your clipboard contains the passphrase. Then it is a simple matter to import the JSON keystore into something like MetaMask:
+
+![Import into MetaMask](/doc/import_metamask.png?raw=true "How to use an Exported JSON Keystor")
 
 ### Signing arbitrary data
 
@@ -188,7 +190,7 @@ signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027
 
 ### Sending Ethereum
 
-Now that we have accounts in Vault, we can drain them! We can send ETH to other accounts on the network. (In my case, it must be emphasized: this is a private test network or Rinkeby.) Assuming there are funds in the account, we can send ETH to another address. In this case, we write a `debit` to the `test3` account:
+Now that we have accounts in Vault, we can drain them! We can send ETH to other accounts on the network. (In my test case, it must be emphasized: this is a private test network or Rinkeby.) Assuming there are funds in the account, we can send ETH to another address. In this case, we write a `debit` to the `test3` account:
 
 ```sh
 $ vault write ethereum/accounts/test3/debit to=0x0374E76DA2f0bE85a9FdC6763864c1087e6Ed28b value=10000000000000000000
@@ -203,16 +205,97 @@ tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
 
 This defaults `gas_limit` to 50000 with a default `gas_price` of 20 gwei.
 
+#### Rudimentary controls
 
-## Storing passphrases
+I have implemented a few rudimentary controls to prevent sending transactions that shouldn't be sent.
 
-Keeping passphrases on the same storage medium as the encrypted private key is probably the most controversial part of this design. The justification is based on the context in which this plugin is expected to be used.
+##### Insufficient funds
 
-In a DevOps environment, we leverage automation across the pipeline. We often have non-human actors engaged in the process of deployment and testing. A typical practice in the Ethereum community is to `unlock` an account for a period of time. Since there is no authentication needed to use this `unlocked` account, this creates a window of opportunity for bad actors to send transactions. Audit controls in this scenario are limited as well.
+If your pending balance at the point in time you are trying to send ETH is less than the amount of ETH you want to send, then the transaction will not be attempted.
 
-Another alternative to `unlocking` an account is to sign a transaction in the context of a human user providing a passphrase. This makes automation ineffective.
+```sh
+$ vault write ethereum/accounts/etherbase/debit to=0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8 amount=1000000000000000000000000
+Error writing data to ethereum/accounts/etherbase/debit: Error making API request.
 
-Also, having users handling passphrases with any frequency - the kind of frequency that we have in a typical development environment - makes exposure of passphrases likely. A tired developer will forget that they exported a variable or put a passphrase in a file.
+URL: PUT https://localhost:8200/v1/ethereum/accounts/etherbase/debit
+Code: 500. Errors:
+
+* 1 error occurred:
+
+* Insufficient funds to debit 1000000000000000000000000 because the current account balance is 244998580000000000000
+```
+
+##### Whitelisting accounts
+
+Imagine that there is an approval process that determines the ETH addresses that you are allowed to send ETH to. This is implemented in the plugin by setting a `whitelist` attribute on the Ethereum account:
+
+```sh
+$ vault write ethereum/accounts/etherbase whitelist=0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8,0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572
+Key          Value
+---          -----
+address      0x3943FF61FF803316cF02938b5b0b3Ba3bbE183e4
+blacklist    <nil>
+chain_id     4
+rpc_url      http://localhost:8545
+whitelist    [0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8 0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572]
+```
+
+If you set a whitelist, you will be prevented from sending funds to an account not in the whitelist:
+
+```sh
+$ vault write ethereum/accounts/etherbase/debit to=0x16B429f9B46Bc50B375660a4aFe7e07b6369D8aC amount=100000000000000000
+Error writing data to ethereum/accounts/etherbase/debit: Error making API request.
+
+URL: PUT https://localhost:8200/v1/ethereum/accounts/etherbase/debit
+Code: 500. Errors:
+
+* 1 error occurred:
+
+* 0x16B429f9B46Bc50B375660a4aFe7e07b6369D8aC is not in the whitelist
+```
+
+##### Blacklisting accounts
+
+Imagine that there is list of accounts that are known to authorities as being vehicles for money laundering. (Hint: this is an excellent business idea.) If you want to prevent any ETH from being sent to these bad accounts you can create a blacklist:
+
+```sh
+$ vault write ethereum/accounts/etherbase blacklist=0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8,0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572
+Key          Value
+---          -----
+address      0x3943FF61FF803316cF02938b5b0b3Ba3bbE183e4
+blacklist    [0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8 0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572]
+chain_id     4
+rpc_url      http://localhost:8545
+whitelist    <nil>
+```
+
+If you set a blacklist, you will be prevented from sending funds to an account in the blacklist:
+
+```sh
+$ vault write ethereum/accounts/etherbase/debit to=0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572 amount=100000000000000000
+Error writing data to ethereum/accounts/etherbase/debit: Error making API request.
+
+URL: PUT https://localhost:8200/v1/ethereum/accounts/etherbase/debit
+Code: 500. Errors:
+
+* 1 error occurred:
+
+* 0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572 is blacklisted
+```
+
+## Passphrases and authentication
+
+In the Cryptocurrency universe, private keys are protected by passphrases. If you forget your passphrase, you lose access to your private keys and all your funds. Authentication via passphrase is often very awkward; however, it is a choice. The beauty of Vault is that it lets you make that choice. If you want to use passphrases to protect your private keys, you can: simply set up a `userpass` authentication backend. Then, if you so desire, you can add MFA to that authentication mechanism (try that with Mist or MetaMask.) This also ignores the fact that the Vault unsealing process is yet another control that prevents unauthorized use of private keys.
+
+The net result is: if you want to use Vault as a personal Ethereum wallet, it has better controls than most software alternatives.
+
+### Theory of the firm
+
+Ethereum is decentralized and that is fantastic. Our society has become far too dependent on untrustworthy institutions and we need to tilt the balance of power away from the few towards the many. Nevertheless, there are many, many use cases where collaboration and sharing of pooled resources lead to more resilient systems than swarms of individual laptops. A business that wants to do business on the blockchain might not want to keep its private keys on a single laptop - it probably needs something more industrial scale.
+
+Also, in a DevOps environment, we leverage automation across the pipeline. We often have non-human actors engaged in the process of deployment and testing. Without Vault, the typical practice in the Ethereum community is to `unlock` an account for a period of time. Since there is no authentication needed to use this `unlocked` account, this creates a window of opportunity for bad actors to send transactions. A consequence of this architecture is that wallets (and private keys) are stored on personal devices - a shared wallet is pretty much impractical with conventional tools.
+
+Having users handling passphrases with any frequency - the kind of frequency that we have in a typical development or business environment - makes exposure of passphrases likely. A tired developer will forget that they exported a variable or put a passphrase in a file.
 
 ### Vault can help
 
@@ -284,7 +367,7 @@ More (much) to come soon...
 
 None of this would have been possible without the fantastic [tutorial](https://www.hashicorp.com/blog/building-a-vault-secure-plugin) on Vault Plugins by Seth Vargo. Seth is one of those rare individuals who can communicate the simple essence of a complex technology in practical terms.
 
-I had the great fortune to attend DevCon3 in November and hear Andy Milenius speak with clarity and vision about how the Ethereum developer ecosystem should embrace the Unix philosophy - the same philosophy that makes **everything-as-code** possibly: simple tools, with clear focus and purpose, driven by repeatable and interoperable mechanics. So, when I returned from DevCon3 (and dug out from my work backlog - a week away is hard) I installed `seth` and `dapp` and found inspiration.
+I had the great fortune to attend DevCon3 in November, 2017 and hear Andy Milenius speak with clarity and vision about how the Ethereum developer ecosystem should embrace the Unix philosophy - the same philosophy that makes **everything-as-code** possible: simple tools, with clear focus and purpose, driven by repeatable and interoperable mechanics. So, when I returned from DevCon3 (and dug out from my work backlog - a week away is hard) I installed `seth` and `dapp` and found inspiration.
 
 The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy and Mikael and Daniel Brockman) is a super warm and welcoming place that pointed me towards code that greatly helped this experiment.
 

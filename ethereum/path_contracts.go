@@ -41,9 +41,9 @@ Deploys an Ethereum contract.
 					Type:        framework.TypeString,
 					Description: "The transaction data.",
 				},
-				"value": &framework.FieldSchema{
+				"amount": &framework.FieldSchema{
 					Type:        framework.TypeString,
-					Description: "Value in ETH.",
+					Description: "Amount of ETH (in Gwei).",
 				},
 				"nonce": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -57,7 +57,7 @@ Deploys an Ethereum contract.
 				},
 				"gas_limit": &framework.FieldSchema{
 					Type:        framework.TypeString,
-					Description: "The gas limit for the transaction.",
+					Description: "The gas limit (in Gwei) for the transaction.",
 					Default:     "50000",
 				},
 			},
@@ -70,19 +70,16 @@ Deploys an Ethereum contract.
 	}
 }
 
-func (b *backend) pathContractsList(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathContractsList", "path", req.Path)
-	vals, err := req.Storage.List(req.Path)
+func (b *backend) pathContractsList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	vals, err := req.Storage.List(ctx, req.Path)
 	if err != nil {
 		return nil, err
 	}
 	return logical.ListResponse(vals), nil
 }
 
-func (b *backend) pathCreateContract(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathCreateContract", "path", req.Path)
-
-	value := math.MustParseBig256(data.Get("value").(string))
+func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	amount := math.MustParseBig256(data.Get("amount").(string))
 	nonce := math.MustParseUint64(data.Get("nonce").(string))
 	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
 	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
@@ -94,8 +91,12 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 	} else {
 		return nil, fmt.Errorf("something sketchy with the path: %s", req.Path)
 	}
-	account, err := b.readAccount(req, accountPath, true)
+	account, err := b.readAccount(ctx, req, accountPath, true)
 	if err != nil {
+		return nil, err
+	}
+	allowed, err := b.isDeployAllowed(account, amount)
+	if !allowed {
 		return nil, err
 	}
 	chainID := math.MustParseBig256(account.ChainID)
@@ -119,7 +120,7 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
+	rawTx = types.NewContractCreation(nonce, amount, gasLimit, gasPrice, input)
 
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
@@ -136,25 +137,20 @@ func (b *backend) pathCreateContract(req *logical.Request, data *framework.Field
 		return nil, err
 	}
 
-	err = req.Storage.Put(entry)
+	err = req.Storage.Put(ctx, entry)
 	if err != nil {
 		return nil, err
 	}
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"pending_balance":  account.PendingBalance.String(),
-			"pending_nonce":    fmt.Sprintf("%d", account.PendingNonce),
-			"pending_tx_count": fmt.Sprintf("%d", account.PendingTxCount),
-			"account_address":  account.Address,
-			"tx_hash":          signedTx.Hash().Hex(),
+			"tx_hash": signedTx.Hash().Hex(),
 		},
 	}, nil
 }
 
-func (b *backend) pathReadContract(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathReadContract", "path", req.Path)
-	entry, err := req.Storage.Get(req.Path)
+func (b *backend) pathReadContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	entry, err := req.Storage.Get(ctx, req.Path)
 	var contract Contract
 	err = entry.DecodeJSON(&contract)
 
@@ -172,7 +168,7 @@ func (b *backend) pathReadContract(req *logical.Request, data *framework.FieldDa
 	} else {
 		return nil, fmt.Errorf("something sketchy with the path: %s", req.Path)
 	}
-	account, err := b.readAccount(req, accountPath, false)
+	account, err := b.readAccount(ctx, req, accountPath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +192,8 @@ func (b *backend) pathReadContract(req *logical.Request, data *framework.FieldDa
 	return &logical.Response{
 		Data: map[string]interface{}{
 
-			"tx_hash":          contract.Hash,
-			"contract_address": receiptAddress,
+			"tx_hash": contract.Hash,
+			"address": receiptAddress,
 		},
 	}, nil
 }

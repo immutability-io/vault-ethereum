@@ -19,7 +19,6 @@ func main() {
 	tlsProviderFunc := pluginutil.VaultPluginTLSProvider(tlsConfig)
 
 	factoryFunc := ethereum.FactoryType(logical.TypeLogical)
-
 	err := plugin.Serve(&plugin.ServeOpts{
 		BackendFactoryFunc: factoryFunc,
 		TLSProviderFunc:    tlsProviderFunc,

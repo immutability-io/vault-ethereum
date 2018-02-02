@@ -1,6 +1,7 @@
 package ethereum
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -47,26 +48,23 @@ Reads a JSON keystore, decrypts it and stores the passphrase.
 	}
 }
 
-func (b *backend) pathImportExistenceCheck(req *logical.Request, data *framework.FieldData) (bool, error) {
-	b.Logger().Info("pathImportExistenceCheck", "path", req.Path)
+func (b *backend) pathImportExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
 	accountPath := strings.Replace(req.Path, RequestPathImport, RequestPathAccounts, -1)
-	return pathExists(req, accountPath)
+	return pathExists(ctx, req, accountPath)
 }
 
-func (b *backend) pathImportCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathImportCreate", "path", req.Path)
+func (b *backend) pathImportCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	rpc := data.Get("rpc_url").(string)
 	chainID := data.Get("chain_id").(string)
 	accountPath := strings.Replace(req.Path, RequestPathImport, RequestPathAccounts, -1)
-	exists, err := pathExists(req, accountPath)
+	exists, err := pathExists(ctx, req, accountPath)
 	if !exists || err != nil {
 		keystorePath := data.Get("path").(string)
 		passphrase := data.Get("passphrase").(string)
-		address, jsonKeystore, err := b.importJSONKeystore(keystorePath, passphrase)
+		address, jsonKeystore, err := b.importJSONKeystore(ctx, keystorePath, passphrase)
 		if err != nil {
 			return nil, err
 		}
-
 		filename := filepath.Base(keystorePath)
 		accountJSON := &Account{Address: address,
 			RPC:          rpc,
@@ -80,7 +78,7 @@ func (b *backend) pathImportCreate(req *logical.Request, data *framework.FieldDa
 			return nil, err
 		}
 
-		err = req.Storage.Put(entry)
+		err = req.Storage.Put(ctx, entry)
 		if err != nil {
 			return nil, err
 		}
