@@ -188,6 +188,17 @@ Key      	Value
 signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027daed083675b5af5c99b3f1608b53620cd02ca51a65b67773b1580552deb501
 ```
 
+### Verifying signatures
+
+Of course, we can also verify signatures using the `verify` endpoint. This will verify that a particular account (in this case the account named `test`) actually signed the data:
+
+```sh
+$ vault write ethereum/accounts/test/verify data=@somefile.txt signature=0xdb6f22f068ae23473beb9b71bb1a2df64a71cb2e51fc43d67558ba8934da572d49b3faa8da387703870474c92beb8c53e89bbd02ba2356b5fc8fa5b342d8fb7b00
+Key         Value
+---         -----
+verified    true
+```
+
 ### Sending Ethereum
 
 Now that we have accounts in Vault, we can drain them! We can send ETH to other accounts on the network. (In my test case, it must be emphasized: this is a private test network or Rinkeby.) Assuming there are funds in the account, we can send ETH to another address. In this case, we write a `debit` to the `test3` account:

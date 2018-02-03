@@ -523,7 +523,7 @@ This endpoint will sign the provided data.
 $ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
     --request POST \
     --data @payload.json \
-    https://localhost:8200/v1/ethereum/accounts/test9/sign | jq .
+    https://localhost:8200/v1/ethereum/accounts/test2/sign | jq .
 ```
 
 #### Sample Response
@@ -544,6 +544,59 @@ The example below shows output for the successful signing of some data by the pr
   "auth": null
 }
 ```
+
+
+### VERIFY SIGNATURE
+
+This endpoint will verify that this account signed some data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/verify`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some data.
+* `signature` (`string: <required>`) - The signature to verify.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "this is very important"
+  "signature": "0xdb6f22f068ae23473beb9b71bb1a2df64a71cb2e51fc43d67558ba8934da572d49b3faa8da387703870474c92beb8c53e89bbd02ba2356b5fc8fa5b342d8fb7b00"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test/verify | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful verification of a signature created by `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "0862028d-0810-5355-a583-de002477b26a",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "verified": false
+  },
+  "warnings": null
+}
+
+```
+
 
 ### SEND ETHEREUM/DEBIT ACCOUNT
 

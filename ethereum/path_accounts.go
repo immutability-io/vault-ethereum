@@ -172,6 +172,29 @@ Hash and sign data using a given Ethereum account.
 				logical.CreateOperation: b.pathSign,
 			},
 		},
+		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/verify",
+			HelpSynopsis: "Verify that this account signed something.",
+			HelpDescription: `
+
+Validate that this account signed some data.
+
+`,
+			Fields: map[string]*framework.FieldSchema{
+				"data": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The data to verify the signature of.",
+				},
+				"signature": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The signature to verify",
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathVerify,
+			},
+		},
 	}
 }
 
@@ -318,12 +341,44 @@ func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *fram
 	}
 	defer zeroKey(key.PrivateKey)
 	signature, err := crypto.Sign(hash, key.PrivateKey)
+
 	if err != nil {
 		return nil, err
 	}
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"signature": hexutil.Encode(signature[:]),
+		},
+	}, nil
+}
+
+func (b *backend) pathVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	input := []byte(data.Get("data").(string))
+	signatureRaw := data.Get("signature").(string)
+
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
+	hash := crypto.Keccak256([]byte(msg))
+	prunedPath := strings.Replace(req.Path, "/verify", "", -1)
+	account, err := b.readAccount(ctx, req, prunedPath, false)
+	if err != nil {
+		return nil, err
+	}
+	signature, err := hexutil.Decode(signatureRaw)
+
+	if err != nil {
+		return nil, err
+	}
+	pubkey, err := crypto.SigToPub(hash, signature)
+
+	if err != nil {
+		return nil, err
+	}
+	address := crypto.PubkeyToAddress(*pubkey)
+
+	verified := account.Address == address.Hex()
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"verified": verified,
 		},
 	}, nil
 }
