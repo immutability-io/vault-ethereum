@@ -385,3 +385,9 @@ The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy 
 ## License
 
 This code is licensed under the MPLv2 license. Please feel free to use it. Please feel free to contribute.
+
+## Donations?
+
+Send ETH to 0x4169c9508728285e8A9f7945D08645Bb6b3576e5 and you will be blessed in the next life.
+
+![Donations Accepted](/doc/0x4169c9508728285e8A9f7945D08645Bb6b3576e5.png?raw=true "0x4169c9508728285e8A9f7945D08645Bb6b3576e5")
