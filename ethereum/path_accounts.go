@@ -235,7 +235,6 @@ func (b *backend) pathAccountBalanceRead(ctx context.Context, req *logical.Reque
 }
 
 func (b *backend) pathAccountsCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.Logger().Info("pathAccountsCreate")
 	rpc := data.Get("rpc_url").(string)
 	chainID := data.Get("chain_id").(string)
 	whitelist := data.Get("whitelist").([]string)

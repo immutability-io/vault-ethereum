@@ -231,10 +231,7 @@ func (b *backend) readAccount(ctx context.Context, req *logical.Request, path st
 
 func (b *backend) contains(stringSlice []string, searchString string) bool {
 	for _, value := range stringSlice {
-		b.Logger().Info("Value", "address", value)
-		b.Logger().Info("Value", "searchString", searchString)
 		if value == searchString {
-			b.Logger().Info("Value", "boolean", true)
 			return true
 		}
 	}
@@ -261,8 +258,6 @@ func dedup(stringSlice []string) []string {
 }
 
 func (b *backend) isDebitAllowed(account *Account, toAddress string, amount *big.Int) (bool, error) {
-	b.Logger().Info("Blacklist", "list", account.Blacklist)
-	b.Logger().Info("Address", "address", toAddress)
 	if b.contains(account.Blacklist, toAddress) {
 		return false, fmt.Errorf("%s is blacklisted", toAddress)
 	}
