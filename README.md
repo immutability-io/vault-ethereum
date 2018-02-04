@@ -327,7 +327,7 @@ The complete API to the plugin is documented [here](https://github.com/immutabil
 
 ## Plugin Setup
 
-I assume some familiarity with Vault and Vault's plugin ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html). I realize that it is a lot to ask for someone to be so familiar with something so new. I have a (GitHub repo that has instructions for installing Ethereum, Vault and the plugin)[https://github.com/immutability-io/immutability-project]. 
+I assume some familiarity with Vault and Vault's plugin ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html). I realize that it is a lot to ask for someone to be so familiar with something so new. I have a (GitHub repo that has instructions for installing Ethereum, Vault and the plugin)[https://github.com/immutability-io/immutability-project].
 
 For this to work, you must have a Vault server already running, unsealed, and authenticated.
 
@@ -386,6 +386,92 @@ If you are using Vault in `dev` mode, you don't need to supply the certificate p
 
 ```sh
 $ vault secrets enable -path=ethereum -plugin-name=ethereum-plugin plugin
+```
+
+## Testing
+
+I am using [Bats: Bash Automated Testing System](https://github.com/sstephenson/bats) to verify the plugin works. I recently upgraded to Vault 0.9.3 - these tests helped me discover a [problem](https://github.com/hashicorp/vault/issues/3873). I then updated the dependencies for the plugin to use [#3881](https://github.com/hashicorp/vault/pull/3881).
+
+I have divided the tests up into 3 test cases. I initially planned to structure the tests according to the paths that are implemented by the backend:
+
+```
+Paths: framework.PathAppend(
+  importPaths(&b),
+  accountsPaths(&b),
+  contractsPaths(&b),
+),
+
+```
+
+However, some of the tests depend on the presence of a running Ethereum node. Also, some of these tests depend on successful mining. Therefore, I split the tests into plugin interactions that could run successfully when disconnected from an Ethereum network and tests that needed connectivity. I also created a test for plugin installation.
+
+### Test Case: `install.bats`
+
+With this test, we need to be a Vault administrator. Also, this test assumes that the new plugin was built and moved to the plugin directory configured (see above - `"plugin_directory" = "/Users/immutability/etc/vault.d/vault_plugins"`.)
+
+So, assuming that you have authenticated with permissions to install the plugin, you can run the `install.bats` test case:
+
+```
+$ bats install.bats
+ ✓ disable ethereum secrets plugin
+ ✓ delete ethereum secrets plugin from catalog
+ ✓ write ethereum secrets plugin to catalog
+ ✓ enable ethereum secrets plugin
+
+4 tests, 0 failures
+```
+
+### Test Case: `disconnected.bats`
+
+Running the disconnected test case is simple. You need to authenticate to Vault with a policy that gives you permission to write accounts to the path where the Ethereum plugin was mounted. This policy does that. Note that this policy is very permissive. In a real use case, you would likely mount the Ethereum plugin at several paths and tightly control access within those paths:
+
+```
+path "ethereum*" {
+  policy = "write"
+}
+
+```
+
+After you have authenticated with the above permissions, you can run the `disconnected.bats` test case:
+
+```
+$ bats disconnected.bats
+ ✓ list ethereum accounts - should be empty
+ ✓ create test ethereum account
+ ✓ read test ethereum account
+ ✓ update test ethereum account no changes
+ ✓ update test ethereum account blacklist
+ ✓ update test ethereum account whitelist
+ ✓ delete test ethereum account
+ ✓ create and export test ethereum account
+ ✓ import test ethereum account into test2 ethereum account
+ ✓ test sign and verify
+ ✓ delete test and test2 ethereum accounts
+
+11 tests, 0 failures
+```
+
+### Test Case: `connected.bats`
+
+To run the connected test case, you need to have access to an Ethereum network. Since this test case involves sending ETH, this better be a testnet or a private chain. This test case assumes the same private chain (`chain_id=1977`) used above. Also, as a precondition of this test case is that you have a Vault-managed Ethereum account that is funded.
+
+If you [follow the instructions here](https://github.com/immutability-io/immutability-project), you can run this test case. Assuming that you have, you can start mining into an account using this command:
+
+```
+ETHERBASE=$(vault write -format=json ethereum/accounts/etherbase chain_id=1977 | jq .data.address | tr -d '"') ./runminer.sh etherbase
+```
+
+This will create an account named `etherbase` and pass that address to an Ethereum mining node. You need to wait some time for the account's balance to be updated.
+
+Once you have a Vault-managed Ethereum account that is funded, you export an environment variable with this name and launch the test:
+
+```sh
+$ FUNDED_ACCOUNT=etherbase bats connected.bats
+ ✓ test read etherbase balance
+ ✓ test send ETH from etherbase
+ ✓ test deploy contract from etherbase
+
+3 tests, 0 failures
 ```
 
 ## ToDo

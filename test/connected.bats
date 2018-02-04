@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 
-@test "test balance" {
+@test "test read $FUNDED_ACCOUNT balance" {
   pending_balance="$(vault read -format=json ethereum/accounts/$FUNDED_ACCOUNT/balance | jq .data.pending_balance | tr -d '"')"
     [ "$pending_balance" != "0" ]
 }
 
-@test "test send ETH" {
+@test "test send ETH from $FUNDED_ACCOUNT" {
   [ "$FUNDED_ACCOUNT" != "" ]
   balance_result="$(vault read -format=json ethereum/accounts/$FUNDED_ACCOUNT/balance | jq .data)"
   pending_balance="$(echo $balance_result | jq .pending_balance | tr -d '"')"
@@ -19,7 +19,7 @@
     [ "$to_address" = "$recipient_address" ]
 }
 
-@test "test deploy contract" {
+@test "test deploy contract from $FUNDED_ACCOUNT" {
   [ "$FUNDED_ACCOUNT" != "" ]
   result="$(vault write ethereum/accounts/$FUNDED_ACCOUNT/contracts/helloworld @send_contract.json | jq .data)"
   tx_hash="$(echo $result | jq .tx_hash | tr -d '"')"

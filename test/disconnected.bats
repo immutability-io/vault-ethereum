@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 
-@test "list empty accounts" {
+@test "list ethereum accounts - should be empty" {
   run vault list ethereum/accounts
     [ "$status" -eq 2 ]
 }
 
-@test "create test account" {
+@test "create test ethereum account" {
   results="$(vault write -format=json ethereum/accounts/test chain_id=1977 | jq .data)"
   list_results="$(vault list -format=json ethereum/accounts | jq '. | length')"
   blacklist="$(echo $results | jq .blacklist)"
@@ -21,7 +21,7 @@
     [ "$address" != "" ]
 }
 
-@test "read test account" {
+@test "read test ethereum account" {
   results="$(vault read -format=json ethereum/accounts/test | jq .data)"
   blacklist="$(echo $results | jq .blacklist)"
   whitelist="$(echo $results | jq .whitelist)"
@@ -35,13 +35,13 @@
     [ "$address" != "" ]
 }
 
-@test "update test account no changes" {
+@test "update test ethereum account no changes" {
   read_results="$(vault read -format=json ethereum/accounts/test | jq .data)"
   update_results="$(vault write -format=json ethereum/accounts/test chain_id=1977 | jq .data)"
     [ "$read_results" = "$update_results" ]
 }
 
-@test "update test account blacklist" {
+@test "update test ethereum account blacklist" {
   read_results="$(vault read -format=json ethereum/accounts/test | jq .data)"
   blacklist_entry_1="0x0acfF30349F2DCcE288dB75150A588262D6C247a"
   blacklist_entry_2="0x0acfF30349F2DCcE288dB75150A588262D6C247b"
@@ -53,7 +53,7 @@
 }
 
 
-@test "update test account whitelist" {
+@test "update test ethereum account whitelist" {
   read_results="$(vault read -format=json ethereum/accounts/test | jq .data)"
   whitelist_entry_1="0x0acfF30349F2DCcE288dB75150A588262D6C247a"
   whitelist_entry_2="0x0acfF30349F2DCcE288dB75150A588262D6C247b"
@@ -64,12 +64,12 @@
     [ "$whitelist_entry_2" = "$test_whitelist_entry_2" ]
 }
 
-@test "delete test account" {
+@test "delete test ethereum account" {
   run vault delete ethereum/accounts/test
     [ "$status" -eq 0 ]
 }
 
-@test "export test account" {
+@test "create and export test ethereum account" {
   results="$(vault write -format=json ethereum/accounts/test chain_id=1977 | jq .data)"
   export_results="$(vault write -format=json ethereum/accounts/test/export path=$(pwd) | jq .data)"
   passphrase="$(echo $export_results | jq .passphrase | tr -d '"')"
@@ -81,8 +81,23 @@
     [ "$passphrase" != "" ]
 }
 
+@test "import test ethereum account into test2 ethereum account" {
+  passphrase=$(cat passphrase.txt)
+  import_path=$(cat path.txt)
+  import_address="$(vault write -format=json ethereum/import/test2 chain_id=1977 passphrase=$passphrase path=$import_path | jq .data.address | tr -d '"')"
+  export_address="$(vault read -format=json ethereum/import/test | jq .data.address | tr -d '"')"
+    [ "$import_address" != "$export_address" ]
+}
+
 @test "test sign and verify" {
-  signature="$(vault write -format=json ethereum/accounts/test/sign data=@accounts.bats | jq .data.signature | tr -d '"')"
-  verified="$(vault write -format=json ethereum/accounts/test/verify data=@accounts.bats signature=$signature | jq .data.verified)"
+  signature="$(vault write -format=json ethereum/accounts/test/sign data=@disconnected.bats | jq .data.signature | tr -d '"')"
+  verified="$(vault write -format=json ethereum/accounts/test/verify data=@disconnected.bats signature=$signature | jq .data.verified)"
     [ "$verified" = "true" ]
+}
+
+@test "delete test and test2 ethereum accounts" {
+  run vault delete ethereum/accounts/test
+    [ "$status" -eq 0 ]
+  run vault delete ethereum/accounts/test2
+    [ "$status" -eq 0 ]
 }
