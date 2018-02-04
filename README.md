@@ -341,34 +341,52 @@ It is assumed that your Vault configuration specifies a `plugin_directory`. Mine
 
 ```
 $ cat vault-config.hcl
-...
-plugin_directory="/etc/vault.d/vault_plugins"
-...
+
+"default_lease_ttl" = "24h"
+
+"max_lease_ttl" = "24h"
+
+"backend" "file" {
+  "path" = "/Users/immutability/etc/vault.d/data"
+}
+
+"api_addr" = "https://localhost:8200"
+
+"listener" "tcp" {
+  "address" = "localhost:8200"
+
+  "tls_cert_file" = "/Users/immutability/etc/vault.d/vault.crt"
+  "tls_client_ca_file" = "/Users/immutability/etc/vault.d/root.crt"
+  "tls_key_file" = "/Users/immutability/etc/vault.d/vault.key"
+}
+
+"plugin_directory" = "/Users/immutability/etc/vault.d/vault_plugins"
 ```
+
+Another configuration setting that is critical is `api_addr`. The `api_addr` must be set in order for the plugin to communicate with the Vault server during mount time.
 
 Move the compiled plugin into Vault's configured `plugin_directory`:
 
   ```sh
-  $ mv vault-ethereum /etc/vault.d/vault_plugins/vault-ethereum
+  $ mv vault-ethereum $HOME/etc/vault.d/vault_plugins
   ```
 
 Calculate the SHA256 of the plugin and register it in Vault's plugin catalog.
 
-  ```sh
-  $ export SHA256=$(shasum -a 256 "/etc/vault.d/vault_plugins/vault-ethereum" | cut -d' ' -f1)
-
-  $ vault write sys/plugins/catalog/ethereum-plugin \
+```sh
+$ export SHA256=$(shasum -a 256 "$HOME/etc/vault.d/vault_plugins/vault-ethereum" | cut -d' ' -f1)
+$ vault write sys/plugins/catalog/ethereum-plugin \
       sha_256="${SHA256}" \
-      command="vault-ethereum --ca-cert=/etc/vault.d/root.crt --client-cert=/etc/vault.d/vault.crt --client-key=/etc/vault.d/vault.key"
-  ```
+      command="vault-ethereum --ca-cert=$HOME/etc/vault.d/root.crt --client-cert=$HOME/etc/vault.d/vault.crt --client-key=$HOME/etc/vault.d/vault.key"
+```
 
 If you are using Vault in `dev` mode, you don't need to supply the certificate parameters. For any real Vault installation, however, you will be using TLS.
 
 ## Mount the Ethereum secret backend
 
-  ```sh
-  $ vault mount -path="ethereum" -plugin-name="ethereum-plugin" plugin
-  ```
+```sh
+$ vault secrets enable -path=ethereum -plugin-name=ethereum-plugin plugin
+```
 
 ## ToDo
 
