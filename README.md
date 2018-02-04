@@ -327,7 +327,7 @@ The complete API to the plugin is documented [here](https://github.com/immutabil
 
 ## Plugin Setup
 
-I assume some familiarity with Vault and Vault's plugin ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html). I realize that it is a lot to ask for someone to be so familiar with something so new. I will be writing a series of tutorials around this space in the near future. I will link them here when done. I will (eventually) provide a Vagrant box and scripts that configure a Vault server that supports this plugin.
+I assume some familiarity with Vault and Vault's plugin ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html). I realize that it is a lot to ask for someone to be so familiar with something so new. I have a (GitHub repo that has instructions for installing Ethereum, Vault and the plugin)[https://github.com/immutability-io/immutability-project]. 
 
 For this to work, you must have a Vault server already running, unsealed, and authenticated.
 
@@ -367,9 +367,9 @@ Another configuration setting that is critical is `api_addr`. The `api_addr` mus
 
 Move the compiled plugin into Vault's configured `plugin_directory`:
 
-  ```sh
-  $ mv vault-ethereum $HOME/etc/vault.d/vault_plugins
-  ```
+```sh
+$ mv vault-ethereum $HOME/etc/vault.d/vault_plugins
+```
 
 Calculate the SHA256 of the plugin and register it in Vault's plugin catalog.
 
