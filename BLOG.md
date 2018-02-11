@@ -28,6 +28,28 @@ To demonstrate the power of using Vault as platform for blockchain wallets, let'
 
 If these assumptions prove problematic, [you can use these instructions to create a Vault and Ethereum playground](https://github.com/immutability-io/immutability-project).
 
+#### Side Note on Administrator Permissions
+
+To install the plugin, configure mounts, enable authentication methods and manage policy, you need fairly powerful access in Vault. However, you do not need to use the Vault root token. If you create a administrative user with the following permissions you can do everything in this exercise:
+
+```
+path "sys/plugins/catalog*" {
+  capabilities = ["sudo", "create", "read", "update", "delete", "list"]
+}
+path "sys/auth*" {
+  capabilities = ["sudo", "create", "read", "update", "delete", "list"]
+}
+path "sys/mounts*" {
+  capabilities = ["sudo", "create", "read", "update", "delete", "list"]
+}
+path "sys/policy*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "auth/userpass/users*" {
+  capabilities = ["create", "delete", "list"]
+}
+```
+
 ### Install the Vault Ethereum Plugin
 
 First, lets download and verify the authenticity of the plugin. Note: I use [Keybase](https://keybase.io/immutability) PGP to sign my releases.
@@ -100,7 +122,7 @@ First we move the plugin:
 $ mv vault-ethereum /Users/immutability/etc/vault.d/vault_plugins
 ```
 
-Then we register the plugin in the catalog. (Note: We must have authenticated to Vault with permission to write to `sys/plugins/catalog*`). We will use the SHA256SUM that was in the plugin archive:
+Then we register the plugin in the catalog. We will use the SHA256SUM that was in the plugin archive:
 
 ```sh
 $ echo $HOME
@@ -121,7 +143,7 @@ Now our plugin is installed and enabled. We configured the plugin as an administ
 
 ### Create an MFA-protected Authentication Backend
 
-While we are still acting as an administrator (we also need the ability to write to the `/sys/auth*` and `/sys/policy*`. To create a user, we need the ability to create (but not update) the `auth/userpass/users*` paths), we will enable the [Userpass Authentication Backend](https://www.vaultproject.io/docs/auth/userpass.html), configure it for MFA using [Duo's free service](https://duo.com/), create a user named `muchwow` and attach to this user a policy allowing him access to the Ethereum backend. We also establish a fairly short TTL for this user - he will have to renew his session token before 10 minutes are up or he will have to re-authenticate.
+While we are still acting as an administrator, we will enable the [Userpass Authentication Backend](https://www.vaultproject.io/docs/auth/userpass.html), configure it for MFA using [Duo's free service](https://duo.com/), create a user named `muchwow` and, finally, attach this user to a policy that allows him access to the Ethereum backend. We also establish a fairly short TTL for this user - he will have to renew his session token before 10 minutes are up or he will have to re-authenticate.
 
 The policy, `ethereum_root.hcl`, looks like this:
 
@@ -134,7 +156,7 @@ path "auth/userpass/users/muchwow/password" {
   capabilities = ["update"]
 }
 ```
-Care should always be taken when using passphrases.
+Care should always be taken when using passphrases. One of the benefits of Vault is that it provides many forms of authentication which means that you can avoid the awkwardness of handling certain kinds of passphrases.
 
 ```sh
 $ vault auth enable userpass
@@ -151,7 +173,7 @@ $ read -s PASSPHRASE; vault write auth/userpass/users/muchwow \
 
 ```
 
-Lastly, we configure MFA. I won't go over registration or device enrollment here. I am using Duo's service for MFA which is currently the only one supported in the OSS version of Vault. Configuring MFA requires you to get an API key from Duo.
+Lastly, we configure MFA. I won't go over registration or device enrollment flows here. I am using Duo's service for MFA which is currently the only one supported in the OSS version of Vault. Configuring MFA requires you to get an API key from Duo.
 
 ```sh
 
@@ -166,11 +188,9 @@ Success! Data written to: auth/userpass/duo/access
 
 $ vault write auth/userpass/duo/config \
     user_agent="" \
-    username_format="%s-laptop-name"
+    username_format="%s-hostname"
 Success! Data written to: auth/userpass/duo/config
 ```
-
-### Authenticate as a user and send Ethereum
 
 Now, we stop being the Vault administrator, exhaling loudly as the weight of that responsibility leaves us, and we authenticate as a *normal* user. When we do this for the first time, we are asked to enroll a device:
 
@@ -187,9 +207,9 @@ Code: 400. Errors:
 * Enroll an authentication device to proceed (https://api-a84jf925.duosecurity.com/portal?code=A57A2D8bC4f7A654F180b929&akey=A57A2D8bC4f7A654F180b9)
 ```
 
-We paste the URL into a browser, register our device and we try again:
+We paste the URL into a browser, enroll our device and we try again:
 
-![MFA Screen](/doc/IMG_2327.PNG?raw=true "MFA Screen")
+![MFA Screen](/doc/IMG_2328.PNG?raw=true "MFA Screen")
 
 ```sh
 $ read -s PASSPHRASE; vault login -method=userpass \
@@ -218,7 +238,9 @@ $ read -s PASSPHRASE; vault write auth/userpass/users/muchwow/password \
     password=$PASSPHRASE; unset PASSPHRASE
 ```
 
-Whether we are running a private chain, testnet or on the mainnet, we may have existing accounts that we want to use. These accounts are often stored in a file called a [JSON keystore](https://theethereum.wiki/w/index.php/Accounts,_Addresses,_Public_And_Private_Keys,_And_Tokens#UTC_JSON_Keystore_File). The plugin supports importing JSON keystores. (For the Mist browser or Ethereum wallet, keystores are stored in `~/.ethereum/keystore`.)
+### Using our MFA-enabled Ethereum Wallet
+
+Whether we are running a private chain, testnet or on the mainnet, we may we want to use existing accounts. These accounts are often stored in a file format known as a [JSON keystore](https://theethereum.wiki/w/index.php/Accounts,_Addresses,_Public_And_Private_Keys,_And_Tokens#UTC_JSON_Keystore_File). The plugin supports importing JSON keystores. (For the Mist browser or Ethereum wallet, keystores are stored in `~/.ethereum/keystore`.)
 
 ```sh
 $ ls -la ~/.ethereum/keystore
@@ -233,11 +255,11 @@ drwxr-xr-x  3 immutability  admin  102 Dec  2 11:55 ..
 -rw-r--r--  1 immutability  admin  492 Dec  2 11:57 UTC--2017-12-01T23-14-16.032409548Z--f19a9a9b2ad60c66429451075046869a9b7014f7
 ```
 
-As will be discussed, handling passphrases is always problematic. Care should be taken when importing a keystore not to leak the passphrase to the shell's history file or to the environment. We can specify `chain_id` when we import. By default, the value is `4` which is the Rinkeby testnet. In this case, we use a `chain_id=1` which is the mainnet:
+As was mentioned, handling passphrases is always problematic. Care should be taken when importing a keystore not to leak the passphrase to the shell's history file or to the environment. When we import the keystore, we need to specify the [`chain_id`](https://github.com/immutability-io/immutability-project/blob/master/ETHEREUM.md#chain-ids) with which the account is associated. By default, the value is `4` which is the Rinkeby testnet. In this case, we use a `chain_id=1977` which is my private chain:
 
 ```sh
 $ read -s PASSPHRASE; vault write ethereum/import/wellfunded \
-  chain_id=1 \
+  chain_id=1977 \
   path=/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939 \
   passphrase=$PASSPHRASE; unset PASSPHRASE
 
@@ -255,7 +277,7 @@ Key             	Value
 ---             	-----
 address      0xa152E7a09267bcFf6C33388cAab403b76B889939
 blacklist    <nil>
-chain_id     1
+chain_id     1977
 rpc_url      http://localhost:8545
 whitelist    <nil>
 ```
@@ -285,6 +307,27 @@ tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
 
 ```
 
-### A Platform for Blockchain
+The complete API to the Ethereum plugin is documented [here](https://github.com/immutability-io/vault-ethereum/blob/master/API.md). Each API is exemplified using curl as a sample REST client.
+
+#### Offline Storage
+
+Lastly, we want to demonstrate how easy it is to backup our Ethereum Wallet. If we want to move a personal wallet onto another machine or put it into offline storage, it is a very simple exercise. Before we take our wallet offline, we need to spend a moment talking about the Vault seal.
+
+We haven't discussed Vault's most fundamental security mechanism: [the sealing process using Shamir secret sharding](https://www.vaultproject.io/docs/concepts/seal.html). When Vault is initialized, a set of Shamir key shards are generated. These keys shards are used to build a master encryption key which is used to encrypt all data in Vault. If you so desire, you can leverage Keybase PGP to create what amounts to a multisig mechanism to protect Vault: a quorum of key shard holders is necessary to unseal Vault - where each shard encrypted with a different PGP key. These unseal keys should be stored securely.
+
+Assuming that your unseal keys are safe and sound, putting a wallet into cold storage can be accomplished by simply killing the Vault process and moving the Vault data and configuration to a flash drive or other mount.
+
+```
+$ kill -2 $(ps aux | grep '/usr/local/bin/vault server' | awk '{print $2}')
+$ mv -f $HOME/etc $COLD_STORAGE/etc
+```
+
+Restoring from cold storage is the opposite process with the additional step of unsealing the Vault.
+
+### A Platform for Building Blockchain Wallets
 
 The Ethereum plugin has more capabilities than we showed here. It supports whitelisting and blacklisting accounts, smart contract deployment and the signing and verification of arbitrary data. In this exercise, we were able to use Vault to build a MFA-enabled Ethereum Wallet. We did this with the simplest Vault authentication method, the `userpass` backend, but it is easy to see how we could leverage other authentication mechanisms: e.g., a CI/CD pipeline for smart contracts might use GitHub authentication (with MFA) to allow slaves to deploy Solidity code.
+
+The exercise here demonstrating using Vault as a personal wallet; however, the same basic techniques can be used if you are an enterprise. However, if you want to solve the Ethereum wallet use case for an enterprise, the [Enterprise Vault](https://www.hashicorp.com/products/vault) platform provides even more capabilities. In addition to Enterprise Vault's advanced replication and HA mechanisms, Enterprise Vault supports HSMs as a persistence mechanism for Vault keys. This makes Vault equivalent to what the Ethereum folks call a hardware wallet. (It is very comparable to what [Gemalto and Ledger](https://www.gemalto.com/press/Pages/Gemalto-and-Ledger-Join-Forces-to-Provide--Security-Infrastructure-for-Cryptocurrency-Based-Activities-.aspx) have developed.) Lastly, while the Ethereum plugin does support [whitelisting]https://github.com/immutability-io/vault-ethereum#whitelisting-accounts and [blacklisting](https://github.com/immutability-io/vault-ethereum#blacklisting-accounts) (capabilities that are essential for anti-money laundering compliance,) Enterprise Vault provides a sophisticated rules engine called Sentinel which could be used for more robust compliance support.
+
+Vault - with its plugin architecture - is a platform for building advanced secrets management solutions. As such, it can become an enabler for enterprise adoption of blockchain.
