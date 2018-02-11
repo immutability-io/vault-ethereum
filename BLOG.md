@@ -13,7 +13,7 @@ Vault can help. Vault's raison d'être is to solve the secrets management proble
 
 ## Ethereum plugin for Vault
 
-The Vault Ethereum plugin is an implementation of a secret backend. This plugin provides many of the capabilities of an Ethereum wallet. It supports public and private chains. It can support smart contract continuous development practices by providing mechanisms to deploy smart contracts. You can sign and verify signatures on arbitrary data. And, of course, [you can send ETH](https://github.com/immutability-io/vault-ethereum#donations).
+The Vault Ethereum plugin is an implementation of a secret backend. This plugin provides many of the capabilities of an Ethereum wallet. It supports public and private chains. It can support smart contract continuous development practices by providing mechanisms to deploy smart contracts. You can sign and verify signatures on arbitrary data. And, of course, you can send ETH.
 
 Some of the functionality (creating accounts, signing and verifying) can happen without needing access to an [Ethereum Node](https://github.com/ethereumproject/go-ethereum). Other functionality (deploying contracts and sending transactions) will require access to the [Ethereum RPC interface](https://github.com/ethereum/wiki/wiki/JSON-RPC). Because authentication to Vault is secure, no credentials or key material are exposed during the signing of transactions. This means that Vault can live on a different machine than your laptop - something you can't do with RPC-based wallets.
 
@@ -121,7 +121,7 @@ Now our plugin is installed and enabled. We configured the plugin as an administ
 
 ### Create an MFA-protected Authentication Backend
 
-While we are still acting as an administrator (we also need the ability to write to the `/sys/auth*` and `/sys/policy*`. To create a user, we need the ability to create (but not update) the `auth/userpass/users*` paths), we will enable the [Userpass Authentication Backend](https://www.vaultproject.io/docs/auth/userpass.html), configure it for MFA using [Duo's free service](https://duo.com/), create a user named `vitalik.buterin` (I hear there are a lot of user accounts named thusly these days...) and attach to this user a policy allowing him access to the Ethereum backend.
+While we are still acting as an administrator (we also need the ability to write to the `/sys/auth*` and `/sys/policy*`. To create a user, we need the ability to create (but not update) the `auth/userpass/users*` paths), we will enable the [Userpass Authentication Backend](https://www.vaultproject.io/docs/auth/userpass.html), configure it for MFA using [Duo's free service](https://duo.com/), create a user named `muchwow` and attach to this user a policy allowing him access to the Ethereum backend. We also establish a fairly short TTL for this user - he will have to renew his session token before 10 minutes are up or he will have to re-authenticate.
 
 The policy, `ethereum_root.hcl`, looks like this:
 
@@ -130,7 +130,7 @@ $ cat ethereum_root.hcl
 path "ethereum*" {
   capabilities = ["create", "read", "update", "delete", "list"]
 }
-path "auth/userpass/users/vitalik.buterin/password" {
+path "auth/userpass/users/muchwow/password" {
   capabilities = ["update"]
 }
 ```
@@ -143,8 +143,10 @@ Success! Enabled userpass auth method at: userpass/
 $ vault policy write ethereum ethereum_root.hcl
 Success! Uploaded policy: ethereum
 
-$ read -s PASSPHRASE; vault write auth/userpass/users/vitalik.buterin \
+$ read -s PASSPHRASE; vault write auth/userpass/users/muchwow \
     policies=ethereum \
+    ttl=10m \
+    max_ttl=60m \
     password=$PASSPHRASE; unset PASSPHRASE
 
 ```
@@ -174,12 +176,12 @@ Now, we stop being the Vault administrator, exhaling loudly as the weight of tha
 
 ```sh
 $ read -s PASSPHRASE; vault login -method=userpass \
-    username=vitalik.buterin \
+    username=muchwow \
     password=$PASSPHRASE; unset PASSPHRASE
 
 Error authenticating: Error making API request.
 
-URL: PUT https://localhost:8200/v1/auth/userpass/login/vitalik.buterin
+URL: PUT https://localhost:8200/v1/auth/userpass/login/muchwow
 Code: 400. Errors:
 
 * Enroll an authentication device to proceed (https://api-a84jf925.duosecurity.com/portal?code=A57A2D8bC4f7A654F180b929&akey=A57A2D8bC4f7A654F180b9)
@@ -191,7 +193,7 @@ We paste the URL into a browser, register our device and we try again:
 
 ```sh
 $ read -s PASSPHRASE; vault login -method=userpass \
-    username=vitalik.buterin \
+    username=muchwow \
     password=$PASSPHRASE; unset PASSPHRASE
 
 Success! You are now authenticated. The token information displayed below
@@ -205,18 +207,16 @@ token_accessor         3828e899-ca4f-10c5-0be6-ce21a99a6a6c
 token_duration         24h
 token_renewable        true
 token_policies         [default ethereum]
-token_meta_username    vitalik.buterin
+token_meta_username    muchwow
 ```
 
 Of course, even though we have MFA enabled on our account, we change our password for sanity's sake.
 
 ```sh
-$ read -s PASSPHRASE; vault write auth/userpass/users/vitalik.buterin/password \
-    username=vitalik.buterin \
+$ read -s PASSPHRASE; vault write auth/userpass/users/muchwow/password \
+    username=muchwow \
     password=$PASSPHRASE; unset PASSPHRASE
 ```
-
-#### Import Ethereum keystore
 
 Whether we are running a private chain, testnet or on the mainnet, we may have existing accounts that we want to use. These accounts are often stored in a file called a [JSON keystore](https://theethereum.wiki/w/index.php/Accounts,_Addresses,_Public_And_Private_Keys,_And_Tokens#UTC_JSON_Keystore_File). The plugin supports importing JSON keystores. (For the Mist browser or Ethereum wallet, keystores are stored in `~/.ethereum/keystore`.)
 
@@ -274,7 +274,6 @@ pending_tx_count    0
 
 We can also send Ethereum to accounts:
 
-
 ```sh
 $ vault write ethereum/accounts/wellfunded/debit to=0x4169c9508728285e8A9f7945D08645Bb6b3576e5 value=10000000000000000000
 ```
@@ -285,3 +284,7 @@ Key    	Value
 tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
 
 ```
+
+### A Platform for Blockchain
+
+The Ethereum plugin has more capabilities than we showed here. It supports whitelisting and blacklisting accounts, smart contract deployment and the signing and verification of arbitrary data. In this exercise, we were able to use Vault to build a MFA-enabled Ethereum Wallet. We did this with the simplest Vault authentication method, the `userpass` backend, but it is easy to see how we could leverage other authentication mechanisms: e.g., a CI/CD pipeline for smart contracts might use GitHub authentication (with MFA) to allow slaves to deploy Solidity code.
