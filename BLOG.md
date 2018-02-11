@@ -15,7 +15,7 @@ Vault can help. Vault's raison d'être is to solve the secrets management proble
 
 The Vault Ethereum plugin is an implementation of a secret backend. This plugin provides many of the capabilities of an Ethereum wallet. It supports public and private chains. It can support smart contract continuous development practices by providing mechanisms to deploy smart contracts. You can sign and verify signatures on arbitrary data. And, of course, you can send ETH.
 
-Some of the functionality (creating accounts, signing and verifying) can happen without needing access to an [Ethereum Node](https://github.com/ethereumproject/go-ethereum). Other functionality (deploying contracts and sending transactions) will require access to the [Ethereum RPC interface](https://github.com/ethereum/wiki/wiki/JSON-RPC). Because authentication to Vault is secure, no credentials or key material are exposed during the signing of transactions. This means that Vault can live on a different machine than your laptop - something you can't do with RPC-based wallets.
+Some of the functionality (creating accounts, signing and verifying) can happen without needing access to an [Ethereum Node](https://github.com/ethereumproject/go-ethereum). Other functionality (deploying contracts and sending transactions) will require access to the [Ethereum RPC interface](https://github.com/ethereum/wiki/wiki/JSON-RPC). When you enable TLS, authentication to Vault is secure and no credentials or key material are leaked when signing transactions. This means that Vault can live on a different machine than your laptop - something you typically can't do with RPC-based wallets.
 
 ![Vault Ethereum Plugin](/doc/VaultBlog.png?raw=true "Vault Ethereum Plugin")
 
@@ -24,7 +24,7 @@ Some of the functionality (creating accounts, signing and verifying) can happen 
 To demonstrate the power of using Vault as platform for blockchain wallets, let's use the Vault Ethereum plugin to build an MFA-enabled Ethereum desktop wallet. To keep this exercise focused on this use case, I will make a few assumptions:
 
 * You have already installed Vault and you are using TLS for transport security. This means you are not using [Vault in dev mode](https://www.vaultproject.io/docs/concepts/dev-server.html).
-* You have an Ethereum RPC endpoint that you can communicate with. For this exercise, I will be using a Geth node at http://localhost:8545 running on a private chain. You can use any RPC endpoint including the [secure, trusted and centralized endpoint at Infura](https://mainnet.infura.io/).
+* You have an Ethereum RPC endpoint that you can communicate with. For this exercise, I will be using a Geth node at http://localhost:8545 running on a private chain. You can use any RPC endpoint (including the [secure, trusted and centralized endpoint at Infura](https://mainnet.infura.io/)).
 
 If these assumptions prove problematic, [you can use these instructions to create a Vault and Ethereum playground](https://github.com/immutability-io/immutability-project).
 
@@ -92,7 +92,7 @@ $ cat ~/etc/vault.d/vault.hcl
 
 ```
 
-Note the configuration for `[api_addr](https://www.vaultproject.io/docs/configuration/index.html#api_addr)`. This setting is critical for the plugin to communicate with the Vault server during mount time.
+Note the configuration for [`api_addr`](https://www.vaultproject.io/docs/configuration/index.html#api_addr). This setting is critical for the plugin to communicate with the Vault server during mount time.
 
 First we move the plugin:
 
