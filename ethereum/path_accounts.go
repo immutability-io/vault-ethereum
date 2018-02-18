@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"path/filepath"
@@ -421,7 +422,11 @@ func (b *backend) pathDebit(ctx context.Context, req *logical.Request, data *fra
 		return nil, err
 	}
 
-	rawTx = types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, nil)
+	if !gasLimit.IsUint64() {
+		return nil, errors.New("Cannot convert gas limit to uint64")
+	}
+	gl := gasLimit.Uint64()
+	rawTx = types.NewTransaction(nonce, toAddress, amount, gl, gasPrice, nil)
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -120,7 +121,12 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 	if err != nil {
 		return nil, err
 	}
-	rawTx = types.NewContractCreation(nonce, amount, gasLimit, gasPrice, input)
+	if !gasLimit.IsUint64() {
+		return nil, errors.New("Cannot convert gas limit to uint64")
+	}
+	gl := gasLimit.Uint64()
+
+	rawTx = types.NewContractCreation(nonce, amount, gl, gasPrice, input)
 
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
