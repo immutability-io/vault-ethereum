@@ -9,8 +9,8 @@ import (
 	"math/big"
 	"os"
 	"strings"
-	"time"
 
+	ethereum "github.com/ethereum/go-ethereum"
 	accounts "github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -189,7 +189,37 @@ func (b *backend) exportKeystore(path string, account *Account) (string, error) 
 	return directory, err
 }
 
-func (b *backend) readAccount(ctx context.Context, req *logical.Request, path string, deep bool) (*Account, error) {
+func (b *backend) getEthereumClient(ctx context.Context, rpcURL string) (*ethclient.Client, error) {
+	client, err := rpc.Dial(rpcURL)
+	if err != nil {
+		return nil, err
+	}
+	ethClient := ethclient.NewClient(client)
+	return ethClient, nil
+}
+
+func (b *backend) readBalance(ctx context.Context, client *ethclient.Client, account *Account) (*Account, error) {
+	address := common.HexToAddress(account.Address)
+	accountBalance := account
+	pendingBalance, err := client.PendingBalanceAt(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+	pendingNonce, err := client.PendingNonceAt(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+	pendingTxCount, err := client.PendingTransactionCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	accountBalance.PendingNonce = pendingNonce
+	accountBalance.PendingBalance = pendingBalance
+	accountBalance.PendingTxCount = pendingTxCount
+	return accountBalance, nil
+}
+
+func (b *backend) readAccount(ctx context.Context, req *logical.Request, path string) (*Account, error) {
 	entry, err := req.Storage.Get(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find account at %s", path)
@@ -201,31 +231,6 @@ func (b *backend) readAccount(ctx context.Context, req *logical.Request, path st
 		return nil, fmt.Errorf("failed to deserialize account at %s", path)
 	}
 
-	if deep {
-		client, err := rpc.Dial(account.RPC)
-		if err != nil {
-			return nil, err
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		ethClient := ethclient.NewClient(client)
-		accountAddr := common.HexToAddress(account.Address)
-		pendingBalance, err := ethClient.PendingBalanceAt(ctx, accountAddr)
-		if err != nil {
-			return nil, err
-		}
-		pendingNonce, err := ethClient.PendingNonceAt(ctx, accountAddr)
-		if err != nil {
-			return nil, err
-		}
-		pendingTxCount, err := ethClient.PendingTransactionCount(ctx)
-		if err != nil {
-			return nil, err
-		}
-		account.PendingNonce = pendingNonce
-		account.PendingBalance = pendingBalance
-		account.PendingTxCount = pendingTxCount
-	}
 	return &account, nil
 }
 
@@ -245,6 +250,19 @@ func contains(stringSlice []string, searchString string) bool {
 		}
 	}
 	return false
+}
+
+func (b *backend) getEstimates(client *ethclient.Client, ctx context.Context, fromAddress common.Address, toAddress *common.Address, data []byte) (uint64, *big.Int, error) {
+	msg := ethereum.CallMsg{From: fromAddress, To: toAddress, Data: data}
+	gasLimit, err := client.EstimateGas(ctx, msg)
+	if err != nil {
+		return 0, nil, err
+	}
+	gasPrice, err := client.SuggestGasPrice(ctx)
+	if err != nil {
+		return 0, nil, err
+	}
+	return gasLimit, gasPrice, nil
 }
 
 func dedup(stringSlice []string) []string {

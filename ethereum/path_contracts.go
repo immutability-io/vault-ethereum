@@ -2,16 +2,13 @@ package ethereum
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"math/big"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	rpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
@@ -54,12 +51,12 @@ Deploys an Ethereum contract.
 				"gas_price": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The price in gas for the transaction.",
-					Default:     "20000000000",
+					Default:     "0",
 				},
 				"gas_limit": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The gas limit (in Gwei) for the transaction.",
-					Default:     "50000",
+					Default:     "0",
 				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
@@ -82,8 +79,8 @@ func (b *backend) pathContractsList(ctx context.Context, req *logical.Request, d
 func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	amount := math.MustParseBig256(data.Get("amount").(string))
 	nonce := math.MustParseUint64(data.Get("nonce").(string))
-	gasPrice := math.MustParseBig256(data.Get("gas_price").(string))
-	gasLimit := math.MustParseBig256(data.Get("gas_limit").(string))
+	gasLimitIn := math.MustParseBig256(data.Get("gas_limit").(string))
+	gasPriceIn := math.MustParseBig256(data.Get("gas_price").(string))
 	input := []byte(data.Get("transaction_data").(string))
 	var accountPath string
 	parsedPath := strings.Split(req.Path, "/contracts/")
@@ -92,7 +89,15 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 	} else {
 		return nil, fmt.Errorf("something sketchy with the path: %s", req.Path)
 	}
-	account, err := b.readAccount(ctx, req, accountPath, true)
+	account, err := b.readAccount(ctx, req, accountPath)
+	if err != nil {
+		return nil, err
+	}
+	client, err := b.getEthereumClient(ctx, account.RPC)
+	if err != nil {
+		return nil, err
+	}
+	account, err = b.readBalance(ctx, client, account)
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +105,21 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 	if !allowed {
 		return nil, err
 	}
+	fromAddress := common.HexToAddress(account.Address)
+	gasLimit, gasPrice, err := b.getEstimates(client, ctx, fromAddress, nil, input)
+	if gasLimitIn.Cmp(&big.Int{}) != 0 {
+		gasLimit = gasLimitIn.Uint64()
+	}
+	if err != nil {
+		return nil, err
+	}
+	if gasPriceIn.Cmp(&big.Int{}) != 0 {
+		gasPrice = gasPriceIn
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	chainID := math.MustParseBig256(account.ChainID)
 	key, err := b.getAccountPrivateKey(accountPath, *account)
 	if err != nil {
@@ -109,30 +129,18 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 
 	transactor := b.NewTransactor(key.PrivateKey)
 	var rawTx *types.Transaction
-	client, err := rpc.Dial(account.RPC)
+	nonce, err = client.NonceAt(ctx, fromAddress, nil)
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	ethClient := ethclient.NewClient(client)
-	fromAddress := common.HexToAddress(account.Address)
-	nonce, err = ethClient.NonceAt(ctx, fromAddress, nil)
-	if err != nil {
-		return nil, err
-	}
-	if !gasLimit.IsUint64() {
-		return nil, errors.New("Cannot convert gas limit to uint64")
-	}
-	gl := gasLimit.Uint64()
 
-	rawTx = types.NewContractCreation(nonce, amount, gl, gasPrice, input)
+	rawTx = types.NewContractCreation(nonce, amount, gasLimit, gasPrice, input)
 
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)
 	if err != nil {
 		return nil, err
 	}
-	err = ethClient.SendTransaction(ctx, signedTx)
+	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +158,9 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"tx_hash": signedTx.Hash().Hex(),
+			"tx_hash":   signedTx.Hash().Hex(),
+			"gas_limit": fmt.Sprintf("%d", gasLimit),
+			"gas_price": fmt.Sprintf("%s", gasPrice.String()),
 		},
 	}, nil
 }
@@ -174,20 +184,17 @@ func (b *backend) pathReadContract(ctx context.Context, req *logical.Request, da
 	} else {
 		return nil, fmt.Errorf("something sketchy with the path: %s", req.Path)
 	}
-	account, err := b.readAccount(ctx, req, accountPath, false)
+	account, err := b.readAccount(ctx, req, accountPath)
 	if err != nil {
 		return nil, err
 	}
-	client, err := rpc.Dial(account.RPC)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	ethClient := ethclient.NewClient(client)
 
 	hash := common.HexToHash(contract.Hash)
-	receipt, err := ethClient.TransactionReceipt(ctx, hash)
+	client, err := b.getEthereumClient(ctx, account.RPC)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := client.TransactionReceipt(ctx, hash)
 	var receiptAddress string
 	if err != nil {
 		receiptAddress = "Receipt not available"
