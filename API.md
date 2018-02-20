@@ -611,8 +611,8 @@ This endpoint will debit an Ethereum account.
 * `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
 * `to` (`string: <required>`) - A Hex string specifying the Ethereum address to send the Ether `to`.
 * `value` (`string: <required>`) - The amount of ether - in wei.
-* `gas_price` (`string: <optional> - defaults to 20000000000`) - The price in gas for the transaction.
-* `gas_limit` (`string: <optional> - defaults to 50000`) - The gas limit for the transaction.
+* `gas_price` (`string: <optional>`) - The price in gas for the transaction. If omitted, we will use the suggested gas price.
+* `gas_limit` (`string: <optional>`) - The gas limit for the transaction. If omitted, we will estimate the gas limit.
 
 #### Sample Payload
 

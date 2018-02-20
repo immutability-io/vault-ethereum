@@ -214,7 +214,7 @@ tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
 
 ```
 
-This defaults `gas_limit` to 50000 with a default `gas_price` of 20 gwei.
+If the gas limit is omitted, we will try to estimate it; if the gas price is omitted, we will use a suggested gas price.
 
 #### Rudimentary controls
 

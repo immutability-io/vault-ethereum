@@ -3,7 +3,6 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -51,12 +50,12 @@ Deploys an Ethereum contract.
 				"gas_price": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The price in gas for the transaction.",
-					Default:     "0",
+					Default:     "21000000000",
 				},
 				"gas_limit": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The gas limit (in Gwei) for the transaction.",
-					Default:     "0",
+					Default:     "1500000",
 				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
@@ -81,6 +80,8 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 	nonce := math.MustParseUint64(data.Get("nonce").(string))
 	gasLimitIn := math.MustParseBig256(data.Get("gas_limit").(string))
 	gasPriceIn := math.MustParseBig256(data.Get("gas_price").(string))
+	gasLimit := gasLimitIn.Uint64()
+	gasPrice := gasPriceIn
 	input := []byte(data.Get("transaction_data").(string))
 	var accountPath string
 	parsedPath := strings.Split(req.Path, "/contracts/")
@@ -106,19 +107,6 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 		return nil, err
 	}
 	fromAddress := common.HexToAddress(account.Address)
-	gasLimit, gasPrice, err := b.getEstimates(client, ctx, fromAddress, nil, input)
-	if gasLimitIn.Cmp(&big.Int{}) != 0 {
-		gasLimit = gasLimitIn.Uint64()
-	}
-	if err != nil {
-		return nil, err
-	}
-	if gasPriceIn.Cmp(&big.Int{}) != 0 {
-		gasPrice = gasPriceIn
-	}
-	if err != nil {
-		return nil, err
-	}
 
 	chainID := math.MustParseBig256(account.ChainID)
 	key, err := b.getAccountPrivateKey(accountPath, *account)
@@ -133,7 +121,6 @@ func (b *backend) pathCreateContract(ctx context.Context, req *logical.Request, 
 	if err != nil {
 		return nil, err
 	}
-
 	rawTx = types.NewContractCreation(nonce, amount, gasLimit, gasPrice, input)
 
 	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), common.HexToAddress(account.Address), rawTx)

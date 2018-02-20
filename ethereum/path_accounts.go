@@ -421,7 +421,7 @@ func (b *backend) pathDebit(ctx context.Context, req *logical.Request, data *fra
 	if !allowed {
 		return nil, err
 	}
-	gasLimit, gasPrice, err := b.getEstimates(client, ctx, fromAddress, &toAddress, nil)
+	gasLimit, gasPrice, err := b.getEstimates(client, ctx, fromAddress, &toAddress, nil, nil)
 	if gasLimitIn.Cmp(&big.Int{}) != 0 {
 		gasLimit = gasLimitIn.Uint64()
 	}

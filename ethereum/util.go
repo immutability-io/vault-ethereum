@@ -1,8 +1,10 @@
 package ethereum
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -30,6 +32,13 @@ const (
 	PassphraseWords     int    = 9
 	PassphraseSeparator string = "-"
 )
+
+func prettyPrint(v interface{}) string {
+	jsonString, _ := json.Marshal(v)
+	var out bytes.Buffer
+	json.Indent(&out, jsonString, "", "  ")
+	return out.String()
+}
 
 func (b *backend) writeTemporaryKeystoreFile(path string, filename string, data []byte) (string, error) {
 	keystorePath := path + "/" + filename
@@ -252,8 +261,8 @@ func contains(stringSlice []string, searchString string) bool {
 	return false
 }
 
-func (b *backend) getEstimates(client *ethclient.Client, ctx context.Context, fromAddress common.Address, toAddress *common.Address, data []byte) (uint64, *big.Int, error) {
-	msg := ethereum.CallMsg{From: fromAddress, To: toAddress, Data: data}
+func (b *backend) getEstimates(client *ethclient.Client, ctx context.Context, fromAddress common.Address, toAddress *common.Address, data []byte, value *big.Int) (uint64, *big.Int, error) {
+	msg := ethereum.CallMsg{From: fromAddress, To: toAddress, Data: data, Value: value}
 	gasLimit, err := client.EstimateGas(ctx, msg)
 	if err != nil {
 		return 0, nil, err
