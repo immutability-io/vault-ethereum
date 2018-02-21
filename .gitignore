@@ -14,6 +14,7 @@
 .glide/
 **/.DS_Store
 data
+**/data
 **/releases
 releases/**
 **/scripts
