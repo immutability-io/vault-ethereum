@@ -3,9 +3,9 @@ Ethereum plugin for Vault
 
 The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support smart contract continuous development practices including contract deployment and testing. It has only been exercised on private Ethereum chains and the Rinkeby testnet. Some of the functionality (creating accounts and signing contract creation transactions) can happen without any local `geth` node to be running. Other functionality (deploying contracts and sending transactions - still in development) will require the geth RPC interface.
 
-## This plugin should not be used on the mainnet
+## Works for me, but...
 
-This plugin is still in the very early stages of development. As such, it should not be trusted with real ETH yet. It is intended to demonstrate that Vault can be used as a platform for Ethereum wallets. It is intended to be used on private chains and the testnet.
+This plugin is still in the early stages of development. I have used it extensively on private chains and on Rinkeby. I am HODLing the real ETH I have, so I have only used this plugin to check the balance of my mainnet accounts. Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. 
 
 ## Features
 
