@@ -11,6 +11,7 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 * [Import Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#import-account)
 * [Export Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#export-account)
 * [Deploy Ethereum Contract](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#deploy-ethereum-contract)
+* [Sign Raw Data](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#sign-raw-data)
 * [Sign Data](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#sign-data)
 * [Send Ethereum/Debit Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#send-ethereumdebit-account)
 
@@ -494,6 +495,57 @@ $ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" 
   "auth": null
 }
 ```
+
+### SIGN RAW DATA
+
+This endpoint will sign raw hashed transaction data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/sign-raw`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some raw hashed transaction data in hex encoding.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "0xda6da96f071d617aacdaeda8a320ed4d6268907a64020d93718acde071daf584"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test2/sign | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful signing of raw hashed transaction data by the private key associated with  `/ethereum/accounts/test2`.
+
+```
+{
+  "request_id": "5491a21c-7541-f48c-d573-0d241f12bfd3",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "signature": "0x56cf03f25e18bd78f4ed0e39de0da0c01bcc810ae264f962cbfc9da80da0f4e0539209948ac168cda37f3100dc4d1bbfe5920169fdddbb5dec421f2e6af5a9d001"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 
 ### SIGN DATA
 

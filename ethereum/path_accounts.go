@@ -151,6 +151,25 @@ Queries the Ethereum blockchain (chain_id) for the balance of an account.
 			},
 		},
 		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign-raw",
+			HelpSynopsis: "Sign raw hashed transaction data",
+			HelpDescription: `
+
+Sign raw hashed transaction data using a given Ethereum account.
+
+`,
+			Fields: map[string]*framework.FieldSchema{
+				"data": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The raw hashed data in hex encoding to sign.",
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathSignRaw,
+			},
+		},
+		&framework.Path{
 			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign",
 			HelpSynopsis: "Hash and sign data",
 			HelpDescription: `
@@ -339,6 +358,35 @@ func (b *backend) pathAccountsList(ctx context.Context, req *logical.Request, da
 		return nil, err
 	}
 	return logical.ListResponse(vals), nil
+}
+
+func (b *backend) pathSignRaw(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	inputRaw := data.Get("data").(string)
+	input, err := hexutil.Decode(inputRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	prunedPath := strings.Replace(req.Path, "/sign-raw", "", -1)
+	account, err := b.readAccount(ctx, req, prunedPath)
+	if err != nil {
+		return nil, err
+	}
+	key, err := b.getAccountPrivateKey(prunedPath, *account)
+	if err != nil {
+		return nil, err
+	}
+	defer zeroKey(key.PrivateKey)
+	signature, err := crypto.Sign(input, key.PrivateKey)
+
+	if err != nil {
+		return nil, err
+	}
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"signature": hexutil.Encode(signature[:]),
+		},
+	}, nil
 }
 
 func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
