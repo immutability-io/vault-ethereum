@@ -11,7 +11,6 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 * [Import Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#import-account)
 * [Export Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#export-account)
 * [Deploy Ethereum Contract](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#deploy-ethereum-contract)
-* [Sign Raw Data](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#sign-raw-data)
 * [Sign Data](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#sign-data)
 * [Send Ethereum/Debit Account](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#send-ethereumdebit-account)
 
@@ -559,6 +558,7 @@ This endpoint will sign the provided data.
 
 * `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
 * `data` (`string: <required>`) - Some data.
+* `raw` (`boolean: <optional>- defaults to false`) - if true, data is expected to be raw hashed transaction data in hex encoding; otherwise data is treated as regular text
 
 #### Sample Payload
 
@@ -610,6 +610,7 @@ This endpoint will verify that this account signed some data.
 
 * `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
 * `data` (`string: <required>`) - Some data.
+* `raw` (`boolean: <optional>- defaults to false`) - if true, data is expected to be raw hashed transaction data in hex encoding; otherwise data is treated as regular text
 * `signature` (`string: <required>`) - The signature to verify.
 
 #### Sample Payload

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/vault/helper/pluginutil"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/plugin"
-	"github.com/immutability-io/vault-ethereum/ethereum"
+	"github.com/trustroot/vault-ethereum/ethereum"
 )
 
 func main() {

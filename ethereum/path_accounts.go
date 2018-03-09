@@ -151,25 +151,6 @@ Queries the Ethereum blockchain (chain_id) for the balance of an account.
 			},
 		},
 		&framework.Path{
-			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign-raw",
-			HelpSynopsis: "Sign raw hashed transaction data",
-			HelpDescription: `
-
-Sign raw hashed transaction data using a given Ethereum account.
-
-`,
-			Fields: map[string]*framework.FieldSchema{
-				"data": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The raw hashed data in hex encoding to sign.",
-				},
-			},
-			ExistenceCheck: b.pathExistenceCheck,
-			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.CreateOperation: b.pathSignRaw,
-			},
-		},
-		&framework.Path{
 			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign",
 			HelpSynopsis: "Hash and sign data",
 			HelpDescription: `
@@ -181,6 +162,11 @@ Hash and sign data using a given Ethereum account.
 				"data": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The data to hash (keccak) and sign.",
+				},
+				"raw": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Default: false,
+					Description: "if true, data is expected to be raw hashed transaction data in hex encoding - won't hash prior to signing",
 				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
@@ -200,6 +186,11 @@ Validate that this account signed some data.
 				"data": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The data to verify the signature of.",
+				},
+				"raw": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Default: false,
+					Description: "if true, data is expected to be raw hashed transaction data in hex encoding - won't hash prior to signing",
 				},
 				"signature": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -360,39 +351,21 @@ func (b *backend) pathAccountsList(ctx context.Context, req *logical.Request, da
 	return logical.ListResponse(vals), nil
 }
 
-func (b *backend) pathSignRaw(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	inputRaw := data.Get("data").(string)
-	input, err := hexutil.Decode(inputRaw)
-	if err != nil {
-		return nil, err
-	}
-
-	prunedPath := strings.Replace(req.Path, "/sign-raw", "", -1)
-	account, err := b.readAccount(ctx, req, prunedPath)
-	if err != nil {
-		return nil, err
-	}
-	key, err := b.getAccountPrivateKey(prunedPath, *account)
-	if err != nil {
-		return nil, err
-	}
-	defer zeroKey(key.PrivateKey)
-	signature, err := crypto.Sign(input, key.PrivateKey)
-
-	if err != nil {
-		return nil, err
-	}
-	return &logical.Response{
-		Data: map[string]interface{}{
-			"signature": hexutil.Encode(signature[:]),
-		},
-	}, nil
-}
-
 func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	input := []byte(data.Get("data").(string))
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
-	hash := crypto.Keccak256([]byte(msg))
+	var hash []byte
+	if (data.Get("raw").(bool)) {
+		input := data.Get("data").(string)
+		var err error
+		hash, err = hexutil.Decode(input)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		input := []byte(data.Get("data").(string))
+		msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
+		hash = crypto.Keccak256([]byte(msg))
+	}
+
 	prunedPath := strings.Replace(req.Path, "/sign", "", -1)
 	account, err := b.readAccount(ctx, req, prunedPath)
 	if err != nil {
@@ -416,11 +389,21 @@ func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *fram
 }
 
 func (b *backend) pathVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	input := []byte(data.Get("data").(string))
+	var hash []byte
+	if (data.Get("raw").(bool)) {
+		input := data.Get("data").(string)
+		var err error
+		hash, err = hexutil.Decode(input)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		input := []byte(data.Get("data").(string))
+		msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
+		hash = crypto.Keccak256([]byte(msg))
+	}
 	signatureRaw := data.Get("signature").(string)
 
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(input), input)
-	hash := crypto.Keccak256([]byte(msg))
 	prunedPath := strings.Replace(req.Path, "/verify", "", -1)
 	account, err := b.readAccount(ctx, req, prunedPath)
 	if err != nil {
