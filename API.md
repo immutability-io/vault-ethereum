@@ -507,6 +507,7 @@ This endpoint will sign the provided data.
 
 * `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
 * `data` (`string: <required>`) - Some data.
+* `raw` (`boolean: <optional>- defaults to false`) - if true, data is expected to be raw hashed transaction data in hex encoding; otherwise data is treated as regular text
 
 #### Sample Payload
 
@@ -558,6 +559,7 @@ This endpoint will verify that this account signed some data.
 
 * `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
 * `data` (`string: <required>`) - Some data.
+* `raw` (`boolean: <optional>- defaults to false`) - if true, data is expected to be raw hashed transaction data in hex encoding; otherwise data is treated as regular text
 * `signature` (`string: <required>`) - The signature to verify.
 
 #### Sample Payload
