@@ -329,6 +329,47 @@ The example below shows the output for the successfully sending ETH from `/ether
 
 ### LIST CONTRACTS
 
+This endpoint will list all account contracts.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `LIST`  | `:mount-path/accounts/test/contracts`  | `200 application/json` |
+
+#### Parameters
+
+* `path` (`string: <required>`) - Specifies the mount point. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request LIST \
+    https://localhost:8200/v1/ethereum/accounts/test/contracts | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a query path of `ethereum/accounts/test/contracts` when there are 2 contracts at `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "3e53a65b-9910-f5b7-1d42-b6bb83fcfc2c",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "keys": [
+      "ponzi",
+      "cryptomonkeys",
+    ]
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+
 ### DEPLOY CONTRACT
 
 This endpoint will sign a provided Ethereum contract.
@@ -431,9 +472,154 @@ $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN"
 
 ### DELETE CONTRACT
 ### SIGN
+
+This endpoint will sign the provided data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/sign`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some data.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "this is very important"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test2/sign | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful signing of some data by the private key associated with  `/ethereum/accounts/test2`.
+
+```
+{
+  "request_id": "d99b7948-453a-67c2-9111-178e6a731812",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x36d1f896e55a6577c62fdd6b84fbf74582266700",
+    "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### TRANSFER
 ### VERIFY
+
+This endpoint will verify that this account signed some data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/verify`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some data.
+* `signature` (`string: <required>`) - The signature to verify.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "this is very important"
+  "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test/verify | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful verification of a signature created by `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "f806212d-087c-7378-dd85-676701aeabb7",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x36d1f896e55a6577c62fdd6b84fbf74582266700",
+    "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000",
+    "verified": true
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### LIST ADDRESSES
+
+This endpoint will list all account addresses.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `LIST`  | `:mount-path/addresses`  | `200 application/json` |
+
+#### Parameters
+
+* `path` (`string: <required>`) - Specifies the path of the accounts to list. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request LIST \
+    https://localhost:8200/v1/ethereum/addresses | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a query path of `/ethereum/addresses/` when there are 3 addresses.
+
+```
+{
+  "request_id": "3e53a65b-9910-f5b7-1d42-b6bb83fcfc2c",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "keys": [
+      "0x36d1f896e55a6577c62fdd6b84fbf74582266700",
+      "0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8",
+      "0x4169c9508728285e8a9f7945d08645bb6b3576e5"
+    ]
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### READ ADDRESS
 ### VERIFY BY ADDRESS
 ### READ BLOCK
@@ -550,6 +736,48 @@ The example below shows output for the successful creation of `/ethereum/account
 ```
 
 ### LIST NAMES
+
+This endpoint will list all account names.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `LIST`  | `:mount-path/names`  | `200 application/json` |
+
+#### Parameters
+
+* `path` (`string: <required>`) - Specifies the path of the accounts to list. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request LIST \
+    https://localhost:8200/v1/ethereum/names | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a query path of `/ethereum/names/` when there are 3 addresses.
+
+```
+{
+  "request_id": "3e53a65b-9910-f5b7-1d42-b6bb83fcfc2c",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "keys": [
+      "test",
+      "test3",
+      "lesswow"
+    ]
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### READ NAME
 ### VERIFY BY NAME
 ### READ TRANSACTION  
