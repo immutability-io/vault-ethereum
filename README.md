@@ -608,7 +608,7 @@ transaction_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1b
 
 ## More Use Cases
 
-There are many more uses cases to be explored; but, I will leave that to you. If you
+There are many more uses cases to be explored; but, I will leave that to you. If you brave enough...
 
 ## Credits
 
