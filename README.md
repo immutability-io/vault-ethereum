@@ -63,7 +63,7 @@ This plugin provides services to:
 
 Of course, all secrets in Vault are encrypted.
 
-![Vault and Geth Topology](/doc/vault-geth.png?raw=true "Vault Ethereum Plugin")
+![Vault and Geth Topology](/docs/vault-geth.png?raw=true "Vault Ethereum Plugin")
 
 ## Quick start
 
@@ -628,4 +628,4 @@ This code is licensed under the Apache 2 license. Please feel free to use it. Pl
 
 Send ETH to 0x4169c9508728285e8A9f7945D08645Bb6b3576e5 and you will be blessed in the next life.
 
-![Donations Accepted](/doc/0x4169c9508728285e8A9f7945D08645Bb6b3576e5.png?raw=true "0x4169c9508728285e8A9f7945D08645Bb6b3576e5")
+![Donations Accepted](/docs/0x4169c9508728285e8A9f7945D08645Bb6b3576e5.png?raw=true "0x4169c9508728285e8A9f7945D08645Bb6b3576e5")
