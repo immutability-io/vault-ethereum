@@ -889,9 +889,216 @@ The example below shows output for a read of `/ethereum/block/2800568/transactio
 ```
 
 ### CREATE CONFIG
+
+This endpoint configure the plugin at a mount.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/config`  | `200 application/json` |
+
+#### Parameters
+
+* `rpc_url` (`string: <optional> default:"https://rinkeby.infura.io"`) - Specifies the RPC URL of the Ethereum node.
+* `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
+* `bound_cidr_list` (`string array: <optional>`) - Comma delimited list of allowed CIDR blocks.
+* `api_key` (`string: <optional>`) - The Infura API key.
+
+#### Sample Payload
+
+```
+
+{
+  "chain_id": "4",
+  "rpc_url": "https://rinkeby.infura.io"
+}
+
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @config.json \
+    https://localhost:8200/v1/ethereum/config | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful creation of a mount's configuration.
+
+```
+{
+  "request_id": "086c19b4-e07a-55ba-5ba3-3819b9c0b1da",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "api_key": "",
+    "bound_cidr_list": null,
+    "chain_id": "4",
+    "rpc_url": "https://rinkeby.infura.io"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### UPDATE CONFIG
+
+This endpoint reconfigures the plugin at a mount.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `PUT`  | `:mount-path/config`  | `200 application/json` |
+
+#### Parameters
+
+* `rpc_url` (`string: <optional> default:"https://rinkeby.infura.io"`) - Specifies the RPC URL of the Ethereum node.
+* `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
+* `bound_cidr_list` (`string array: <optional>`) - Comma delimited list of allowed CIDR blocks.
+* `api_key` (`string: <optional>`) - The Infura API key.
+
+#### Sample Payload
+
+```
+
+{
+  "chain_id": "4",
+  "rpc_url": "https://rinkeby.infura.io"
+}
+
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request PUT \
+    --data @config.json \
+    https://localhost:8200/v1/ethereum/config | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful update of a mount's configuration.
+
+```
+{
+  "request_id": "086c19b4-e07a-55ba-5ba3-3819b9c0b1da",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "api_key": "",
+    "bound_cidr_list": null,
+    "chain_id": "4",
+    "rpc_url": "https://rinkeby.infura.io"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### READ CONFIG
+
+This endpoint returns the configuration of a plugin at a mount.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `PUT`  | `:mount-path/config`  | `200 application/json` |
+
+#### Parameters
+
+None
+
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/config | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the mount's configuration.
+
+```
+{
+  "request_id": "086c19b4-e07a-55ba-5ba3-3819b9c0b1da",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "api_key": "",
+    "bound_cidr_list": null,
+    "chain_id": "4",
+    "rpc_url": "https://rinkeby.infura.io"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### CONVERT
+
+This endpoint will convert one Ethereum unit to another.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/convert`  | `200 application/json` |
+
+#### Parameters
+
+* `amount_from` (`string: <required>`) - Specifies amount to convert.
+* `unit_from` (`string: <required>`) - Specifies unit to convert from.
+* `unit_to` (`string: <required>`) - Specifies unit to convert to.
+
+#### Sample Payload
+
+```sh
+{
+  "unit_from": "wei",
+  "unit_to": "eth",
+  "amount": "200000000000000000"
+}
+```
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request PUT \
+    --data @convert.json \
+    https://localhost:8200/v1/ethereum/convert | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful export of the keystore for `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "125314b7-7d7d-5c30-daa2-05d3680a68ea",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "amount_from": "200000000000000000",
+    "amount_to": "0.2",
+    "unit_from": "wei",
+    "unit_to": "ether"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### EXPORT
 
 This endpoint will export a JSON Keystore for use in another wallet.
@@ -915,7 +1122,7 @@ This endpoint will export a JSON Keystore for use in another wallet.
 #### Sample Request
 
 ```sh
-$$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
     --request POST \
     --data @payload.json \
     https://localhost:8200/v1/ethereum/export/test | jq .
@@ -1135,5 +1342,49 @@ The example below shows output for the successful verification of a signature cr
 }
 ```
 
-
 ### READ TRANSACTION  
+
+This endpoint will read details associated with a transaction hash.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/transaction/:transaction_hase`  | `200 application/json` |
+
+#### Parameters
+
+* `transaction_hase` (`string: <required>`) - Specifies the transaction hash to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/transaction/0x4773f64900d9ae460c72ca478fe2d122027b9dbc0433a40deb62d48ca068b108 | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/transaction/0x4773f64900d9ae460c72ca478fe2d122027b9dbc0433a40deb62d48ca068b108`.
+
+```
+{
+  "request_id": "fc524980-a91b-a1f8-2815-ba1aa67aa70f",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address_from": "0x674647242239941b2D35368e66A4EdC39b161Da9",
+    "address_to": "0x97e3bA6cC43b2aF2241d4CAD4520DA8266170988",
+    "gas": 1200000,
+    "gas_price": 1000000000,
+    "nonce": 27861,
+    "pending": false,
+    "receipt_status": 1,
+    "transaction_hash": "0x4773f64900d9ae460c72ca478fe2d122027b9dbc0433a40deb62d48ca068b108",
+    "value": "0"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
