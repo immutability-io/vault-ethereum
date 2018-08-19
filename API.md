@@ -621,9 +621,273 @@ The example below shows output for a query path of `/ethereum/addresses/` when t
 ```
 
 ### READ ADDRESS
+
+This endpoint will list the names associated with an address.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/names/:address`  | `200 application/json` |
+
+#### Parameters
+
+* `address` (`string: <required>`) - Specifies the address of the account to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/addresses/0xb56b2dd44073d87cbac5d4a3655354b3762178ee | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/addresses/0xb56b2dd44073d87cbac5d4a3655354b3762178ee`.
+
+```
+{
+  "request_id": "087d361d-127b-a277-d023-283208f62743",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "names": [
+      "muchwow"
+    ]
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### VERIFY BY ADDRESS
+
+This endpoint will verify that this account signed some data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/addresses/:address/verify`  | `200 application/json` |
+
+#### Parameters
+
+* `address` (`string: <required>`) - Specifies the address of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some data.
+* `signature` (`string: <required>`) - The signature to verify.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "this is very important"
+  "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/addresses/0xb56b2dd44073d87cbac5d4a3655354b3762178ee/verify | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful verification of a signature created by `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "f806212d-087c-7378-dd85-676701aeabb7",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0xb56b2dd44073d87cbac5d4a3655354b3762178ee",
+    "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000",
+    "verified": true
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### READ BLOCK
+
+This endpoint will read details associated with a block.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/block/:number`  | `200 application/json` |
+
+#### Parameters
+
+* `number` (`string: <required>`) - Specifies the number of the block to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/block/2800568 | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/block/2800568`.
+
+```
+{
+  "request_id": "5ac451bd-d66a-5f03-9541-1ccecde26223",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "block": 2800568,
+    "block_hash": "0x00890448fbdc2000e3e70a66d0b9ac8eaa8d18606512af268e2542ca9d550e3d",
+    "difficulty": 2,
+    "time": 1534078628,
+    "transaction_count": 13
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### READ BLOCK TRANSACTIONS
+
+This endpoint will read transactions associated with a block.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/block/:number/transactions`  | `200 application/json` |
+
+#### Parameters
+
+* `number` (`string: <required>`) - Specifies the number of the block to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/block/2800568/transactions | jq .
+
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/block/2800568/transactions`.
+
+```
+{
+  "request_id": "67f5e340-da54-aa64-bbab-598483c9f213",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "0x0c10dc4158ddb4b3464b3519695661a3b73556bcd1a6d5833aa46d0275749e39": {
+      "address_to": "0xc0e15E11306334258d61fEe52a22D15e6c9C59e0",
+      "gas": 3000000,
+      "gas_price": 1000000000,
+      "nonce": 73902,
+      "value": "0"
+    },
+    "0x3c45da76247826473e2227b4a8eb3a9fb45280c05b4ecef1d6993087e91cfb58": {
+      "address_to": "0xc51b536AD6169bb7F8c893FF4b744d03433455cB",
+      "gas": 277468,
+      "gas_price": 1000000000,
+      "nonce": 134957,
+      "value": "0"
+    },
+    "0x3d26e1d8470d85556fd6a04ec832b5e8cfcbfb306b8ebb94bf030996ca3c7cd4": {
+      "address_to": "0xc51b536AD6169bb7F8c893FF4b744d03433455cB",
+      "gas": 373558,
+      "gas_price": 1000000000,
+      "nonce": 134958,
+      "value": "0"
+    },
+    "0x4773f64900d9ae460c72ca478fe2d122027b9dbc0433a40deb62d48ca068b108": {
+      "address_to": "0x97e3bA6cC43b2aF2241d4CAD4520DA8266170988",
+      "gas": 1200000,
+      "gas_price": 1000000000,
+      "nonce": 27861,
+      "value": "0"
+    },
+    "0x4fcb5de0ad524d63df206593fd0c0b6e74d9d62919685b2ad6e3bbdeb9753c2e": {
+      "address_to": "0x58dcf18084A320670F9abb059312AE60610bda58",
+      "gas": 4500000,
+      "gas_price": 1000000000,
+      "nonce": 13537,
+      "value": "0"
+    },
+    "0x5aa13eba92ebed85199c7b563cca567dc2ab927cff01f6785274f4174acc93a8": {
+      "address_to": "0x17dA6A8B86578CEC4525945A355E8384025fa5Af",
+      "gas": 100000,
+      "gas_price": 1000000000,
+      "nonce": 277,
+      "value": "1000000000000000000"
+    },
+    "0x718fa59d7ef2bc9f2ee9642d9357449509ce4e6f14a8e2d0c820d7cfc7dc7535": {
+      "address_to": "0xc0e15E11306334258d61fEe52a22D15e6c9C59e0",
+      "gas": 3000000,
+      "gas_price": 1000000000,
+      "nonce": 73963,
+      "value": "0"
+    },
+    "0xa173a5237e034fc54638a1dcf10343f29c0dc2dd8b8b1a25a7d370539e183bd9": {
+      "address_to": "0xc51b536AD6169bb7F8c893FF4b744d03433455cB",
+      "gas": 377718,
+      "gas_price": 1000000000,
+      "nonce": 52914,
+      "value": "0"
+    },
+    "0xa737cb951ab32c1b71a521809bab2f4b34234d27abd0ac0c6fac29d480ed6748": {
+      "address_to": "0x08Fe64C8B476c9cC776d8A0Ad5bB50e29D83A970",
+      "gas": 3000000,
+      "gas_price": 1000000000,
+      "nonce": 340,
+      "value": "0"
+    },
+    "0xaa322a7ebc3225029ef24a9fde80b2869deacc0a64b14533d07e52fff4542141": {
+      "address_to": "0xcB912023AaEB5057BeDB13c937E0519cED0D627A",
+      "gas": 400000,
+      "gas_price": 1000000000,
+      "nonce": 32859,
+      "value": "0"
+    },
+    "0xb11f44837f56205f6695c258c7e25ce6dc81f3c746d55ece8a22375147cfa34f": {
+      "address_to": "0x39394Ad63206DE2cd86881e1D20ff1621566e482",
+      "gas": 500000,
+      "gas_price": 1000000000,
+      "nonce": 22685,
+      "value": "0"
+    },
+    "0xc4c44fc474f2aa27e9ac651fdf3a109984c464a5859db47d5cb2cfdc93f52788": {
+      "address_to": "0xc51b536AD6169bb7F8c893FF4b744d03433455cB",
+      "gas": 275388,
+      "gas_price": 1000000000,
+      "nonce": 70743,
+      "value": "0"
+    },
+    "0xd64b823fcb714b6811c9790e7219ef1836e5568e5bdf2e7385a1b910178c7de8": {
+      "address_to": "0xCFe52FEDF5fc3b92ABA3D43b96B4Ae1d0b39062c",
+      "gas": 3000000,
+      "gas_price": 1000000000,
+      "nonce": 14,
+      "value": "0"
+    }
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### CREATE CONFIG
 ### UPDATE CONFIG
 ### READ CONFIG
@@ -779,5 +1043,97 @@ The example below shows output for a query path of `/ethereum/names/` when there
 ```
 
 ### READ NAME
+
+This endpoint will list the addreses associated with a named account.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/names/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to read. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/names/muchwow | jq .
+```
+
+#### Sample Response
+
+The example below shows output for a read of `/ethereum/names/muchwow`.
+
+```
+{
+  "request_id": "57556ed7-da99-ee4d-fbf0-2feaed17e5b9",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0xb56b2dd44073d87cbac5d4a3655354b3762178ee"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### VERIFY BY NAME
+
+This endpoint will verify that this account signed some data.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/names/:name/verify`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `data` (`string: <required>`) - Some data.
+* `signature` (`string: <required>`) - The signature to verify.
+
+#### Sample Payload
+
+```sh
+
+{
+  "data": "this is very important"
+  "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/name/test/verify | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful verification of a signature created by `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "f806212d-087c-7378-dd85-676701aeabb7",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x36d1f896e55a6577c62fdd6b84fbf74582266700",
+    "signature": "0x90a8712c948b5dfe412ca7e2082be9ef6ddf318a9aaf9183b702c0d1ee180d9d1f97683cb52026dc0de0b6033237cf421a27e88e7d0e608ac4778a9dcfd8818000",
+    "verified": true
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+
 ### READ TRANSACTION  
