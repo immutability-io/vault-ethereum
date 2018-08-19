@@ -388,8 +388,47 @@ The example below shows output for the successful deployment of a contract by th
 
 ```
 
-
 ### READ CONTRACT
+
+This endpoint will return the address of an Ethereum contract (if available.)
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `GET`  | `:mount-path/accounts/:account_name/contracts/:contract_name`  | `200 application/json` |
+
+#### Parameters
+
+* `account_name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `contract_name` (`string: <required>`) - Specifies the name of the contract. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/accounts/test6/contracts/helloworld | jq .
+```
+
+**NOTE**: If the transaction hasn't been included in a block yet, the contract address will show as: `receipt not available`
+
+#### Sample Response
+
+```
+{
+  "request_id": "da4be9f4-b9fd-90c2-b981-80553cc2359a",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0xCA3986C32beaD6c434773CD41107537f7dDe0c98",
+    "transaction_hash": "0x62fd378e374ea1166ccb2087ffca49cf1ffcb5162ff3a9651c5b77a781fdfeab"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### DELETE CONTRACT
 ### SIGN
 ### TRANSFER
