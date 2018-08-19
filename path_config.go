@@ -262,3 +262,12 @@ func (b *EthereumBackend) validIPConstraints(config *Config, req *logical.Reques
 	}
 	return true, nil
 }
+
+func contains(stringSlice []string, searchString string) bool {
+	for _, value := range stringSlice {
+		if value == searchString {
+			return true
+		}
+	}
+	return false
+}

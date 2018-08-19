@@ -502,7 +502,7 @@ func (b *EthereumBackend) pathAccountUpdate(ctx context.Context, req *logical.Re
 
 }
 
-func (b *EthereumBackend) validAccountConstraints(account *Account, amount *big.Int) (bool, error) {
+func (b *EthereumBackend) validAccountConstraints(account *Account, amount *big.Int, toAddress string) (bool, error) {
 	txLimit := ValidNumber(account.SpendingLimitTx)
 	limit := ValidNumber(account.SpendingLimitTotal)
 	totalSpend := ValidNumber(account.TotalSpend)
@@ -513,6 +513,14 @@ func (b *EthereumBackend) validAccountConstraints(account *Account, amount *big.
 
 	if limit.Cmp(totalSpend.Add(totalSpend, amount)) == -1 && limit.Cmp(big.NewInt(0)) == 1 {
 		return false, fmt.Errorf("transaction amount (%s) + total spend (%s) is larger than the limit (%s)", amount.String(), account.TotalSpend, account.SpendingLimitTotal)
+	}
+
+	if contains(account.Blacklist, toAddress) {
+		return false, fmt.Errorf("%s is blacklisted", toAddress)
+	}
+
+	if len(account.Whitelist) > 0 && !contains(account.Whitelist, toAddress) {
+		return false, fmt.Errorf("%s is not in the whitelist", toAddress)
 	}
 
 	return true, nil
@@ -632,7 +640,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if amount.Cmp(balance) > 0 {
 		return nil, fmt.Errorf("Insufficient funds spend %v because the current account balance is %v", amount, balance)
 	}
-	if valid, err := b.validAccountConstraints(account, amount); !valid {
+	if valid, err := b.validAccountConstraints(account, amount, data.Get("address_to").(string)); !valid {
 		return nil, err
 	}
 	chainID := ValidNumber(config.ChainID)
