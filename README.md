@@ -67,7 +67,7 @@ Of course, all secrets in Vault are encrypted.
 
 ## Quick start
 
-I recommend that you buid the plugin yourself using the standard golang approach:
+I recommend that you build the plugin yourself using the standard golang approach:
 
 ```
 $ go get -u github.com/immutability-io/vault-ethereum
