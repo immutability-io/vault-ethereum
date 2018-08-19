@@ -266,8 +266,129 @@ $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN"
 There is no response payload.
 
 ### DEBIT ACCOUNT
+
+
+This endpoint will debit an Ethereum account.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/debit`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `address_to` (`string: <required>`) - A Hex string specifying the Ethereum address to send the ETH to.
+* `amount` (`string: <required>`) - The amount of ether - in wei.
+* `gas_price` (`string: <optional>`) - The price in gas for the transaction. If omitted, we will use the suggested gas price.
+* `gas_limit` (`string: <optional>`) - The gas limit for the transaction. If omitted, we will estimate the gas limit.
+
+#### Sample Payload
+
+The following sends 0.2 ETH to `0x36D1F896E55a6577C62FDD6b84fbF74582266700`.
+
+```sh
+
+{
+  "amount":"200000000000000000",
+  "to": "0x36D1F896E55a6577C62FDD6b84fbF74582266700"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test2/debit | jq .
+```
+
+#### Sample Response
+
+The example below shows the output for the successfully sending ETH from `/ethereum/accounts/test2`. The Transaction hash is returned.
+
+```
+{
+  "request_id": "ac79079d-9e8c-e340-b718-fe19a27ff914",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "amount": "200000000000000000"
+    "from_address": "0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8"
+    "gas_limit": "21000"
+    "gas_price": "2000000000"
+    "balance": "1000000000000000000"
+    "to_address": "0x36D1F896E55a6577C62FDD6b84fbF74582266700"
+    "total_spend": "200000000000000000"
+    "transaction_hash": "0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769"
+  },
+  "warnings": null
+}
+```
+
 ### LIST CONTRACTS
+
 ### DEPLOY CONTRACT
+
+This endpoint will sign a provided Ethereum contract.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:account_name/contracts/:contract_name`  | `200 application/json` |
+
+#### Parameters
+
+* `account_name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `contract_name` (`string: <required>`) - Specifies the name of the contract. This is specified as part of the URL.
+* `transaction_data` (`string: <required>`) - The compiled Ethereum contract.
+* `amount` (`string: <required>`) - The amount of ether in wei to fund the contract with.
+* `nonce` (`string: <optional> - defaults to "1"`) - The nonce for the transaction
+* `gas_price` (`string: <required>`) - The price in gas for the transaction in wei.
+* `gas_limit` (`string: <required>`) - The gas limit for the transaction.
+
+#### Sample Payload
+
+```
+{
+  "transaction_data": "6060604052341561000f57600080fd5b60d38061001d6000396000f3006060604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806360fe47b114604e5780636d4ce63c14606e575b600080fd5b3415605857600080fd5b606c60048080359060200190919050506094565b005b3415607857600080fd5b607e609e565b6040518082815260200191505060405180910390f35b8060008190555050565b600080549050905600a165627a7a72305820d4b4961183894cf1196bcafbbe4d2573a925296dff82a9dcbc0e8bd8027b153f0029",
+  "amount":"10000000000",
+  "gas_limit":"1500000",
+  "nonce":"1"
+
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test6/contracts/helloworld | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful deployment of a contract by the account at `/ethereum/accounts/test6/contracts/helloworld`.
+
+```
+{
+  "request_id": "af4a743e-73ea-ddbd-dac1-351303ac8430",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "transaction_hash": "0x5edffe3d8e1c43dff0d17f720219721582e16bd82ddfe4d3c9b7e70cefb968d3"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+
+```
+
+
 ### READ CONTRACT
 ### DELETE CONTRACT
 ### SIGN

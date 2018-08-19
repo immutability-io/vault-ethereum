@@ -397,13 +397,13 @@ amount             200000000000000000
 from_address       0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
 gas_limit          21000
 gas_price          2000000000
-pending_balance    1000000000000000000
+balance            1000000000000000000
 to_address         0x36D1F896E55a6577C62FDD6b84fbF74582266700
 total_spend        200000000000000000
-tx_hash            0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
+transaction_hash   0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
 ```
 
-Let's check 2 things - the transaction and the account balance of `lesswow`.
+**NOTE**: The above balance is the balance **before** the transaction is committed. Let's check 2 things - the transaction and the account balance of `lesswow`.
 
 Read the transaction details:
 

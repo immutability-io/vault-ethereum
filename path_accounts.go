@@ -701,14 +701,14 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	}
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"tx_hash":         signedTx.Hash().Hex(),
-			"from_address":    account.Address,
-			"to_address":      toAddress.String(),
-			"amount":          amount.String(),
-			"gas_price":       gasPrice.String(),
-			"gas_limit":       gasLimitIn.String(),
-			"total_spend":     totalSpend,
-			"pending_balance": balance,
+			"transaction_hash": signedTx.Hash().Hex(),
+			"from_address":     account.Address,
+			"to_address":       toAddress.String(),
+			"amount":           amount.String(),
+			"gas_price":        gasPrice.String(),
+			"gas_limit":        gasLimitIn.String(),
+			"total_spend":      totalSpend,
+			"balance":          balance,
 		},
 	}, nil
 }
@@ -841,13 +841,13 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"tx_hash":       signedTx.Hash().Hex(),
-			"from_address":  account.Address,
-			"to_address":    toAddress.String(),
-			"token_address": tokenAddress.String(),
-			"amount":        amount.String(),
-			"gas_price":     gasPrice.String(),
-			"gas_limit":     strconv.FormatUint(gasLimit, 10),
+			"transaction_hash": signedTx.Hash().Hex(),
+			"from_address":     account.Address,
+			"to_address":       toAddress.String(),
+			"token_address":    tokenAddress.String(),
+			"amount":           amount.String(),
+			"gas_price":        gasPrice.String(),
+			"gas_limit":        strconv.FormatUint(gasLimit, 10),
 		},
 	}, nil
 }
