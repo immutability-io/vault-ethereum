@@ -11,36 +11,36 @@ Use of this plugin with real ETH on the mainnet is at your own risk and no warra
 
 ## API
 
-[The API is detailed in full here.](https://github.com/immutability-io/vault-ethereum/blob/master/API.md)
+[The API is detailed in full here.](./API.md)
 
 Vault is a REST server. Services can be permissioned on granular basis according to their paths. Here is an overview of the paths available and the methods supported:
 
-&nbsp;&nbsp;&nbsp;&nbsp;`└── ethereum `&nbsp;&nbsp;([install](https://github.com/immutability-io/vault-ethereum/blob/master/README.md#install-plugin))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    ├── accounts `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-accounts))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <NAME> `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-account), [update](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#update-account), [read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-account), [delete](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#delete-account))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── debit `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#debit-account))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── contracts `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-contracts))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   │   └── <NAME> `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#deploy-contract), [read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-contract), [delete](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#delete-contract))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── sign `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#sign))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── transfer `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#transfer))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#verify))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-addresses))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <ADDRESS> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-address))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#verify-by-address))  
+&nbsp;&nbsp;&nbsp;&nbsp;`└── ethereum `&nbsp;&nbsp;([install](./README.md#install-plugin))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── accounts `&nbsp;&nbsp;([list](./API.md#list-accounts))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <NAME> `&nbsp;&nbsp;([create](./API.md#create-account), [update](./API.md#update-account), [read](./API.md#read-account), [delete](./API.md#delete-account))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── debit `&nbsp;&nbsp;([create](./API.md#debit-account))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── contracts `&nbsp;&nbsp;([list](./API.md#list-contracts))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#deploy-contract), [read](./API.md#read-contract), [delete](./API.md#delete-contract))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── sign `&nbsp;&nbsp;([create](./API.md#sign))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── transfer `&nbsp;&nbsp;([create](./API.md#transfer))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([create](./API.md#verify))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](./API.md#list-addresses))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <ADDRESS> `&nbsp;&nbsp;([read](./API.md#read-address))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([create](./API.md#verify-by-address))  
 &nbsp;&nbsp;&nbsp;&nbsp;`    ├── block `  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NUMBER> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-block))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── transactions `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-block-transactions))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    ├── config `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-config), [update](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#update-config), [read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-config))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([update](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#convert))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NUMBER> `&nbsp;&nbsp;([read](./API.md#read-block))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── transactions `&nbsp;&nbsp;([read](./API.md#read-block-transactions))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── config `&nbsp;&nbsp;([create](./API.md#create-config), [update](./API.md#update-config), [read](./API.md#read-config))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([update](./API.md#convert))  
 &nbsp;&nbsp;&nbsp;&nbsp;`    ├── export `  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#export))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#export))  
 &nbsp;&nbsp;&nbsp;&nbsp;`    ├── import `  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME>  `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#import))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    ├── names `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-names))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │   └──  <NAME> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-name))  
-&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#verify-by-name))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME>  `&nbsp;&nbsp;([create](./API.md#import))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── names `&nbsp;&nbsp;([list](./API.md#list-names))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └──  <NAME> `&nbsp;&nbsp;([read](./API.md#read-name))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([create](./API.md#verify-by-name))  
 &nbsp;&nbsp;&nbsp;&nbsp;`    └── transaction `  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-transaction))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](./API.md#read-transaction))  
 
 ## Features
 
@@ -165,7 +165,7 @@ trust/          plugin       plugin_0cf966e2       Immutability's Trustee Servic
 
 ## Playing with Immutability's Ethereum Wallet
 
-Before we do anything with the plugin, we need to configure it: we need to tell the plugin which Ethereum network it will use (Rinkeby by default) and what node address to use for RPC communication (`https://rinkeby.infura.io` by default.) Optionally, we can add the [Infura API key](https://infura.io/register). Since we are running Vault in a trusted environment, we may (optionally) restrict network access by client IP address. [See the API for more details](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-config).
+Before we do anything with the plugin, we need to configure it: we need to tell the plugin which Ethereum network it will use (Rinkeby by default) and what node address to use for RPC communication (`https://rinkeby.infura.io` by default.) Optionally, we can add the [Infura API key](https://infura.io/register). Since we are running Vault in a trusted environment, we may (optionally) restrict network access by client IP address. [See the API for more details](./API.md#create-config).
 
 ### Configure the plugin
 
@@ -187,7 +187,7 @@ Now we can start to play!
 
 Probably the most controversial aspect of the design of this plugin is the fact that we have a handful of unauthenticated endpoints. Since Vault is a tool for managing secrets, why would we want it to allow unauthenticated access to anything? The answer is that we want the experience of interacting with the Ethereum ecosystem with Vault to be easy (and fun.) Having a consistent API for both trusted and untrusted actions increases usability. I believe the Vault plugin model allows Vault to be a **platform** for blockchain applications and development.
 
-Since Immutability's Ethereum Wallet has several unauthenticated endpoints ([detailed in the API](https://github.com/immutability-io/vault-ethereum/blob/master/API.md)), we will play with a few here before we create any Ethereum accounts:
+Since Immutability's Ethereum Wallet has several unauthenticated endpoints ([detailed in the API](./API.md)), we will play with a few here before we create any Ethereum accounts:
 
 ### ETH Unit Converter
 
@@ -325,9 +325,9 @@ total_spend             0
 whitelist               <nil>
 ```
 
-For more details on whitelist, blacklist and spending limits, please [refer to the API documentation](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-account).
+For more details on whitelist, blacklist and spending limits, please [refer to the API documentation](./API.md#create-account).
 
-Notice that the private key is not returned. Duh. The only way to exfiltrate the private key from Vault is to use the [export](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#export) feature. 
+Notice that the private key is not returned. Duh. The only way to exfiltrate the private key from Vault is to use the [export](./API.md#export) feature. 
 
 ### Read Account
 
