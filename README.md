@@ -1,487 +1,614 @@
+![Immutability](/docs/tagline.png?raw=true "Changes Everything")
+
 Ethereum plugin for Vault
 -----------------
 
-The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support smart contract continuous development practices including contract deployment and testing. It has only been exercised on private Ethereum chains and the Rinkeby testnet. Some of the functionality (creating accounts and signing contract creation transactions) can happen without any local `geth` node to be running. Other functionality (deploying contracts and sending transactions - still in development) will require the geth RPC interface.
+The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support smart contract continuous development practices including contract deployment and testing. Some of the functionality (creating accounts and signing contract creation transactions) can happen without network connectivity. Other functionality (reading blocks, transactions, account balances and deploying contracts and sending transactions) will require network access to an RPC interface.
 
-## Works for me, but...
+## No Warrantees Implied
 
-This plugin is still in the early stages of development. I have used it extensively on private chains and on Rinkeby. I am HODLing the real ETH I have, so I have only used this plugin to check the balance of my mainnet accounts. Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. 
+Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](mailto:sales@immutability.io).
+
+## API
+
+[The API is detailed in full here.](https://github.com/immutability-io/vault-ethereum/blob/master/API.md)
+
+Vault is a REST server. Services can be permissioned on granular basis according to their paths. Here is an overview of the paths available and the methods supported:
+
+&nbsp;&nbsp;&nbsp;&nbsp;`└── ethereum `&nbsp;&nbsp;([install](https://github.com/immutability-io/vault-ethereum/blob/master/README.md#install-plugin))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── accounts `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-accounts))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <NAME> `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-account), [update](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#update-account), [read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-account), [delete](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#delete-account))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── debit `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#debit-account))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── contracts `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-contracts))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   │   └── <NAME> `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#deploy-contract), [read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-contract), [delete](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#delete-contract))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── sign `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#sign))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── transfer `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#transfer))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#verify))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-addresses))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <ADDRESS> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-address))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#verify-by-address))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── block `  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NUMBER> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-block))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── transactions `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-block-transactions))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── config `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-config), [update](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#update-config), [read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-config))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([update](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#convert))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── export `  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#export))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── import `  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME>  `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#import))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    ├── names `&nbsp;&nbsp;([list](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#list-names))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │   └──  <NAME> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-name))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([create](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#verify-by-name))  
+&nbsp;&nbsp;&nbsp;&nbsp;`    └── transaction `  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#read-transaction))  
 
 ## Features
 
 This plugin provides services to:
 
-* Create new externally controlled accounts.
-* Import JSON keystores (with provided passphrase.)
-* Export JSON keystores
-* Sign transactions for contract deployment
-* Sign arbitrary data
-* Send Ethereum
+* Support any Ethereum network (mainnet, Rinkeby, Ropsten, Kovan, private, etc.)
+* Create new Ethereum (EOA) accounts.
+* Send Ethereum.
 * Deploy contracts
+* Generate and verify signatures
+* Transfer ERC20 tokens.
+* Local (to Vault) naming lookups
+* Read blocks on the Ethereum blockchain
+* Read transactions on Ethereum blockchain
+* Create whitelists and blacklists
+* Create IP constraints
+* Create spending limits (total and per transaction) per account
+* Conversion to and from any Ethereum unit (wei, eth, finney, etc.)
+* Import and export (Web3 Secret Storage Definition) JSON keystores
 
-All secrets in Vault are encrypted. However, for ease of integration with `geth`, the plugin stores the Ethereum private key in encrypted (JSON keystore) format.
+Of course, all secrets in Vault are encrypted.
 
 ![Vault and Geth Topology](/doc/vault-geth.png?raw=true "Vault Ethereum Plugin")
 
 ## Quick start
 
-Building the plugin and installing it will be covered later, but let's assume that has been done. It is important to note that the Vault Ethereum plugin can be mounted at any path. A common model is to use a well defined namespace for mounting Vault backends - for example, using the GitHub org/repo namespace: `ethereum/immutability-io/world-domination-token`. For this discussion, we assume that the Vault Ethereum plugin has been mounted at `ethereum`.
+I recommend that you buid the plugin yourself using the standard golang approach:
 
-### Create new externally controlled accounts
+```
+$ go get -u github.com/immutability-io/vault-ethereum
+```
 
-Let's create an Ethereum account using our private chain (w/ chain ID `1977`):
+This will put the plugin executable in your $GOPATH/bin directory: `$GOPATH/bin/vault-ethereum`. Now you have to install the plugin. For simplicity sake, I will make some assumptions:
+
+1. You are **NOT** running Vault in `dev` mode. This means that you are running Vault using TLS. [Here an example of how to do this](https://github.com/immutability-io/immutability-project).
+2. You have installed Vault as a non-root user.
+3. Your Vault configuration and TLS material is at `~/etc/vault.d`. Of course, you can put your Vault configuration anywhere; but, to make these instructions simple.
+
+### Vault configuration
+
+Let's take a look at the Vault configuration directory:
+
+```
+$ ls -la1 ~/etc/vault.d
+.
+..
+data
+root.crt
+vault.crt
+vault.hcl
+vault.key
+vault_plugins
+```
+
+And peak at the Vault configuration file:
+
+```
+$ cat ~/etc/vault.d/vault.hcl
+"default_lease_ttl" = "24h"
+"disable_mlock" = "true"
+"max_lease_ttl" = "24h"
+
+"backend" "file" {
+  "path" = "/Users/cypherhat/etc/vault.d/data"
+}
+
+"api_addr" = "https://localhost:8200"
+"ui" = "true"
+"listener" "tcp" {
+  "address" = "localhost:8200"
+
+  "tls_cert_file" = "/Users/cypherhat/etc/vault.d/vault.crt"
+  "tls_client_ca_file" = "/Users/cypherhat/etc/vault.d/root.crt"
+  "tls_key_file" = "/Users/cypherhat/etc/vault.d/vault.key"
+}
+
+"plugin_directory" = "/Users/cypherhat/etc/vault.d/vault_plugins"
+```
+
+And make sure our Vault environment variables are set:
+
+```
+$ env | grep VAULT
+VAULT_ADDR=https://localhost:8200
+VAULT_CACERT=/Users/cypherhat/etc/vault.d/root.crt
+```
+
+### Install plugin
+
+Now we have enough information to install the plugin. Before we do so, authenticate to Vault as an administrator. Plugins are extremely privileged actors in the Vault ecosystem, so they need to be installed and confured by the Vault admin.
+
+We will move the vault-ethereum plugin to the `plugin_directory`, add the plugin to Vault's plugin catalog and then mount and enable it. Note that we sign the plugin executable.:
 
 ```sh
-$ vault write ethereum/accounts/test chain_id=1977
+$ mv $GOPATH/bin/vault-ethereum $HOME/etc/vault.d/vault_plugins
+$ export SHASUM256=$(shasum -a 256 "$HOME/etc/vault.d/vault_plugins/vault-ethereum" | cut -d' ' -f1)
+$ vault write sys/plugins/catalog/ethereum-plugin \
+      sha_256="${SHASUM256}" \
+      command="vault-ethereum --ca-cert=$HOME/etc/vault.d/root.crt --client-cert=$HOME/etc/vault.d/vault.crt --client-key=$HOME/etc/vault.d/vault.key"
+$ vault secrets enable -path=ethereum -description="Immutability's Ethereum Wallet" -plugin-name=ethereum-plugin plugin
 ```
 
-That's all that is needed. **NOTE:** we also assume that the vault client has been authenticated and has permission `write` to `ethereum/accounts/test`. Discussion of the [Vault authentication model can be found here](https://www.vaultproject.io/docs/concepts/auth.html).
-
-The Ethereum plugin will return the following information from the above command:
+We should now be able to see the plugin if we query Vault for the available secrets backends (there are several listed here - the one of interest is `ethereum`:
 
 ```
-Key          Value
----          -----
-address      0x98FE39097a0eA57A2D8bC4f7A654F180b962be7f
-blacklist    <nil>
-chain_id     1977
-rpc_url      http://localhost:8545
-whitelist    <nil>
+$ vault secrets list
+Path            Type         Accessor              Description
+----            ----         --------              -----------
+aws/            aws          aws_2e82318b          AWS credentials
+btc/mainnet/    plugin       plugin_d0630fca       BTC Mainnet Wallet
+btc/regtest/    plugin       plugin_e18ad345       BTC Regression Test Wallet
+btc/simnet/     plugin       plugin_9e9c7181       BTC Simnet Wallet
+btc/testnet/    plugin       plugin_b735aa97       BTC Testnet Wallet
+cubbyhole/      cubbyhole    cubbyhole_db313a57    per-token private secret storage
+ethereum/       plugin       plugin_69372d75       Immutability's Ethereum Wallet
+identity/       identity     identity_4638066d     identity store
+ltc/            plugin       plugin_3f43f7c3       LTC Wallet
+secret/         kv           kv_44746ed8           key/value secret storage
+sys/            system       system_2a5f140a       system endpoints used for control, policy and debugging
+trust/          plugin       plugin_0cf966e2       Immutability's Trustee Service
 ```
 
-The parameters `rpc_url` defaults to `http://localhost:8545` but it can be customized when creating an account.
+## Playing with Immutability's Ethereum Wallet
 
-### Read externally controlled accounts
+Before we do anything with the plugin, we need to configure it: we need to tell the plugin which Ethereum network it will use (Rinkeby by default) and what node address to use for RPC communication (`https://rinkeby.infura.io` by default.) Optionally, we can add the [Infura API key](https://infura.io/register). Since we are running Vault in a trusted environment, we may (optionally) restrict network access by client IP address. [See the API for more details](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-config).
 
-We can read the account stored at `ethereum/accounts/test` as follows:
+### Configure the plugin
+
+If we want to accept all defaults, we can configure the plugin as follows:
 
 ```sh
-$ vault read ethereum/accounts/test
+$ vault write -f ethereum/config
+Key                Value
+---                -----
+api_key            n/a
+bound_cidr_list    <nil>
+chain_id           4
+rpc_url            https://rinkeby.infura.io
 ```
 
+Now we can start to play! 
+
+## Unauthenticated endpoints
+
+Probably the most controversial aspect of the design of this plugin is the fact that we have a handful of unauthenticated endpoints. Since Vault is a tool for managing secrets, why would we want it to allow unauthenticated access to anything? The answer is that we want the experience of interacting with the Ethereum ecosystem with Vault to be easy (and fun.) Having a consistent API for both trusted and untrusted actions increases usability. I believe the Vault plugin model allows Vault to be a **platform** for blockchain applications and development.
+
+Since Immutability's Ethereum Wallet has several unauthenticated endpoints ([detailed in the API](https://github.com/immutability-io/vault-ethereum/blob/master/API.md)), we will play with a few here before we create any Ethereum accounts:
+
+### ETH Unit Converter
+
+[There is a website](https://etherconverter.online/) that will convert any ETH unit to any other. Since Immutability's Ethereum Wallet only allows you to send ETH in wei, I thought it would be useful to replicate this capability:
+
 ```
-Key             	Value
----             	-----
-address      0x98FE39097a0eA57A2D8bC4f7A654F180b962be7f
-blacklist    <nil>
-chain_id     1977
-rpc_url      http://localhost:8545
-whitelist    <nil>
+$ vault write ethereum/convert unit_from="wei" unit_to="tether" amount="4.4"
+Key            Value
+---            -----
+amount_from    4.4
+amount_to      0.0000000000000000000000000000044
+unit_from      wei
+unit_to        tera
+
+$ vault write ethereum/convert unit_from="eth" unit_to="wei" amount="4.4"
+Key            Value
+---            -----
+amount_from    4.4
+amount_to      4400000000000000000
+unit_from      ether
+unit_to        wei
 ```
 
-For convenience, we can read the balance for this account:
+All known ETH units are supported.
+
+### Query Block By Number
+
+Sometimes it is useful to know whether a block exists or what its hash was or other details:
 
 ```
-$ vault read ethereum/accounts/test/balance
-Key                 Value
----                 -----
-address             0x98FE39097a0eA57A2D8bC4f7A654F180b962be7f
-pending_balance     10000000000000000000
-pending_nonce       0
-pending_tx_count    0
+$ vault read -format=json ethereum/block/24395834800568/transactions
+No value found at ethereum/block/24395834800568/transactions
+
+$ vault read -format=json ethereum/block/2800569
+{
+  "request_id": "c02c08a7-3283-8b17-a486-ddab3321bb16",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "block": 2800569,
+    "block_hash": "0xf403508f16c234a7603a04e968409ceca8db4c36425edefa3bcee2215f06b8fd",
+    "difficulty": 1,
+    "time": 1534078643,
+    "transaction_count": 3
+  },
+  "warnings": null
+}
 ```
 
-### Create contracts
+### Read Transactions By Block Number
+
+If you want to know the transaction hashes at a particular block, you append `transactions` to the path above:
+
+```
+$ vault read -format=json ethereum/block/2800569/transactions
+{
+  "request_id": "ba77bd3b-923b-1ad6-a289-d80f9752934b",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "0x577440e22b85895fb852a326d83e5fc9720f7f6e6037196806e82cd7a1e428cb": {
+      "address_to": "0xd35CB9dFf4b94d7Ab9bc0A8f221b127a09429AA7",
+      "gas": 200000,
+      "gas_price": 1000000000,
+      "nonce": 88582,
+      "value": "0"
+    },
+    "0x84442dc3f585436fc34d5881988c3612a4d7782cb50e1e54f2d06082b5b307e3": {
+      "address_to": "0xa9Ad608533A7817456c706286202405DcEF471b3",
+      "gas": 52744,
+      "gas_price": 1000000000,
+      "nonce": 195,
+      "value": "0"
+    },
+    "0xbbc49ad70961b891949964ebe14caa53434cab2f3c66cf5f8275a4b06f5e5d1a": {
+      "address_to": "0x64A10C83d5EF68301625F4df0fACB38C78d622E4",
+      "gas": 6500000,
+      "gas_price": 9000000000,
+      "nonce": 962,
+      "value": "0"
+    }
+  },
+  "warnings": null
+}
+```
+
+### Read Transaction Details
+
+This listing of transactions by block omits certain details, so there is another method to return more details about the transaction (or whether a transaction exists):
+
+```
+$ vault read -format=json ethereum/transaction/0xbbc49ad70961b891949964ebe14caa53434cab2f3c66cf5f8275a4b06f5e5d1a
+{
+  "request_id": "6fa9bca9-c47c-41ab-b8b4-adf750f48e20",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "address_from": "0xAc09AdC0939754C2D4D16D849d9C3D7526b7f9f2",
+    "address_to": "0x64A10C83d5EF68301625F4df0fACB38C78d622E4",
+    "gas": 6500000,
+    "gas_price": 9000000000,
+    "nonce": 962,
+    "pending": false,
+    "receipt_status": 1,
+    "transaction_hash": "0xbbc49ad70961b891949964ebe14caa53434cab2f3c66cf5f8275a4b06f5e5d1a",
+    "value": "0"
+  },
+  "warnings": null
+}
+
+$ vault read -format=json ethereum/transaction/0xbbc49ad70961b891949964ebe14caa53434cab2f3c66cf5f8275a4b06f5e51a
+No value found at ethereum/transaction/0xbbc49ad70961b891949964ebe14caa53434cab2f3c66cf5f8275a4b06f5e51a
+```
+
+## Ethereum Accounts
+
+In order to create and use Ethereum accounts, you have to be authenticated. The power of Vault lies in its ability to broker many different authentication mechanisms to allow practical authorization checks for any path. I will not go into detail here on policy design. I simply assume that the Vault client is authenticated and permitted to perform the following actions. If you would like guidance on how to design a Vault permission model for your enterprise, please reach out to [Immutability, LLC](mailto:sales@immutability.io).  
+
+### Create Account
+
+Let's create an Ethereum Account. It is very simple if we want to accept the defaults. 
+
+```
+$ vault write -f ethereum/accounts/muchwow
+Key                     Value
+---                     -----
+address                 0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+blacklist               <nil>
+spending_limit_total    0
+spending_limit_tx       0
+total_spend             0
+whitelist               <nil>
+```
+
+For more details on whitelist, blacklist and spending limits, please [refer to the API documentation](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#create-account).
+
+Notice that the private key is not returned. Duh. The only way to exfiltrate the private key from Vault is to use the [export](https://github.com/immutability-io/vault-ethereum/blob/master/API.md#export) feature. 
+
+### Read Account
+
+Let's take a look at the account we just created:
+
+```
+$ vault read ethereum/accounts/muchwow
+Key                     Value
+---                     -----
+address                 0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+balance                 1000000000000000000
+blacklist               <nil>
+spending_limit_total    0
+spending_limit_tx       0
+total_spend             0
+whitelist               <nil>
+```
+
+Wait! How in the heck did that balance get there? Since wei is used across every service in this plugin, we can use our handy dandy conversion service to see what that is in ETH. (I know, if you can't do this math, maybe crypto isn't for you):
+
+```
+$ vault write ethereum/convert unit_from="wei" unit_to="eth" amount="1000000000000000000"
+Key            Value
+---            -----
+amount_from    1000000000000000000
+amount_to      1
+unit_from      wei
+unit_to        ether
+```
+
+So, somebody sent us 1 ETH? How did that happen? Well, it wasn't magic and it wasn't the donation of a generous crypto billionaire (sadly). And, since this is Rinkeby, it is worthless. I used the [Rinkeby faucet](https://faucet.rinkeby.io/).
+
+### Send ETH
+
+Well, since the `muchwow` account is flush with funds, let's pay it forward to a new account. First, we will create an account to move ETH to:
+
+```
+$ vault write -f ethereum/accounts/lesswow
+Key                     Value
+---                     -----
+address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
+blacklist               <nil>
+spending_limit_total    0
+spending_limit_tx       0
+total_spend             0
+whitelist               <nil>
+```
+
+I want to send 0.2 ETH from `muchwow` to `lesswow`. Just because I don't trust myself to type properly, I use our handy dandy conversion service to do this:
+
+```$ vault write ethereum/convert unit_from="eth" unit_to="wei" amount="0.2"
+Key            Value
+---            -----
+amount_from    0.2
+amount_to      200000000000000000
+unit_from      ether
+unit_to        wei
+```
+
+Now, we send the ETH from the `muchwow` account to the address of the `lesswow` account. I use suggested gas price and the default gas limit of 21000.
+
+```
+$ vault write ethereum/accounts/muchwow/debit amount=200000000000000000 address_to="0x36d1f896e55a6577c62fdd6b84fbf74582266700"
+Key                Value
+---                -----
+amount             200000000000000000
+from_address       0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+gas_limit          21000
+gas_price          2000000000
+pending_balance    1000000000000000000
+to_address         0x36D1F896E55a6577C62FDD6b84fbF74582266700
+total_spend        200000000000000000
+tx_hash            0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
+```
+
+Let's check 2 things - the transaction and the account balance of `lesswow`.
+
+Read the transaction details:
+
+```
+$ vault read -format=json ethereum/transaction/0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
+{
+  "request_id": "960eab1a-4a5a-cbdd-1ebb-716a5bf5c872",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "address_from": "0x7B715f8748Ef586b98d3e7c88f326b5a8F409Cd8",
+    "address_to": "0x36D1F896E55a6577C62FDD6b84fbF74582266700",
+    "gas": 21000,
+    "gas_price": 2000000000,
+    "nonce": 0,
+    "pending": false,
+    "receipt_status": 1,
+    "transaction_hash": "0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769",
+    "value": "200000000000000000"
+  },
+  "warnings": null
+}
+```
+
+Read the balance:
+
+```
+$ vault read ethereum/accounts/lesswow
+Key                     Value
+---                     -----
+address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
+balance                 200000000000000000
+blacklist               <nil>
+spending_limit_total    0
+spending_limit_tx       0
+total_spend             0
+whitelist               <nil>
+```
+
+As you can see, `lesswow` is more wow than previously. In fact, it seems wrong that `lesswow` is named as such. Let's *rename* it to `morewow`. This will involve exporting and importing.
+
+### Export 
+
+Let's export the private key associated with `lesswow` to a (Web3 Secret Storage Definition) JSON keystore. Truth be told, this was the most annoying part of developing this plugin - the [go-ethereum codebase](https://github.com/ethereum/go-ethereum) mysteriously chose not to export certain classes, so there was a bit of cutting and carving to get the ability to render a (Web3 Secret Storage Definition) JSON keystore without getting tangled up with their wallet implementations.
+
+Let's export the `lesswow` private key:
+
+```
+$ vault write ethereum/export/lesswow path=$(pwd)
+Key           Value
+---           -----
+passphrase    vibes-subsystem-print-truck-nuptials-outcome-drudge-setting-raging
+path          /Users/cypherhat/develop/go/src/github.com/immutability-io/vault-ethereum/test/ethereum/config/UTC--2018-08-19T17-04-42.950941035Z--36d1f896e55a6577c62fdd6b84fbf74582266700
+```
+
+The first thing to notice here is that the passphrase used to encrypt this keystore is generated for you. The second thing to notice is that this passphrase is displayed for all to see. In a real use case, you would use your considerable bash skills to prevent this exposure.
+
+There is a [nifty Golang utility](https://github.com/atotto/clipboard) that works in OSX, Windows and Linux that allows you to pipe the output of a command into the clipboard. I have installed this (as well as the [awesome jq utility](https://github.com/stedolan/jq)) in my environment. This allows me to do this:
+
+```sh
+$ vault write -format=json ethereum/export/lesswow path=$(pwd) | jq -r .data.passphrase | gocopy
+```
+
+When you export like this, nothing is revealed to the screen but the JSON keystore is exported and your clipboard contains the passphrase. Then it is a simple matter to import the JSON keystore into something like MetaMask. Each time a private key is exported, it is encrypted with a newly generated passphrase.
+
+### Import
+
+Import is the reverse of export. It will create a new named account in Vault using the same private key. 
+
+```
+$ vault write ethereum/import/morewow path="/Users/cypherhat/develop/go/src/github.com/immutability-io/vault-ethereum/test/ethereum/config/UTC--2018-08-19T17-04-42.950941035Z--36d1f896e55a6577c62fdd6b84fbf74582266700" passphrase=$PASSPHRASE
+Key                     Value
+---                     -----
+address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
+blacklist               <nil>
+spending_limit_total    n/a
+spending_limit_tx       n/a
+total_spend             n/a
+whitelist               <nil>
+```
+
+If we read from this account, we will see that the balance is indeed morewow:
+
+```
+$ vault read ethereum/accounts/morewow
+Key                     Value
+---                     -----
+address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
+balance                 200000000000000000
+blacklist               <nil>
+spending_limit_total    n/a
+spending_limit_tx       n/a
+total_spend             n/a
+whitelist               <nil>
+```
+
+### Cross References
+
+We just created 2 accounts - 2 of which have the same private key (Ethereum account) but different names. We can see this by listing the names of the accounts we have created:
+
+```
+$ vault list ethereum/names
+Keys
+----
+lesswow
+morewow
+muchwow
+```
+
+We can also see the actual accounts:
+
+```
+$ vault list ethereum/addresses
+Keys
+----
+0x36d1f896e55a6577c62fdd6b84fbf74582266700
+0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+```
+
+And to see the addresses by name:
+
+```
+$ vault read ethereum/names/muchwow
+Key        Value
+---        -----
+address    0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+
+$ vault read ethereum/names/morewow
+Key        Value
+---        -----
+address    0x36d1f896e55a6577c62fdd6b84fbf74582266700
+
+$ vault read ethereum/names/lesswow
+Key        Value
+---        -----
+address    0x36d1f896e55a6577c62fdd6b84fbf74582266700
+```
+
+And, of course we can do the opposite:
+
+```
+ $ vault read ethereum/addresses/0x36d1f896e55a6577c62fdd6b84fbf74582266700
+Key      Value
+---      -----
+names    [morewow lesswow]
+
+$ vault read ethereum/addresses/0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+Key      Value
+---      -----
+names    [muchwow]
+```
+
+## Create contracts
 
 Suppose you have written a smart contract. Likely, it is only one or 2 deployment cycles away from yielding ICO riches. So, you better deploy it. The Vault plugin allows you to deploy a compiled smart contract.
 
 Sending any transaction on the Ethereum network requires the payment of fees. So, you send the transaction that deploys a contract **from** an Ethereum account with a positive balance.
 
-Assume that the compiled contract is the file `Helloworld.bin`. Deployment is simple:
+Assume that the compiled contract is the file `Helloworld.bin`. Deployment is simple. We have to decide how much to fund our contract with - 0.1 ETH... and how much is that in wei? And we have to provide a gas limit (though one will be suggested if not supplied):
 
 ```sh
-$ vault write ethereum/accounts/test/contracts/helloworld transaction_data=@Helloworld.bin value=10000000000000000000 gas_price=21000000000 gas_limit=1500000
+
+$ vault write ethereum/convert unit_from="wei" unit_to="eth" amount="100000000000000000"
+Key            Value
+---            -----
+amount_from    100000000000000000
+amount_to      0.1
+unit_from      wei
+unit_to        ether
+
+$ vault write ethereum/accounts/muchwow/contracts/helloworld transaction_data=@Helloworld.bin amount=100000000000000000 gas_limit=1500000
 ```
 
-The above command says: *Deploy a contract, named `helloworld`, from the account named `test`*
+The above command says: *Deploy a contract, named `helloworld`, from the account named `muchwow` and fund it with 0.1 ETH and provide a gas limit of 1500000 wei*
 
 ```
-Key        Value
----        -----
-tx_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1ba70f4c
+Key                 Value
+---                 -----
+transaction_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1ba70f4c
 
 ```
 
 When you deploy a contract, the contract address isn't immediately available. What is returned from the Vault-Ethereum plugin after a contract deployment is just:
 
-* `tx_hash`: The hash of the contract deployment transaction.
+* `transaction_hash`: The hash of the contract deployment transaction.
 
 ### Read contract address
 
 Since the contract address isn't known at the point when the transaction is sent, so you have to **revisit** the contract (with a read operation) to determine the address:
 
 ```sh
-$ vault read ethereum/accounts/test/contracts/helloworld
+$ vault read ethereum/accounts/muchwow/contracts/helloworld
 ```
 
 ```
-Key        Value
----        -----
-address    0x78545F1100912B001418741177b5b1eFB00DfaF1
-tx_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1ba70f4c
+Key                 Value
+---                 -----
+address             0x78545F1100912B001418741177b5b1eFB00DfaF1
+transaction_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1ba70f4c
 ```
 
-### Import keystores from other wallets
+## More Use Cases
 
-Lastly, suppose we already have an Ethereum wallet and we are convinced that storing the private key in Vault is something we want to do. The plugin supports importing JSON keystores. **NOTE:** you have to provide the path to a single keystore - this plugin doesn't support importing an entire directory yet.
-
-```sh
-$ ls -la ~/.ethereum/keystore
-```
-
-```
-total 24
-drwxr-xr-x  5 immutability  admin  170 Dec  2 11:57 .
-drwxr-xr-x  3 immutability  admin  102 Dec  2 11:55 ..
--rw-r--r--  1 immutability  admin  492 Dec  2 11:56 UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939
--rw-r--r--  1 immutability  admin  492 Dec  2 11:56 UTC--2017-12-01T23-13-56.838050955Z--0374e76da2f0be85a9fdc6763864c1087e6ed28b
--rw-r--r--  1 immutability  admin  492 Dec  2 11:57 UTC--2017-12-01T23-14-16.032409548Z--f19a9a9b2ad60c66429451075046869a9b7014f7
-```
-
-As will be discussed in the next section, handling passphrases is always problematic. Care should be taken when importing a keystore not to leak the passphrase to the shell's history file or to the environment:
-
-```sh
-$ read -s PASSPHRASE; vault write ethereum/import/test2 path=/Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939 passphrase=$PASSPHRASE; unset PASSPHRASE
-```
-
-```
-Key    	Value
----    	-----
-address	0xa152E7a09267bcFf6C33388cAab403b76B889939
-```
-
-Now, we can use the imported account as we did with our generated account.
-
-### Export JSON keystores
-
-If we wish to export the account (private key) as a JSON keystore if we want to import it into a external wallet. Each time we export it, a cryptographically strong passphrase is generated to encrypt the JSON keystore. **You need to take care not to reveal this passphrase**:
-
-```sh
-$ vault write ethereum/accounts/test/export path=$(pwd)
-```
-
-```
-Key 	         Value
---- 	         -----
-passphrase     resource-ladybug-subzero-childish-nutrient-flyer-macaw-whacky-flagship
-path	         /Users/immutability/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939
-```
-
-#### Export passphrase to clipboard
-
-There is a [nifty Golang utility](https://github.com/atotto/clipboard) that works in OSX, Windows and Linux that allows you to pipe the output of a command into the clipboard. I have installed this (as well as the [awesome jq utility](https://github.com/stedolan/jq)) in my environment. This allows me to do this:
-
-```sh
-$ vault write -format=json ethereum/accounts/test/export path=$(pwd) | jq .data.passphrase | tr -d '"' | gocopy
-```
-
-When you export like this, nothing is revealed to the screen but the JSON keystore is exported and your clipboard contains the passphrase. Then it is a simple matter to import the JSON keystore into something like MetaMask:
-
-![Import into MetaMask](/doc/import_metamask.png?raw=true "How to use an Exported JSON Keystor")
-
-### Signing arbitrary data
-
-We can also sign arbitrary data using the `sign` endpoint:
-
-```sh
-$ vault write ethereum/accounts/test2/sign  data=@../data/test.txt
-```
-
-```
-Key      	Value
----      	-----
-signature	0xe81d649f2a295aa58ad0d67b2adf0f5f336e11a46bd69347f197f073244863406027daed083675b5af5c99b3f1608b53620cd02ca51a65b67773b1580552deb501
-```
-
-### Verifying signatures
-
-Of course, we can also verify signatures using the `verify` endpoint. This will verify that a particular account (in this case the account named `test`) actually signed the data:
-
-```sh
-$ vault write ethereum/accounts/test/verify data=@somefile.txt signature=0xdb6f22f068ae23473beb9b71bb1a2df64a71cb2e51fc43d67558ba8934da572d49b3faa8da387703870474c92beb8c53e89bbd02ba2356b5fc8fa5b342d8fb7b00
-Key         Value
----         -----
-verified    true
-```
-
-### Sending Ethereum
-
-Now that we have accounts in Vault, we can drain them! We can send ETH to other accounts on the network. (In my test case, it must be emphasized: this is a private test network or Rinkeby.) Assuming there are funds in the account, we can send ETH to another address. In this case, we write a `debit` to the `test3` account:
-
-```sh
-$ vault write ethereum/accounts/test3/debit to=0x0374E76DA2f0bE85a9FdC6763864c1087e6Ed28b value=10000000000000000000
-```
-
-```
-Key    	Value
----    	-----
-tx_hash	0xe99f3de1dfbae82121a009b9d3a2a60174f2904721ec114a8fc5454a96e62ba8
-
-```
-
-If the gas limit is omitted, we will try to estimate it; if the gas price is omitted, we will use a suggested gas price.
-
-#### Rudimentary controls
-
-I have implemented a few rudimentary controls to prevent sending transactions that shouldn't be sent.
-
-##### Insufficient funds
-
-If your pending balance at the point in time you are trying to send ETH is less than the amount of ETH you want to send, then the transaction will not be attempted.
-
-```sh
-$ vault write ethereum/accounts/etherbase/debit to=0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8 amount=1000000000000000000000000
-Error writing data to ethereum/accounts/etherbase/debit: Error making API request.
-
-URL: PUT https://localhost:8200/v1/ethereum/accounts/etherbase/debit
-Code: 500. Errors:
-
-* 1 error occurred:
-
-* Insufficient funds to debit 1000000000000000000000000 because the current account balance is 244998580000000000000
-```
-
-##### Whitelisting accounts
-
-Imagine that there is an approval process that determines the ETH addresses that you are allowed to send ETH to. This is implemented in the plugin by setting a `whitelist` attribute on the Ethereum account:
-
-```sh
-$ vault write ethereum/accounts/etherbase whitelist=0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8,0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572
-Key          Value
----          -----
-address      0x3943FF61FF803316cF02938b5b0b3Ba3bbE183e4
-blacklist    <nil>
-chain_id     4
-rpc_url      http://localhost:8545
-whitelist    [0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8 0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572]
-```
-
-If you set a whitelist, you will be prevented from sending funds to an account not in the whitelist:
-
-```sh
-$ vault write ethereum/accounts/etherbase/debit to=0x16B429f9B46Bc50B375660a4aFe7e07b6369D8aC amount=100000000000000000
-Error writing data to ethereum/accounts/etherbase/debit: Error making API request.
-
-URL: PUT https://localhost:8200/v1/ethereum/accounts/etherbase/debit
-Code: 500. Errors:
-
-* 1 error occurred:
-
-* 0x16B429f9B46Bc50B375660a4aFe7e07b6369D8aC is not in the whitelist
-```
-
-##### Blacklisting accounts
-
-Imagine that there is list of accounts that are known to authorities as being vehicles for money laundering. (Hint: this is an excellent business idea.) If you want to prevent any ETH from being sent to these bad accounts you can create a blacklist:
-
-```sh
-$ vault write ethereum/accounts/etherbase blacklist=0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8,0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572
-Key          Value
----          -----
-address      0x3943FF61FF803316cF02938b5b0b3Ba3bbE183e4
-blacklist    [0xD9E025bFb6ef48919D9C1a49834b7BA859714cD8 0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572]
-chain_id     4
-rpc_url      http://localhost:8545
-whitelist    <nil>
-```
-
-If you set a blacklist, you will be prevented from sending funds to an account in the blacklist:
-
-```sh
-$ vault write ethereum/accounts/etherbase/debit to=0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572 amount=100000000000000000
-Error writing data to ethereum/accounts/etherbase/debit: Error making API request.
-
-URL: PUT https://localhost:8200/v1/ethereum/accounts/etherbase/debit
-Code: 500. Errors:
-
-* 1 error occurred:
-
-* 0x58e9043a873EdBa4c5C865Bf1c65dcB3473f7572 is blacklisted
-```
-
-## Passphrases and authentication
-
-In the Cryptocurrency universe, private keys are protected by passphrases. If you forget your passphrase, you lose access to your private keys and all your funds. Authentication via passphrase is often very awkward; however, it is a choice. The beauty of Vault is that it lets you make that choice. If you want to use passphrases to protect your private keys, you can: simply set up a `userpass` authentication backend. Then, if you so desire, you can add MFA to that authentication mechanism (try that with Mist or MetaMask.) This also ignores the fact that the Vault unsealing process is yet another control that prevents unauthorized use of private keys.
-
-The net result is: if you want to use Vault as a personal Ethereum wallet, it has better controls than most software alternatives.
-
-### Theory of the firm
-
-Ethereum is decentralized and that is fantastic. Our society has become far too dependent on untrustworthy institutions and we need to tilt the balance of power away from the few towards the many. Nevertheless, there are many, many use cases where collaboration and sharing of pooled resources lead to more resilient systems than swarms of individual laptops. A business that wants to do business on the blockchain might not want to keep its private keys on a single laptop - it probably needs something more industrial scale.
-
-Also, in a DevOps environment, we leverage automation across the pipeline. We often have non-human actors engaged in the process of deployment and testing. Without Vault, the typical practice in the Ethereum community is to `unlock` an account for a period of time. Since there is no authentication needed to use this `unlocked` account, this creates a window of opportunity for bad actors to send transactions. A consequence of this architecture is that wallets (and private keys) are stored on personal devices - a shared wallet is pretty much impractical with conventional tools.
-
-Having users handling passphrases with any frequency - the kind of frequency that we have in a typical development or business environment - makes exposure of passphrases likely. A tired developer will forget that they exported a variable or put a passphrase in a file.
-
-### Vault can help
-
-Every interaction with the Vault Ethereum backed needs to be [authenticated](https://www.vaultproject.io/docs/concepts/auth.html). Because Vault decouples authentication from storage, you can tailor the authentication mechanism to fit your needs:
-
-* A variety of authentication providers (AppRole, AWS, Google Cloud, Kubernetes, GitHub, LDAP, MFA, Okta, RADIUS, TLS Certificates, Tokens, and Username & Password) each intended to support the unique context of the workflow.
-* A sophisticated single-use token mechanism (https://www.vaultproject.io/docs/concepts/response-wrapping.html).
-
-Every path in Vault can be protected with ACLs: You can allow some authenticated identities to import keystores, others to export them, and segregate access by account. Every access to Vault is audited as well, so it is pretty easy to diagnose access issues.
-
-Vault encrypts all data and provides an excellent **cold storage** solution - when the Vault is sealed it requires a quorum of Shamir secret shards to bring it back online. This is functionally equivalent to what the Ethereum community would call a *multi-sig wallet*.
-
-Furthermore, if you are an enterprise and capable of paying for [Enterprise Vault](https://www.hashicorp.com/products/vault) you can leverage HSMs as a persistence mechanism for Vault keys. This makes Vault equivalent to what the Ethereum folks call a hardware wallet. (It is very comparable to what [Gemalto and Ledger](https://www.gemalto.com/press/Pages/Gemalto-and-Ledger-Join-Forces-to-Provide--Security-Infrastructure-for-Cryptocurrency-Based-Activities-.aspx) have developed.)
-
-## [Plugin API](https://github.com/immutability-io/vault-ethereum/blob/master/API.md)
-
-The complete API to the plugin is documented [here](https://github.com/immutability-io/vault-ethereum/blob/master/API.md). Each API is exemplified using curl as a sample REST client.
-
-## Plugin Setup
-
-I assume some familiarity with Vault and Vault's plugin ecosystem. If you are not familiar, please [refer to this](https://www.vaultproject.io/guides/plugin-backends.html). I realize that it is a lot to ask for someone to be so familiar with something so new. I have a (GitHub repo that has instructions for installing Ethereum, Vault and the plugin)[https://github.com/immutability-io/immutability-project].
-
-For this to work, you must have a Vault server already running, unsealed, and authenticated.
-
-### Build the plugin
-
-You can use the `Makefile` or simply us `go build` from this project's root directory.
-
-## Install the plugin
-
-It is assumed that your Vault configuration specifies a `plugin_directory`. Mine is:
-
-```
-$ cat vault-config.hcl
-
-"default_lease_ttl" = "24h"
-
-"max_lease_ttl" = "24h"
-
-"backend" "file" {
-  "path" = "/Users/immutability/etc/vault.d/data"
-}
-
-"api_addr" = "https://localhost:8200"
-
-"listener" "tcp" {
-  "address" = "localhost:8200"
-
-  "tls_cert_file" = "/Users/immutability/etc/vault.d/vault.crt"
-  "tls_client_ca_file" = "/Users/immutability/etc/vault.d/root.crt"
-  "tls_key_file" = "/Users/immutability/etc/vault.d/vault.key"
-}
-
-"plugin_directory" = "/Users/immutability/etc/vault.d/vault_plugins"
-```
-
-Another configuration setting that is critical is `api_addr`. The `api_addr` must be set in order for the plugin to communicate with the Vault server during mount time.
-
-Move the compiled plugin into Vault's configured `plugin_directory`:
-
-```sh
-$ mv vault-ethereum $HOME/etc/vault.d/vault_plugins
-```
-
-Calculate the SHA256 of the plugin and register it in Vault's plugin catalog.
-
-```sh
-$ export SHA256=$(shasum -a 256 "$HOME/etc/vault.d/vault_plugins/vault-ethereum" | cut -d' ' -f1)
-$ vault write sys/plugins/catalog/ethereum-plugin \
-      sha_256="${SHA256}" \
-      command="vault-ethereum --ca-cert=$HOME/etc/vault.d/root.crt --client-cert=$HOME/etc/vault.d/vault.crt --client-key=$HOME/etc/vault.d/vault.key"
-```
-
-If you are using Vault in `dev` mode, you don't need to supply the certificate parameters. For any real Vault installation, however, you will be using TLS.
-
-## Mount the Ethereum secret backend
-
-```sh
-$ vault secrets enable -path=ethereum -plugin-name=ethereum-plugin plugin
-```
-
-## Testing
-
-I am using [Bats: Bash Automated Testing System](https://github.com/sstephenson/bats) to verify the plugin works. I recently upgraded to Vault 0.9.3 - these tests helped me discover a [problem](https://github.com/hashicorp/vault/issues/3873). I then updated the dependencies for the plugin to use [#3881](https://github.com/hashicorp/vault/pull/3881).
-
-I have divided the tests up into 3 test cases. I initially planned to structure the tests according to the paths that are implemented by the backend:
-
-```
-Paths: framework.PathAppend(
-  importPaths(&b),
-  accountsPaths(&b),
-  contractsPaths(&b),
-),
-
-```
-
-However, some of the tests depend on the presence of a running Ethereum node. Also, some of these tests depend on successful mining. Therefore, I split the tests into plugin interactions that could run successfully when disconnected from an Ethereum network and tests that needed connectivity. I also created a test for plugin installation.
-
-### Test Case: `install.bats`
-
-With this test, we need to be a Vault administrator. Also, this test assumes that the new plugin was built and moved to the plugin directory configured (see above - `"plugin_directory" = "/Users/immutability/etc/vault.d/vault_plugins"`.)
-
-So, assuming that you have authenticated with permissions to install the plugin, you can run the `install.bats` test case:
-
-```
-$ bats install.bats
- ✓ disable ethereum secrets plugin
- ✓ delete ethereum secrets plugin from catalog
- ✓ write ethereum secrets plugin to catalog
- ✓ enable ethereum secrets plugin
-
-4 tests, 0 failures
-```
-
-### Test Case: `disconnected.bats`
-
-Running the disconnected test case is simple. You need to authenticate to Vault with a policy that gives you permission to write accounts to the path where the Ethereum plugin was mounted. This policy does that. Note that this policy is very permissive. In a real use case, you would likely mount the Ethereum plugin at several paths and tightly control access within those paths:
-
-```
-path "ethereum*" {
-  policy = "write"
-}
-
-```
-
-After you have authenticated with the above permissions, you can run the `disconnected.bats` test case:
-
-```
-$ bats disconnected.bats
- ✓ list ethereum accounts - should be empty
- ✓ create test ethereum account
- ✓ read test ethereum account
- ✓ update test ethereum account no changes
- ✓ update test ethereum account blacklist
- ✓ update test ethereum account whitelist
- ✓ delete test ethereum account
- ✓ create and export test ethereum account
- ✓ import test ethereum account into test2 ethereum account
- ✓ test sign and verify
- ✓ delete test and test2 ethereum accounts
-
-11 tests, 0 failures
-```
-
-### Test Case: `connected.bats`
-
-To run the connected test case, you need to have access to an Ethereum network. Since this test case involves sending ETH, this better be a testnet or a private chain. This test case assumes the same private chain (`chain_id=1977`) used above. Also, as a precondition of this test case is that you have a Vault-managed Ethereum account that is funded.
-
-If you [follow the instructions here](https://github.com/immutability-io/immutability-project), you can run this test case. Assuming that you have, you can start mining into an account using this command:
-
-```
-ETHERBASE=$(vault write -format=json ethereum/accounts/etherbase chain_id=1977 | jq .data.address | tr -d '"') ./runminer.sh etherbase
-```
-
-This will create an account named `etherbase` and pass that address to an Ethereum mining node. You need to wait some time for the account's balance to be updated.
-
-Once you have a Vault-managed Ethereum account that is funded, you export an environment variable with this name and launch the test:
-
-```sh
-$ FUNDED_ACCOUNT=etherbase bats connected.bats
- ✓ test read etherbase balance
- ✓ test send ETH from etherbase
- ✓ test deploy contract from etherbase
-
-3 tests, 0 failures
-```
-
-## ToDo
-
-More (much) to come soon...
+There are many more uses cases to be explored; but, I will leave that to you. If you
 
 ## Credits
 
@@ -491,9 +618,11 @@ I had the great fortune to attend DevCon3 in November, 2017 and hear Andy Mileni
 
 The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy and Mikael and Daniel Brockman) is a super warm and welcoming place that pointed me towards code that greatly helped this experiment.
 
+Last but not least is the wonderfully elegant [Ethereum Development with Go produced by Miguel Mota](https://github.com/miguelmota/ethereum-development-with-go-book).
+
 ## License
 
-This code is licensed under the MPLv2 license. Please feel free to use it. Please feel free to contribute.
+This code is licensed under the Apache 2 license. Please feel free to use it. Please feel free to contribute.
 
 ## Donations?
 
