@@ -618,7 +618,7 @@ I had the great fortune to attend DevCon3 in November, 2017 and hear Andy Mileni
 
 The community chat that the [dapphub](https://dapphub.com/) guys run (esp. Andy and Mikael and Daniel Brockman) is a super warm and welcoming place that pointed me towards code that greatly helped this experiment.
 
-Last but not least is the wonderfully elegant [Ethereum Development with Go produced by Miguel Mota](https://github.com/miguelmota/ethereum-development-with-go-book).
+Last but not least, I have to thank Miguel Mota for his wonderfully elegant [Ethereum Development with Go produced by Miguel Mota](https://github.com/miguelmota/ethereum-development-with-go-book).
 
 ## License
 
