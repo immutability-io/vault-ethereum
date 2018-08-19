@@ -283,7 +283,112 @@ There is no response payload.
 ### READ CONFIG
 ### CONVERT
 ### EXPORT
+
+This endpoint will export a JSON Keystore for use in another wallet.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/export`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to export. This is specified as part of the URL.
+* `path` (`string: <required>`) - The directory where the JSON keystore file will be exported to.
+
+#### Sample Payload
+
+```sh
+{
+  "path":"/Users/cypherhat/.ethereum/keystore"
+}
+```
+#### Sample Request
+
+```sh
+$$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/export/test | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful export of the keystore for `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "47e3ef56-e2ba-3895-d61b-d9615df1560c",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "passphrase": "routing-explode-slander-satiable-stardom-cope-cranium-upriver-unfold",
+    "path": "/Users/cypherhat/.ethereum/keystore/UTC--2018-08-19T20-05-13.985145605Z--36d1f896e55a6577c62fdd6b84fbf74582266700"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### IMPORT
+
+This endpoint will import a JSON Keystore and passphrase into Vault at a path. It will create an account and map it to the `:mount-path/accounts/:name`. If an account already exists for this name, the operation fails.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/import/:name`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to create. This is specified as part of the URL.
+* `path` (`string: <required>`) - The path of the JSON keystore file.
+* `passphrase` (`string: <required>`) - The `passphrase` that was used to encrypt the keystore.
+
+#### Sample Payload
+
+Be careful with those passphrases!
+
+```sh
+read -s PASSPHRASE; read  PAYLOAD_WITH_PASSPHRASE <<EOF
+{"path":"/Users/cypherhat/.ethereum/keystore/UTC--2017-12-01T23-13-37.315592353Z--a152e7a09267bcff6c33388caab403b76b889939", "passphrase":"$PASSPHRASE"}
+EOF
+unset PASSPHRASE
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data $PAYLOAD_WITH_PASSPHRASE \
+    https://localhost:8200/v1/ethereum/import/test3 | jq .
+    unset PAYLOAD_WITH_PASSPHRASE
+```
+#### Sample Response
+
+The example below shows output for the successful creation of `/ethereum/accounts/test3`.
+
+```
+{
+  "request_id": "139fc04e-a4be-7775-7df1-ec4c789ccc53",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x36d1f896e55a6577c62fdd6b84fbf74582266700",
+    "blacklist": null,
+    "spending_limit_total": "",
+    "spending_limit_tx": "",
+    "total_spend": "",
+    "whitelist": null
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
 ### LIST NAMES
 ### READ NAME
 ### VERIFY BY NAME
