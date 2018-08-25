@@ -55,7 +55,7 @@ func addressesPaths(b *EthereumBackend) []*framework.Path {
 			},
 		},
 		&framework.Path{
-			Pattern:      "addresses/" + framework.GenericNameRegex("name") + "/balance",
+			Pattern:      "addresses/" + framework.GenericNameRegex("address") + "/balance",
 			HelpSynopsis: "Retrieve this accounts balance.",
 			HelpDescription: `
 
@@ -63,7 +63,7 @@ func addressesPaths(b *EthereumBackend) []*framework.Path {
 
 `,
 			Fields: map[string]*framework.FieldSchema{
-				"name": &framework.FieldSchema{Type: framework.TypeString},
+				"address": &framework.FieldSchema{Type: framework.TypeString},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
