@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-@test "test write config" {
-  config="$(vault write -format=json -f ethereum/config | jq .data)"
+@test "test write rinkeby config" {
+  config="$(vault write -format=json ethereum/rinkeby/config @rinkeby.json | jq .data)"
   api_key="$(echo $config | jq -r .api_key)"
   bound_cidr_list="$(echo $config | jq -r .bound_cidr_list)"
   chain_id="$(echo $config | jq -r .chain_id)"
@@ -11,13 +11,24 @@
     [ "$rpc_url" = "https://rinkeby.infura.io" ]
 }
 
-@test "test read config" {
-  config="$(vault write -format=json -f ethereum/config | jq .data)"
+@test "test write mainnet config" {
+  config="$(vault write -format=json ethereum/mainnet/config @mainnet.json | jq .data)"
   api_key="$(echo $config | jq -r .api_key)"
   bound_cidr_list="$(echo $config | jq -r .bound_cidr_list)"
   chain_id="$(echo $config | jq -r .chain_id)"
   rpc_url="$(echo $config | jq -r .rpc_url)"
-  read_config="$(vault read -format=json ethereum/config | jq .data)"
+    [ "$api_key" = "" ]
+    [ "$chain_id" = "1" ]
+    [ "$rpc_url" = "https://mainnet.infura.io" ]
+}
+
+@test "test read config" {
+  config="$(vault write -format=json ethereum/mainnet/config @mainnet.json | jq .data)"
+  api_key="$(echo $config | jq -r .api_key)"
+  bound_cidr_list="$(echo $config | jq -r .bound_cidr_list)"
+  chain_id="$(echo $config | jq -r .chain_id)"
+  rpc_url="$(echo $config | jq -r .rpc_url)"
+  read_config="$(vault read -format=json ethereum/mainnet/config | jq .data)"
   read_api_key="$(echo $read_config | jq -r .api_key)"
   read_bound_cidr_list="$(echo $read_config | jq -r .bound_cidr_list)"
   read_chain_id="$(echo $read_config | jq -r .chain_id)"
