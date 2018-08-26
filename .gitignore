@@ -1,5 +1,9 @@
-**/*.sh
+scripts/**
 **/data
 **/test/data
 **/releases/*
 **/scripts
+.DS_Store
+**/.DS_Store
+**/helper/*.txt
+**/helper/SHA256SUM
