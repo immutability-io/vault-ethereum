@@ -5,6 +5,13 @@ Ethereum plugin for Vault
 
 The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support smart contract continuous development practices including contract deployment and testing. Some of the functionality (creating accounts and signing contract creation transactions) can happen without network connectivity. Other functionality (reading blocks, transactions, account balances and deploying contracts and sending transactions) will require network access to an RPC interface.
 
+Why is this Important?
+-----------------
+
+In the world of crypto a loss of your private key(s) can mean a total loss of all funds.  The marriage of Vault and Ethereum allows for fine-grained role based authentication and authorization policies that can provide separation of funds and significant mitigation in the event of a compromise.  Furthermore the rich features offered by Vault can make auditing, policy definition, and administrative reaction to a breach easy and fun (never thought those words would be in a single sentence).
+
+To put it another way:  If your org is dealing in crypto you need this or something like this.
+
 ## No Warrantees Implied
 
 Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](mailto:sales@immutability.io).
@@ -73,7 +80,7 @@ I recommend that you build the plugin yourself using the standard golang approac
 $ go get -u github.com/immutability-io/vault-ethereum
 ```
 
-This will put the plugin executable in your $GOPATH/bin directory: `$GOPATH/bin/vault-ethereum`. Now you have to install the plugin. For simplicity sake, I will make some assumptions:
+This will put the plugin executable in your $GOPATH/bin directory: `$GOPATH/bin/vault-ethereum`. Now you have to install the plugin. For simplicity's sake, I will make some assumptions:
 
 1. You are **NOT** running Vault in `dev` mode. This means that you are running Vault using TLS. [Here an example of how to do this](https://github.com/immutability-io/immutability-project).
 2. You have installed Vault as a non-root user.
@@ -95,7 +102,7 @@ vault.key
 vault_plugins
 ```
 
-And peak at the Vault configuration file:
+And peek at the Vault configuration file:
 
 ```
 $ cat ~/etc/vault.d/vault.hcl
@@ -218,8 +225,8 @@ All known ETH units are supported.
 Sometimes it is useful to know whether a block exists or what its hash was or other details:
 
 ```
-$ vault read -format=json ethereum/block/24395834800568/transactions
-No value found at ethereum/block/24395834800568/transactions
+$ vault read -format=json ethereum/block/24395834800568
+No value found at ethereum/block/24395834800568
 
 $ vault read -format=json ethereum/block/2800569
 {
@@ -325,7 +332,7 @@ total_spend             0
 whitelist               <nil>
 ```
 
-For more details on whitelist, blacklist and spending limits, please [refer to the API documentation](./API.md#create-account).
+For more details on whitelist, blacklist, and spending limits please [refer to the API documentation](./API.md#create-account).
 
 Notice that the private key is not returned. Duh. The only way to exfiltrate the private key from Vault is to use the [export](./API.md#export) feature. 
 
