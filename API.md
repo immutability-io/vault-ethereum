@@ -17,6 +17,7 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([update](./API.md#verify))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](./API.md#list-addresses))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <ADDRESS> `&nbsp;&nbsp;([read](./API.md#read-address))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── balance `&nbsp;&nbsp;([update](./API.md#balance-by-address))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify-by-address))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── block `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NUMBER> `&nbsp;&nbsp;([read](./API.md#read-block))  
@@ -28,6 +29,7 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME>  `&nbsp;&nbsp;([create](./API.md#import))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── names `&nbsp;&nbsp;([list](./API.md#list-names))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └──  <NAME> `&nbsp;&nbsp;([read](./API.md#read-name))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── balance `&nbsp;&nbsp;([update](./API.md#balance-by-name))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify-by-name))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    └── transaction `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](./API.md#read-transaction))  
@@ -230,6 +232,7 @@ The example below shows output for a read of `/ethereum/accounts/test`.
   "data": {
     "address": "0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8",
     "balance": 799958000000000000,
+    "balance_in_usd": 239.053494011038634,
     "blacklist": null,
     "spending_limit_total": "",
     "spending_limit_tx": "",
@@ -316,10 +319,12 @@ The example below shows the output for the successfully sending ETH from `/ether
   "renewable": false,
   "data": {
     "amount": "200000000000000000"
+    "amount_in_usd": 59.8820422884
     "from_address": "0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8"
     "gas_limit": "21000"
     "gas_price": "2000000000"
-    "balance": "1000000000000000000"
+    "starting_balance": "1000000000000000000"
+    "starting_balance_in_usd": 299.410211442
     "to_address": "0x36D1F896E55a6577C62FDD6b84fbF74582266700"
     "total_spend": "200000000000000000"
     "transaction_hash": "0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769"
@@ -655,6 +660,47 @@ The example below shows output for a read of `/ethereum/addresses/0xb56b2dd44073
     "names": [
       "muchwow"
     ]
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+### BALANCE BY ADDRESS
+
+This endpoint will return the balance for an address.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/addresses/:address/balance`  | `200 application/json` |
+
+#### Parameters
+
+* `address` (`string: <required>`) - Specifies the address of the account. This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/mainnet/addresses/0x4169c9508728285e8a9f7945d08645bb6b3576e5/balance | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful verification of a signature created by `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "d772820e-bbc1-acd1-2aed-1107e72a857e",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x4169c9508728285e8a9f7945d08645bb6b3576e5",
+    "balance": "10000000000000000",
+    "balance_in_usd": "2.99183586901"
   },
   "wrap_info": null,
   "warnings": null,
@@ -1282,6 +1328,48 @@ The example below shows output for a read of `/ethereum/names/muchwow`.
   "lease_duration": 0,
   "data": {
     "address": "0xb56b2dd44073d87cbac5d4a3655354b3762178ee"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+
+
+### BALANCE BY NAME
+
+This endpoint will return the balance for an address.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/names/:name/balance`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account This is specified as part of the URL.
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request GET \
+    https://localhost:8200/v1/ethereum/mainnet/addresses/immutability/balance | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful verification of a signature created by `/ethereum/accounts/test`.
+
+```
+{
+  "request_id": "d772820e-bbc1-acd1-2aed-1107e72a857e",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x4169c9508728285e8a9f7945d08645bb6b3576e5",
+    "balance": "10000000000000000",
+    "balance_in_usd": "2.99183586901"
   },
   "wrap_info": null,
   "warnings": null,

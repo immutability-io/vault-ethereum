@@ -346,6 +346,7 @@ Key                     Value
 ---                     -----
 address                 0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
 balance                 1000000000000000000
+balance_in_usd          0
 blacklist               <nil>
 spending_limit_total    0
 spending_limit_tx       0
@@ -353,7 +354,7 @@ total_spend             0
 whitelist               <nil>
 ```
 
-Wait! How in the heck did that balance get there? Since wei is used across every service in this plugin, we can use our handy dandy conversion service to see what that is in ETH. (I know, if you can't do this math, maybe crypto isn't for you):
+Wait! How in the heck did that balance get there? Since wei is used across every service in this plugin, we can use our handy dandy conversion service to see what that is in ETH. (I know, if you can't do this math, maybe crypto isn't for you... says to mirror everyday...). Note also that the `balance_in_usd` is `0`. This is because we are on a test net (Rinkeby) where the ETH has no exchange value. If this had been an account read from the mainnet, then an attempt at estimating the value of the ETH in USD would have been made:
 
 ```
 $ vault write ethereum/convert unit_from="wei" unit_to="eth" amount="1000000000000000000"
@@ -398,19 +399,21 @@ Now, we send the ETH from the `muchwow` account to the address of the `lesswow` 
 
 ```
 $ vault write ethereum/accounts/muchwow/debit amount=200000000000000000 address_to="0x36d1f896e55a6577c62fdd6b84fbf74582266700"
-Key                Value
----                -----
-amount             200000000000000000
-from_address       0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
-gas_limit          21000
-gas_price          2000000000
-balance            1000000000000000000
-to_address         0x36D1F896E55a6577C62FDD6b84fbF74582266700
-total_spend        200000000000000000
-transaction_hash   0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
+Key                       Value
+---                       -----
+amount                    200000000000000000
+amount_in_usd             0
+from_address              0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+gas_limit                 21000
+gas_price                 2000000000
+starting_balance          1000000000000000000
+starting_balance_in_usd   0
+to_address                0x36D1F896E55a6577C62FDD6b84fbF74582266700
+total_spend               200000000000000000
+transaction_hash          0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
 ```
 
-**NOTE**: The above balance is the balance **before** the transaction is committed. Let's check 2 things - the transaction and the account balance of `lesswow`.
+**NOTE**: The `starting_balance` is the balance **before** the transaction is committed. Let's check 2 things - the transaction and the account balance of `lesswow`.
 
 Read the transaction details:
 
@@ -444,6 +447,7 @@ Key                     Value
 ---                     -----
 address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
 balance                 200000000000000000
+balance_in_usd          0
 blacklist               <nil>
 spending_limit_total    0
 spending_limit_tx       0
@@ -501,6 +505,7 @@ Key                     Value
 ---                     -----
 address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
 balance                 200000000000000000
+balance_in_usd          0
 blacklist               <nil>
 spending_limit_total    n/a
 spending_limit_tx       n/a
