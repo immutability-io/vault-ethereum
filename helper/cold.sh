@@ -2,7 +2,7 @@
 
 
 function print_help {
-    echo "Usage: bash warm.sh OPTIONS"
+    echo "Usage: bash cold.sh OPTIONS"
     echo -e "\nOPTIONS:"
     echo -e "  [keybase]\tName of Keybase user used to encrypt Vault keys"
     echo -e "  [path]\tPath to mounted Flash drive or other media"
@@ -16,9 +16,9 @@ elif [ "$1" == "--help" ]; then
     exit 0
 else
   KEYBASE_USER=$1
-  WARM_STORAGE=$2
+  COLD_STORAGE=$2
 fi
 
 kill -2 $(ps aux | grep '/usr/local/bin/vault server' | awk '{print $2}')
-mv -f $HOME/etc $WARM_STORAGE/etc
-mv "$KEYBASE_USER"_* $WARM_STORAGE
+mv -f $HOME/etc $COLD_STORAGE/etc
+mv "$KEYBASE_USER"_* $COLD_STORAGE
