@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function print_help {
-    echo "Usage: bash install.sh OPTIONS"
+    echo "Usage: bash initialize_vault.sh OPTIONS"
     echo -e "\nOPTIONS:"
     echo -e "  [keybase]\tName of Keybase user to encrypt Vault keys with"
 }

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 PLUGIN_VERSION="0.1.0"
-VAULT_VERSION="0.10.4"
+VAULT_VERSION="0.11.0"
 
 function print_help {
-    echo "Usage: bash install.sh OPTIONS"
+    echo "Usage: bash install_vault.sh OPTIONS"
     echo -e "\nOPTIONS:"
     echo -e "  --linux\tInstall Linux version"
     echo -e "  --darwin\tInstall Darwin (MacOS) version"
@@ -177,7 +177,7 @@ gencerts
 
 grab_plugin $PLUGIN_OS $PLUGIN_VERSION
 move_plugin $PLUGIN_OS
-#grab_hashitool vault $VAULT_VERSION $PLUGIN_OS
+grab_hashitool vault $VAULT_VERSION $PLUGIN_OS
 
 cat << EOF > $HOME/etc/vault.d/vault.hcl
 "default_lease_ttl" = "24h"
@@ -203,15 +203,15 @@ EOF
 
 touch "$HOME/.${shell_profile}"
 {
-    echo '# Vault'
-    echo 'export VAULT_ADDR=https://localhost:8200'
-    echo 'export VAULT_CACERT=$HOME/etc/vault.d/root.crt'
+    echo "# Vault"
+    echo "export VAULT_ADDR=https://localhost:8200"
+    echo "export VAULT_CACERT=$HOME/etc/vault.d/root.crt"
 } >> "$HOME/.${shell_profile}"
 
 
 echo -e "$HOME/.${shell_profile} has been modified."
 echo "============================================="
 echo "The following were set in your profile:"
-echo "export VAULT_ADDR=$VAULT_ADDR"
-echo -e "export VAULT_CACERT=$VAULT_CACERT"
+echo "export VAULT_ADDR=https://localhost:8200"
+echo "export VAULT_CACERT=$HOME/etc/vault.d/root.crt"
 echo -e "=============================================\n"
