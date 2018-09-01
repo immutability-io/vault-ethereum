@@ -21,6 +21,7 @@ import (
 
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
+	cmc "github.com/miguelmota/go-coinmarketcap"
 	"github.com/shopspring/decimal"
 )
 
@@ -47,6 +48,10 @@ const (
 	GIGA string = "giga"
 	// TERA is "tera", "teraether", "tether"
 	TERA string = "tera"
+	// USD is "usd"
+	USD string = "usd"
+	// EUR is "eur"
+	EUR string = "eur"
 )
 
 func convertPaths(b *EthereumBackend) []*framework.Path {
@@ -105,6 +110,8 @@ func ValidUnit(unit string) (string, error) {
 		return GIGA, nil
 	case "tera", "teraether", "tether":
 		return TERA, nil
+	case "usd", "USD":
+		return USD, nil
 	}
 	return "", fmt.Errorf("Unknown unit %s", unit)
 }
@@ -183,7 +190,29 @@ func ConvertFromWei(normalizeUnit string, amount decimal.Decimal) decimal.Decima
 	return result
 }
 
+// ConvertToUSD uses Coinmarketcap to estimate value of ETH in USD
+func ConvertToUSD(amountInWei string) (decimal.Decimal, error) {
+	zero, _ := decimal.NewFromString("0")
+	balanceInWei, err := decimal.NewFromString(amountInWei)
+	floatPrice, err := cmc.Price(&cmc.PriceOptions{
+		Symbol:  "ETH",
+		Convert: "USD",
+	})
+	if err != nil {
+		return zero, err
+	}
+	price := decimal.NewFromFloat(floatPrice)
+	balanceInETH := ConvertFromWei(ETH, balanceInWei)
+	exchangeValue := price.Mul(balanceInETH)
+	return exchangeValue, nil
+}
+
 func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	usdFrom := false
+	usdTo := false
+	exchangeValue, _ := decimal.NewFromString("0")
+	amountFromInUnits, _ := decimal.NewFromString("0")
+	oneETH, _ := decimal.NewFromString("1")
 	unitFrom, err := ValidUnit(data.Get("unit_from").(string))
 	if err != nil {
 		return nil, err
@@ -193,13 +222,41 @@ func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Req
 	if err != nil || amount.IsNegative() {
 		return nil, fmt.Errorf("amount is either not a number or is negative")
 	}
+
 	unitTo, err := ValidUnit(data.Get("unit_to").(string))
 	if err != nil {
 		return nil, err
 	}
+	if unitFrom == unitTo {
+		return nil, fmt.Errorf("Conversion from %s to %s makes no sense", unitFrom, unitTo)
+	}
+	if unitFrom == USD || unitTo == USD {
+		oneETHInWei := ConvertToWei(ETH, oneETH)
+		exchangeValue, err = ConvertToUSD(oneETHInWei.String())
+	}
+	if unitFrom == USD {
+		usdFrom = true
+		unitFrom = ETH
+		amount = amount.Div(exchangeValue)
+		if err != nil {
+			return nil, err
+		}
+	}
 	amountFromInWei := ConvertToWei(unitFrom, amount)
-	amountFromInUnits := ConvertFromWei(unitTo, amountFromInWei)
+	if unitTo == USD {
+		usdTo = true
+		ethInWei := ConvertFromWei(ETH, amountFromInWei)
+		amountFromInUnits = ethInWei.Mul(exchangeValue)
+	} else {
+		amountFromInUnits = ConvertFromWei(unitTo, amountFromInWei)
+	}
 
+	if usdFrom {
+		unitFrom = data.Get("unit_from").(string)
+		amount, _ = decimal.NewFromString(data.Get("amount").(string))
+	} else if usdTo {
+		unitTo = data.Get("unit_to").(string)
+	}
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"unit_from":   unitFrom,

@@ -345,7 +345,7 @@ func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Req
 	if account == nil {
 		return nil, nil
 	}
-	balance, _, err := b.readAccountBalance(ctx, req, name)
+	balance, exchangeValue, err := b.readAccountBalanceByAddress(ctx, req, account.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -358,6 +358,7 @@ func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Req
 			"spending_limit_total": account.SpendingLimitTotal,
 			"total_spend":          account.TotalSpend,
 			"balance":              balance,
+			"balance_in_usd":       exchangeValue,
 		},
 	}, nil
 }
@@ -629,7 +630,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if account == nil {
 		return nil, nil
 	}
-	balance, _, err := b.readAccountBalance(ctx, req, name)
+	balance, _, exchangeValue, err := b.readAccountBalance(ctx, req, name)
 	if err != nil {
 		return nil, err
 	}
@@ -699,16 +700,25 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if err != nil {
 		return nil, err
 	}
+	amountInUSD, _ := decimal.NewFromString("0")
+	if config.ChainID == EthereumMainnet {
+		amountInUSD, err = ConvertToUSD(amount.String())
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"transaction_hash": signedTx.Hash().Hex(),
-			"from_address":     account.Address,
-			"to_address":       toAddress.String(),
-			"amount":           amount.String(),
-			"gas_price":        gasPrice.String(),
-			"gas_limit":        gasLimitIn.String(),
-			"total_spend":      totalSpend,
-			"balance":          balance,
+			"transaction_hash":        signedTx.Hash().Hex(),
+			"from_address":            account.Address,
+			"to_address":              toAddress.String(),
+			"amount":                  amount.String(),
+			"amount_in_usd":           amountInUSD,
+			"gas_price":               gasPrice.String(),
+			"gas_limit":               gasLimitIn.String(),
+			"total_spend":             totalSpend,
+			"starting_balance":        balance,
+			"starting_balance_in_usd": exchangeValue,
 		},
 	}, nil
 }
@@ -852,29 +862,46 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 	}, nil
 }
 
-func (b *EthereumBackend) readAccountBalance(ctx context.Context, req *logical.Request, name string) (*big.Int, string, error) {
+func (b *EthereumBackend) readAccountBalanceByAddress(ctx context.Context, req *logical.Request, address string) (*big.Int, decimal.Decimal, error) {
+	zero, _ := decimal.NewFromString("0")
 	config, err := b.configured(ctx, req)
 	if err != nil {
-		return nil, Empty, err
+		return nil, zero, err
 	}
-
-	account, err := b.readAccount(ctx, req, name)
-	if err != nil {
-		return nil, Empty, fmt.Errorf("error reading account")
-	}
-	if account == nil {
-		return nil, Empty, nil
-	}
-
 	client, err := ethclient.Dial(config.getRPCURL())
 	if err != nil {
-		return nil, Empty, fmt.Errorf("cannot connect to " + config.getRPCURL())
+		return nil, zero, fmt.Errorf("cannot connect to " + config.getRPCURL())
 	}
-	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(account.Address), nil)
+	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(address), nil)
 	if err != nil {
-		return nil, Empty, err
+		return nil, zero, err
 	}
-	return balance, account.Address, nil
+	// Calculate exchange rate value if on Mainnet
+	if config.ChainID == EthereumMainnet {
+		exchangeValue, err := ConvertToUSD(balance.String())
+		if err != nil {
+			return nil, zero, err
+		}
+		return balance, exchangeValue, nil
+	}
+	return balance, zero, nil
+}
+
+func (b *EthereumBackend) readAccountBalance(ctx context.Context, req *logical.Request, name string) (*big.Int, string, decimal.Decimal, error) {
+	zero, _ := decimal.NewFromString("0")
+	account, err := b.readAccount(ctx, req, name)
+	if err != nil {
+		return nil, Empty, zero, fmt.Errorf("error reading account")
+	}
+	if account == nil {
+		return nil, Empty, zero, nil
+	}
+
+	balance, exchangeValue, err := b.readAccountBalanceByAddress(ctx, req, account.Address)
+	if err != nil {
+		return nil, Empty, zero, err
+	}
+	return balance, account.Address, exchangeValue, nil
 }
 
 // NewTransactor is for contract deployment
@@ -911,7 +938,7 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 		return nil, nil
 	}
 	toAddress := common.HexToAddress(account.Address)
-	balance, _, err := b.readAccountBalance(ctx, req, name)
+	balance, _, _, err := b.readAccountBalance(ctx, req, name)
 	if err != nil {
 		return nil, err
 	}

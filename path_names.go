@@ -165,15 +165,16 @@ func (b *EthereumBackend) pathNamesVerify(ctx context.Context, req *logical.Requ
 
 func (b *EthereumBackend) pathAccountBalanceRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
-	balance, address, err := b.readAccountBalance(ctx, req, name)
+	balance, address, exchangeValue, err := b.readAccountBalance(ctx, req, name)
 	if err != nil {
 		return nil, err
 	}
 	// Return the secret
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"address": address,
-			"balance": balance,
+			"address":        address,
+			"balance":        balance.String(),
+			"balance_in_usd": exchangeValue,
 		},
 	}, nil
 
