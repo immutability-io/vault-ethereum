@@ -96,6 +96,25 @@ func addressesPaths(b *EthereumBackend) []*framework.Path {
 	}
 }
 
+
+// A UserNameParams parameter model.
+//
+// This is used for operations that want the ID of a user in the path
+// swagger:parameters pathAddressesRead
+type AddressParam struct {
+	// The address to lookup
+	//
+	// in: path
+	// required: true
+	Address string `json:"address"`
+}
+
+// Me swagger:route POST /addresses/{address} accountNames pathAddressesRead
+//
+// Handler returning Account Names for an Address.
+//
+// Responses:
+//        200: accountNames
 func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -120,6 +139,13 @@ func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Re
 	}, nil
 }
 
+// Me swagger:route POST /addresses pathAddressesList
+//
+// Handler returning Account Names for an Address.
+//
+// Responses:
+//        200:
+// 			type: github.com/hashicorp/vault/logical/ListResponse
 func (b *EthereumBackend) pathAddressesList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

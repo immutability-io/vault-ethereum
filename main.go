@@ -12,6 +12,57 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package classification vault-ethereum API.
+//
+// vault-ethereum Swagger Doc
+//
+// Terms Of Service:
+//
+// there are no TOS at this moment, use at your own risk we take no responsibility
+//
+//     Schemes: https
+//     Host: localhost
+//     BasePath: /v2
+//     Version: 0.0.1
+//     License: Apache2 https://opensource.org/licenses/Apache-2.0
+//     Contact: Jeff Ploughman<jeff@immutability.io> https://immutability.io
+//
+//     Consumes:
+//     - application/json
+//     - application/xml
+//
+//     Produces:
+//     - application/json
+//     - application/xml
+//
+//     Security:
+//     - api_key:
+//
+//     SecurityDefinitions:
+//     api_key:
+//          type: apiKey
+//          name: KEY
+//          in: header
+//     oauth2:
+//         type: oauth2
+//         authorizationUrl: /oauth2/auth
+//         tokenUrl: /oauth2/token
+//         in: header
+//         scopes:
+//           bar: foo
+//         flow: accessCode
+//
+//     Extensions:
+//     x-meta-value: value
+//     x-meta-array:
+//       - value1
+//       - value2
+//     x-meta-array-obj:
+//       - name: obj
+//         value: field
+//
+// swagger:meta
+
 package main
 
 import (

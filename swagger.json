@@ -1,0 +1,59 @@
+{
+  "swagger": "2.0",
+  "info": {},
+  "paths": {
+    "/addresses": {
+      "post": {
+        "summary": "Handler returning Account Names for an Address.",
+        "operationId": "pathAddressesList",
+        "responses": {
+          "200": {}
+        }
+      }
+    },
+    "/addresses/{address}": {
+      "post": {
+        "tags": [
+          "accountNames"
+        ],
+        "summary": "Handler returning Account Names for an Address.",
+        "operationId": "pathAddressesRead",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Address",
+            "description": "The address to lookup",
+            "name": "address",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "accountNames",
+            "schema": {
+              "$ref": "#/definitions/accountNames"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "accountNames": {
+      "description": "AccountNames stores the names of the account to allow reverse lookup by address",
+      "type": "object",
+      "properties": {
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Names"
+        }
+      },
+      "x-go-name": "AccountNames",
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    }
+  }
+}

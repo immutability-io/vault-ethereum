@@ -1,3 +1,5 @@
+.idea
+*.iml
 scripts/**
 **/data
 **/test/data
