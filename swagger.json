@@ -1,10 +1,40 @@
 {
+  "consumes": [
+    "application/json",
+    "application/xml"
+  ],
+  "produces": [
+    "application/json",
+    "application/xml"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
   "swagger": "2.0",
-  "info": {},
+  "info": {
+    "description": "Copyright © 2018 Immutability, LLC\n\nUnless required by applicable law or agreed to in writing, software distributed under the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the License for the specific language governing permissions and limitations under the License.",
+    "title": "Vault-Ethereum API",
+    "contact": {
+      "name": "Jeff Ploughman",
+      "url": "https://immutability.io",
+      "email": "jeff@immutability.io"
+    },
+    "license": {
+      "name": "Apache2",
+      "url": "https://opensource.org/licenses/Apache-2.0"
+    },
+    "version": "0.0.1"
+  },
+  "host": "localhost:8200",
+  "basePath": "/v1/ethereum",
   "paths": {
     "/addresses": {
       "post": {
-        "summary": "Handler returning Account Names for an Address.",
+        "tags": [
+          "Addresses"
+        ],
+        "summary": "List the addresses",
         "operationId": "pathAddressesList",
         "responses": {
           "200": {}
@@ -14,7 +44,7 @@
     "/addresses/{address}": {
       "post": {
         "tags": [
-          "accountNames"
+          "Addresses"
         ],
         "summary": "Handler returning Account Names for an Address.",
         "operationId": "pathAddressesRead",
@@ -55,5 +85,28 @@
       "x-go-name": "AccountNames",
       "x-go-package": "github.com/zambien/vault-ethereum"
     }
-  }
+  },
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "name": "X-Vault-Token",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "api_key": []
+    }
+  ],
+  "x-meta-array": [
+    "value1",
+    "value2"
+  ],
+  "x-meta-array-obj": [
+    {
+      "name": "obj",
+      "value": "field"
+    }
+  ],
+  "x-meta-value": "value"
 }

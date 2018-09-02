@@ -1397,12 +1397,12 @@ The example below shows output for a read of `/ethereum/transaction/0x4773f64900
 # swagger built binary is no good for golang 1.11 so we will build and install it
 go get -u github.com/go-swagger/go-swagger/cmd/swagger
 cd $GOPATH/src/github.com/go-swagger/go-swagger/cmd/swagger \
+    && git checkout 0.16.0 \
     && go build \
-    && cp swagger /usr/local/bin/swagger \
+    && sudo cp swagger /usr/local/bin/swagger \
     && cd -
     
 # generate swagger json    
-swagger generate spec -o ./swagger.json --scan-models
-# serve swagger json
-swagger serve -F=swagger swagger.json    
+swagger generate spec -o ./swagger.json --scan-models \
+  && swagger serve -F=swagger swagger.json    
 ```    

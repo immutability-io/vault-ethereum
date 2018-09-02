@@ -1,3 +1,4 @@
+*.code-workspace
 .idea
 *.iml
 scripts/**
