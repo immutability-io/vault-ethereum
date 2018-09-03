@@ -10,8 +10,6 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── accounts `&nbsp;&nbsp;([list](./API.md#list-accounts))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#create-account), [update](./API.md#update-account), [read](./API.md#read-account), [delete](./API.md#delete-account))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── debit `&nbsp;&nbsp;([update](./API.md#debit-account))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── contracts `&nbsp;&nbsp;([list](./API.md#list-contracts))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#deploy-contract), [read](./API.md#read-contract), [delete](./API.md#delete-contract))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign `&nbsp;&nbsp;([update](./API.md#sign))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── transfer `&nbsp;&nbsp;([update](./API.md#transfer))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify))  
@@ -25,6 +23,10 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([update](./API.md#convert))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── export `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#export))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── deploy `  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── contracts `&nbsp;&nbsp;([list](./API.md#list-contracts))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │           └── <NAME> `&nbsp;&nbsp;([create](./API.md#deploy-contract), [read](./API.md#read-contract), [delete](./API.md#delete-contract))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── import `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME>  `&nbsp;&nbsp;([create](./API.md#import))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── names `&nbsp;&nbsp;([list](./API.md#list-names))  
@@ -339,23 +341,24 @@ This endpoint will list all account contracts.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `LIST`  | `:mount-path/accounts/test/contracts`  | `200 application/json` |
+| `LIST`  | `:mount-path/deploy/:account_name/contracts`  | `200 application/json` |
 
 #### Parameters
 
 * `path` (`string: <required>`) - Specifies the mount point. This is specified as part of the URL.
+* `account_name` (`string: <required>`) - Specifies the name of the account from which to deploy. This is specified as part of the URL.
 
 #### Sample Request
 
 ```sh
 $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
     --request LIST \
-    https://localhost:8200/v1/ethereum/accounts/test/contracts | jq .
+    https://localhost:8200/v1/ethereum/deploy/test/contracts | jq .
 ```
 
 #### Sample Response
 
-The example below shows output for a query path of `ethereum/accounts/test/contracts` when there are 2 contracts at `/ethereum/accounts/test`.
+The example below shows output for a query path of `ethereum/deploy/test/contracts` when there are 2 contracts at `/ethereum/deploy/test`.
 
 ```
 {
@@ -382,7 +385,7 @@ This endpoint will sign a provided Ethereum contract.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `POST`  | `:mount-path/accounts/:account_name/contracts/:contract_name`  | `200 application/json` |
+| `POST`  | `:mount-path/deploy/:account_name/contracts/:contract_name`  | `200 application/json` |
 
 #### Parameters
 
@@ -412,12 +415,12 @@ This endpoint will sign a provided Ethereum contract.
 $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
     --request POST \
     --data @payload.json \
-    https://localhost:8200/v1/ethereum/accounts/test6/contracts/helloworld | jq .
+    https://localhost:8200/v1/ethereum/deploy/test6/contracts/helloworld | jq .
 ```
 
 #### Sample Response
 
-The example below shows output for the successful deployment of a contract by the account at `/ethereum/accounts/test6/contracts/helloworld`.
+The example below shows output for the successful deployment of a contract by the account at `/ethereum/deploy/test6/contracts/helloworld`.
 
 ```
 {
@@ -426,7 +429,10 @@ The example below shows output for the successful deployment of a contract by th
   "renewable": false,
   "lease_duration": 0,
   "data": {
-    "transaction_hash": "0x5edffe3d8e1c43dff0d17f720219721582e16bd82ddfe4d3c9b7e70cefb968d3"
+    "amount": "10000000000",
+    "amount_in_usd": "0",
+    "total_spend": "10000000000",
+    "transaction_hash": "0xee051ae8e9a5afefe94853254de2ea512d88dc4a455334a8e286464c0fa9e767"
   },
   "wrap_info": null,
   "warnings": null,
@@ -441,7 +447,7 @@ This endpoint will return the address of an Ethereum contract (if available.)
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `GET`  | `:mount-path/accounts/:account_name/contracts/:contract_name`  | `200 application/json` |
+| `GET`  | `:mount-path/deploy/:account_name/contracts/:contract_name`  | `200 application/json` |
 
 #### Parameters
 
@@ -453,7 +459,7 @@ This endpoint will return the address of an Ethereum contract (if available.)
 ```sh
 $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
     --request GET \
-    https://localhost:8200/v1/ethereum/accounts/test6/contracts/helloworld | jq .
+    https://localhost:8200/v1/ethereum/deploy/test6/contracts/helloworld | jq .
 ```
 
 **NOTE**: If the transaction hasn't been included in a block yet, the contract address will show as: `receipt not available`
@@ -468,7 +474,7 @@ $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN"
   "lease_duration": 0,
   "data": {
     "address": "0xCA3986C32beaD6c434773CD41107537f7dDe0c98",
-    "transaction_hash": "0x62fd378e374ea1166ccb2087ffca49cf1ffcb5162ff3a9651c5b77a781fdfeab"
+    "transaction_hash": "0xee051ae8e9a5afefe94853254de2ea512d88dc4a455334a8e286464c0fa9e767"
   },
   "wrap_info": null,
   "warnings": null,
