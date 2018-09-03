@@ -143,7 +143,7 @@ The example below shows output for the successful creation of `/ethereum/account
 
 ### UPDATE ACCOUNT
 
-This endpoint will update an accounts constraints.
+This endpoint will update an account's constraints.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
