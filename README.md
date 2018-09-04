@@ -3,12 +3,12 @@
 Ethereum plugin for Vault
 -----------------
 
-The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support smart contract continuous development practices including contract deployment and testing. Some of the functionality (creating accounts and signing contract creation transactions) can happen without network connectivity. Other functionality (reading blocks, transactions, account balances and deploying contracts and sending transactions) will require network access to an RPC interface.
+The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support the enterprise adoption of Ethereum though it can be used for a standalone Ethereum wallet. Leveraging [HashiCorp Vault's](https://www.vaultproject.io/) capability set, many different access control patterns are supported. This plugin never exposes the private keys that it manages - all siging operations occur within the Vault secure enclave. The plugin supports smart contract continuous development practices including contract deployment and testing. Some of the functionality (conversion of Ethereum units, retrieving exchange rates, creating accounts and signing transactions) can happen without network connectivity. Other functionality (reading blocks, transactions, account balances and deploying contracts and sending transactions) will require access to an Ethereum RPC interface.
 
 Why is this Important?
 -----------------
 
-In the world of crypto a loss of your private key(s) can mean a total loss of all funds.  The marriage of Vault and Ethereum allows for fine-grained role based authentication and authorization policies that can provide separation of funds and significant mitigation in the event of a compromise.  Furthermore the rich features offered by Vault can make auditing, policy definition, and administrative reaction to a breach easy and fun (never thought those words would be in a single sentence).
+When an enterprise makes financial transactions, it does so within the context of an institutional apparatus that has many controls to prevent illegitimate loss of funds: if your credit card is stolen, the funds can be returned using the legal system; if wire fraud occurs, you can call the FBI. However, in the world of crypto a loss of your private key(s) can mean a total loss of all funds - there is no regulatory body or instituational apparatus that can change the blockchain. The marriage of Vault and Ethereum allows for fine-grained role based authentication and authorization policies that can provide separation of funds and significant mitigation in the event of a compromise. This mechanism can be leveraged in many ways to build many layers of control. Furthermore the rich features offered by Vault can make auditing, policy definition, and administrative reaction to a breach easy and fun (never thought those words would be in a single sentence).
 
 To put it another way:  If your org is dealing in crypto you need this or something like this.
 
@@ -25,15 +25,14 @@ Vault is a REST server. Services can be permissioned on granular basis according
 &nbsp;&nbsp;&nbsp;&nbsp;`└── <MOUNT> `&nbsp;&nbsp;([install](./README.md#install-plugin))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── config `&nbsp;&nbsp;([create](./API.md#create-config), [update](./API.md#update-config), [read](./API.md#read-config))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── accounts `&nbsp;&nbsp;([list](./API.md#list-accounts))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   ├── <NAME> `&nbsp;&nbsp;([create](./API.md#create-account), [update](./API.md#update-account), [read](./API.md#read-account), [delete](./API.md#delete-account))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── debit `&nbsp;&nbsp;([update](./API.md#debit-account))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── contracts `&nbsp;&nbsp;([list](./API.md#list-contracts))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#deploy-contract), [read](./API.md#read-contract), [delete](./API.md#delete-contract))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── sign `&nbsp;&nbsp;([update](./API.md#sign))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   ├── transfer `&nbsp;&nbsp;([update](./API.md#transfer))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   │   └── verify `&nbsp;&nbsp;([update](./API.md#verify))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#create-account), [update](./API.md#update-account), [read](./API.md#read-account), [delete](./API.md#delete-account))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── debit `&nbsp;&nbsp;([update](./API.md#debit-account))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign `&nbsp;&nbsp;([update](./API.md#sign))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── transfer `&nbsp;&nbsp;([update](./API.md#transfer))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](./API.md#list-addresses))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <ADDRESS> `&nbsp;&nbsp;([read](./API.md#read-address))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── balance `&nbsp;&nbsp;([update](./API.md#balance-by-address))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify-by-address))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── block `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NUMBER> `&nbsp;&nbsp;([read](./API.md#read-block))  
@@ -41,13 +40,19 @@ Vault is a REST server. Services can be permissioned on granular basis according
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([update](./API.md#convert))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── export `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#export))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── deploy `  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── contracts `&nbsp;&nbsp;([list](./API.md#list-contracts))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │           └── <NAME> `&nbsp;&nbsp;([create](./API.md#deploy-contract), [read](./API.md#read-contract), [delete](./API.md#delete-contract))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── import `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME>  `&nbsp;&nbsp;([create](./API.md#import))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── names `&nbsp;&nbsp;([list](./API.md#list-names))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └──  <NAME> `&nbsp;&nbsp;([read](./API.md#read-name))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── balance `&nbsp;&nbsp;([update](./API.md#balance-by-name))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify-by-name))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    └── transaction `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](./API.md#read-transaction))  
+
 
 ## Features
 
@@ -346,6 +351,7 @@ Key                     Value
 ---                     -----
 address                 0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
 balance                 1000000000000000000
+balance_in_usd          0
 blacklist               <nil>
 spending_limit_total    0
 spending_limit_tx       0
@@ -353,7 +359,7 @@ total_spend             0
 whitelist               <nil>
 ```
 
-Wait! How in the heck did that balance get there? Since wei is used across every service in this plugin, we can use our handy dandy conversion service to see what that is in ETH. (I know, if you can't do this math, maybe crypto isn't for you):
+Wait! How in the heck did that balance get there? Since wei is used across every service in this plugin, we can use our handy dandy conversion service to see what that is in ETH. (I know, if you can't do this math, maybe crypto isn't for you... says to mirror everyday...). Note also that the `balance_in_usd` is `0`. This is because we are on a test net (Rinkeby) where the ETH has no exchange value. If this had been an account read from the mainnet, then an attempt at estimating the value of the ETH in USD would have been made:
 
 ```
 $ vault write ethereum/convert unit_from="wei" unit_to="eth" amount="1000000000000000000"
@@ -398,19 +404,21 @@ Now, we send the ETH from the `muchwow` account to the address of the `lesswow` 
 
 ```
 $ vault write ethereum/accounts/muchwow/debit amount=200000000000000000 address_to="0x36d1f896e55a6577c62fdd6b84fbf74582266700"
-Key                Value
----                -----
-amount             200000000000000000
-from_address       0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
-gas_limit          21000
-gas_price          2000000000
-balance            1000000000000000000
-to_address         0x36D1F896E55a6577C62FDD6b84fbF74582266700
-total_spend        200000000000000000
-transaction_hash   0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
+Key                       Value
+---                       -----
+amount                    200000000000000000
+amount_in_usd             0
+from_address              0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+gas_limit                 21000
+gas_price                 2000000000
+starting_balance          1000000000000000000
+starting_balance_in_usd   0
+to_address                0x36D1F896E55a6577C62FDD6b84fbF74582266700
+total_spend               200000000000000000
+transaction_hash          0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
 ```
 
-**NOTE**: The above balance is the balance **before** the transaction is committed. Let's check 2 things - the transaction and the account balance of `lesswow`.
+**NOTE**: The `starting_balance` is the balance **before** the transaction is committed. Let's check 2 things - the transaction and the account balance of `lesswow`.
 
 Read the transaction details:
 
@@ -444,6 +452,7 @@ Key                     Value
 ---                     -----
 address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
 balance                 200000000000000000
+balance_in_usd          0
 blacklist               <nil>
 spending_limit_total    0
 spending_limit_tx       0
@@ -501,6 +510,7 @@ Key                     Value
 ---                     -----
 address                 0x36d1f896e55a6577c62fdd6b84fbf74582266700
 balance                 200000000000000000
+balance_in_usd          0
 blacklist               <nil>
 spending_limit_total    n/a
 spending_limit_tx       n/a

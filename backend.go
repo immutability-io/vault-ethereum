@@ -64,6 +64,7 @@ func Backend() *EthereumBackend {
 			importPaths(&b),
 			exportPaths(&b),
 			accountsPaths(&b),
+			contractsPaths(&b),
 		),
 		PathsSpecial: &logical.Paths{
 			Unauthenticated: []string{

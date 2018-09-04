@@ -18,14 +18,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
 	"strconv"
 
 	ethereum "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -54,12 +52,6 @@ type Account struct {
 	SpendingLimitTx    string   `json:"spending_limit_tx"`
 	SpendingLimitTotal string   `json:"spending_limit_total"`
 	TotalSpend         string   `json:"total_spend"`
-}
-
-// Contract is the address of a contract
-type Contract struct {
-	Address         string `json:"address"`
-	TransactionHash string `json:"transaction_hash"`
 }
 
 func accountsPaths(b *EthereumBackend) []*framework.Path {
@@ -114,80 +106,6 @@ the new passphrase.
 				logical.CreateOperation: b.pathAccountsCreate,
 				logical.UpdateOperation: b.pathAccountUpdate,
 				logical.DeleteOperation: b.pathAccountsDelete,
-			},
-		},
-		&framework.Path{
-			Pattern: "accounts/" + framework.GenericNameRegex("name") + "/contracts/?",
-			Fields: map[string]*framework.FieldSchema{
-				"name": &framework.FieldSchema{Type: framework.TypeString},
-			},
-			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.ListOperation: b.pathContractsList,
-			},
-		},
-		&framework.Path{
-			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/contracts/" + framework.GenericNameRegex("contract"),
-			HelpSynopsis: "Sign and deploy an Ethereum contract.",
-			HelpDescription: `
-
-Deploys an Ethereum contract.
-
-`,
-			Fields: map[string]*framework.FieldSchema{
-				"name":     &framework.FieldSchema{Type: framework.TypeString},
-				"contract": &framework.FieldSchema{Type: framework.TypeString},
-				"transaction_data": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The transaction data.",
-				},
-				"amount": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "Amount of ETH to fund the contract in Wei.",
-				},
-				"nonce": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The transaction nonce.",
-					Default:     "1",
-				},
-				"gas_price": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The price in gas for the transaction.",
-				},
-				"gas_limit": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The gas limit in Wei for the transaction.",
-				},
-			},
-			ExistenceCheck: b.pathExistenceCheck,
-			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.CreateOperation: b.pathCreateContract,
-				logical.ReadOperation:   b.pathReadContract,
-				logical.DeleteOperation: b.pathContractsDelete,
-			},
-		},
-		&framework.Path{
-			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/verify",
-			HelpSynopsis: "Verify that this signature is good.",
-			HelpDescription: `
-
-Verify a signature.
-
-`,
-			Fields: map[string]*framework.FieldSchema{
-				"name": &framework.FieldSchema{Type: framework.TypeString},
-				"data": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The data to verify the signature of.",
-				},
-				"signature": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: "The signature to verify.",
-				},
-			},
-			ExistenceCheck: b.pathExistenceCheck,
-			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.UpdateOperation: b.pathVerify,
-				logical.CreateOperation: b.pathVerify,
 			},
 		},
 		&framework.Path{
@@ -345,7 +263,7 @@ func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Req
 	if account == nil {
 		return nil, nil
 	}
-	balance, _, err := b.readAccountBalance(ctx, req, name)
+	balance, exchangeValue, err := b.readAccountBalanceByAddress(ctx, req, account.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -358,6 +276,7 @@ func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Req
 			"spending_limit_total": account.SpendingLimitTotal,
 			"total_spend":          account.TotalSpend,
 			"balance":              balance,
+			"balance_in_usd":       exchangeValue,
 		},
 	}, nil
 }
@@ -629,7 +548,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if account == nil {
 		return nil, nil
 	}
-	balance, _, err := b.readAccountBalance(ctx, req, name)
+	balance, _, exchangeValue, err := b.readAccountBalance(ctx, req, name)
 	if err != nil {
 		return nil, err
 	}
@@ -699,16 +618,25 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if err != nil {
 		return nil, err
 	}
+	amountInUSD, _ := decimal.NewFromString("0")
+	if config.ChainID == EthereumMainnet {
+		amountInUSD, err = ConvertToUSD(amount.String())
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"transaction_hash": signedTx.Hash().Hex(),
-			"from_address":     account.Address,
-			"to_address":       toAddress.String(),
-			"amount":           amount.String(),
-			"gas_price":        gasPrice.String(),
-			"gas_limit":        gasLimitIn.String(),
-			"total_spend":      totalSpend,
-			"balance":          balance,
+			"transaction_hash":        signedTx.Hash().Hex(),
+			"from_address":            account.Address,
+			"to_address":              toAddress.String(),
+			"amount":                  amount.String(),
+			"amount_in_usd":           amountInUSD,
+			"gas_price":               gasPrice.String(),
+			"gas_limit":               gasLimitIn.String(),
+			"total_spend":             totalSpend,
+			"starting_balance":        balance,
+			"starting_balance_in_usd": exchangeValue,
 		},
 	}, nil
 }
@@ -852,213 +780,44 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 	}, nil
 }
 
-func (b *EthereumBackend) readAccountBalance(ctx context.Context, req *logical.Request, name string) (*big.Int, string, error) {
+func (b *EthereumBackend) readAccountBalanceByAddress(ctx context.Context, req *logical.Request, address string) (*big.Int, decimal.Decimal, error) {
+	zero, _ := decimal.NewFromString("0")
 	config, err := b.configured(ctx, req)
 	if err != nil {
-		return nil, Empty, err
+		return nil, zero, err
 	}
-
-	account, err := b.readAccount(ctx, req, name)
-	if err != nil {
-		return nil, Empty, fmt.Errorf("error reading account")
-	}
-	if account == nil {
-		return nil, Empty, nil
-	}
-
 	client, err := ethclient.Dial(config.getRPCURL())
 	if err != nil {
-		return nil, Empty, fmt.Errorf("cannot connect to " + config.getRPCURL())
+		return nil, zero, fmt.Errorf("cannot connect to " + config.getRPCURL())
 	}
-	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(account.Address), nil)
+	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(address), nil)
 	if err != nil {
-		return nil, Empty, err
+		return nil, zero, err
 	}
-	return balance, account.Address, nil
-}
-
-// NewTransactor is for contract deployment
-func (b *EthereumBackend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpts {
-	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
-	return &bind.TransactOpts{
-		From: keyAddr,
-		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
-			if address != keyAddr {
-				return nil, errors.New("not authorized to sign this account")
-			}
-			signature, err := crypto.Sign(signer.Hash(tx).Bytes(), key)
-			if err != nil {
-				return nil, err
-			}
-			return tx.WithSignature(signer, signature)
-		},
-	}
-}
-
-func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	config, err := b.configured(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	input := []byte(data.Get("transaction_data").(string))
-	name := data.Get("name").(string)
-	account, err := b.readAccount(ctx, req, name)
-	if err != nil {
-		return nil, fmt.Errorf("error reading account")
-	}
-	if account == nil {
-		return nil, nil
-	}
-	toAddress := common.HexToAddress(account.Address)
-	balance, _, err := b.readAccountBalance(ctx, req, name)
-	if err != nil {
-		return nil, err
-	}
-	amount := ValidNumber(data.Get("amount").(string))
-	if amount == nil {
-		return nil, fmt.Errorf("invalid amount")
-	}
-	if amount.Cmp(balance) > 0 {
-		return nil, fmt.Errorf("Insufficient funds spend %v because the current account balance is %v", amount, balance)
-	}
-
-	chainID := ValidNumber(config.ChainID)
-	if chainID == nil {
-		return nil, fmt.Errorf("invalid chain ID")
-	}
-
-	client, err := ethclient.Dial(config.getRPCURL())
-	if err != nil {
-		return nil, fmt.Errorf("cannot connect to " + config.getRPCURL())
-	}
-	gasPrice := ValidNumber(data.Get("gas_price").(string))
-	if big.NewInt(0).Cmp(gasPrice) == 0 {
-		gasPrice, err = client.SuggestGasPrice(context.Background())
+	// Calculate exchange rate value if on Mainnet
+	if config.ChainID == EthereumMainnet {
+		exchangeValue, err := ConvertToUSD(balance.String())
 		if err != nil {
-			return nil, err
+			return nil, zero, err
 		}
+		return balance, exchangeValue, nil
 	}
-	gasLimitIn := ValidNumber(data.Get("gas_limit").(string))
-	if gasLimitIn == nil {
-		return nil, fmt.Errorf("invalid gas limit")
-	}
-	gasLimit := gasLimitIn.Uint64()
-	if big.NewInt(0).Cmp(gasLimitIn) == 0 {
-		gasLimit, err = client.EstimateGas(context.Background(), ethereum.CallMsg{
-			To:   &toAddress,
-			Data: input,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-	privateKey, err := crypto.HexToECDSA(account.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("error reconstructing private key")
-	}
-	defer ZeroKey(privateKey)
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, fmt.Errorf("error casting public key to ECDSA")
-	}
-
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	transactor := b.NewTransactor(privateKey)
-	var rawTx *types.Transaction
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		return nil, err
-	}
-	rawTx = types.NewContractCreation(nonce, amount, gasLimit, gasPrice, input)
-
-	signedTx, err := transactor.Signer(types.NewEIP155Signer(chainID), toAddress, rawTx)
-	if err != nil {
-		return nil, err
-	}
-	err = client.SendTransaction(ctx, signedTx)
-	if err != nil {
-		return nil, err
-	}
-
-	contractJSON := &Contract{TransactionHash: signedTx.Hash().Hex()}
-	entry, err := logical.StorageEntryJSON(req.Path, contractJSON)
-	if err != nil {
-		return nil, err
-	}
-
-	err = req.Storage.Put(ctx, entry)
-	if err != nil {
-		return nil, err
-	}
-
-	return &logical.Response{
-		Data: map[string]interface{}{
-			"transaction_hash": signedTx.Hash().Hex(),
-		},
-	}, nil
-
+	return balance, zero, nil
 }
 
-func (b *EthereumBackend) pathReadContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	config, err := b.configured(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	entry, err := req.Storage.Get(ctx, req.Path)
-	var contract Contract
-	err = entry.DecodeJSON(&contract)
-
-	if err != nil {
-		return nil, err
-	}
-	if entry == nil {
-		return nil, nil
-	}
-	name := data.Get("name").(string)
+func (b *EthereumBackend) readAccountBalance(ctx context.Context, req *logical.Request, name string) (*big.Int, string, decimal.Decimal, error) {
+	zero, _ := decimal.NewFromString("0")
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
-		return nil, fmt.Errorf("error reading account")
+		return nil, Empty, zero, fmt.Errorf("error reading account")
 	}
 	if account == nil {
-		return nil, nil
+		return nil, Empty, zero, nil
 	}
 
-	hash := common.HexToHash(contract.TransactionHash)
-
-	client, err := ethclient.Dial(config.getRPCURL())
+	balance, exchangeValue, err := b.readAccountBalanceByAddress(ctx, req, account.Address)
 	if err != nil {
-		return nil, fmt.Errorf("cannot connect to " + config.getRPCURL())
+		return nil, Empty, zero, err
 	}
-
-	receipt, err := client.TransactionReceipt(context.Background(), hash)
-	var receiptAddress string
-	if err != nil {
-		receiptAddress = "receipt not available"
-	} else {
-		receiptAddress = receipt.ContractAddress.Hex()
-	}
-
-	return &logical.Response{
-		Data: map[string]interface{}{
-
-			"transaction_hash": contract.TransactionHash,
-			"address":          receiptAddress,
-		},
-	}, nil
-}
-
-func (b *EthereumBackend) pathContractsDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	_, err := b.configured(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	if err := req.Storage.Delete(ctx, req.Path); err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+	return balance, account.Address, exchangeValue, nil
 }
