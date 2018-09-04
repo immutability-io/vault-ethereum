@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/vault/logical/framework"
 )
 
-// AccountNames stores the names of the account to allow reverse lookup by address
-// swagger:model accountNames
 type AccountNames struct {
 	Names []string `json:"names"`
 }

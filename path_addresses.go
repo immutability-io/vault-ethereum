@@ -82,24 +82,12 @@ func addressesPaths(b *EthereumBackend) []*framework.Path {
 	}
 }
 
-// A UserNameParams parameter model.
-//
-// This is used for operations that want the ID of a user in the path
-// swagger:parameters pathAddressesRead
-type AddressParam struct {
-	// The address to lookup
-	//
-	// in: path
-	// required: true
-	Address string `json:"address"`
-}
-
-// Me swagger:route POST /addresses/{address} Addresses pathAddressesRead
+// swagger:route GET /addresses/{address} Addresses pathAddressesRead
 //
 // Handler returning Account Names for an Address.
 //
 // Responses:
-//        200: accountNames
+//        200: AccountNamesResponse
 func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -124,17 +112,12 @@ func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Re
 	}, nil
 }
 
-// swagger:operation  POST /addresses Addresses pathAddressesList
-// ---
-// summary: List the addresses
-// headers:
-// - name: X-Vault-Token
-//   description: Vault Token
-//   type: string
-//   required: true
-// responses:
-//   "200":
-//     type: github.com/hashicorp/vault/logical/ListResponse
+// swagger:route  GET /addresses Addresses pathAddressesList
+//
+// Handler returning the list of addresses.
+//
+// Responses:
+//        200: AddressesResponse
 func (b *EthereumBackend) pathAddressesList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -167,6 +150,12 @@ func (b *EthereumBackend) readAddress(ctx context.Context, req *logical.Request,
 	return &accountNames, nil
 }
 
+// swagger:route  POST /addresses/{address}/verify Addresses pathAddressesVerify
+//
+// Handler verifying that this account signed some data.
+//
+// Responses:
+//        200: AddressesVerifiedResponse
 func (b *EthereumBackend) pathAddressesVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

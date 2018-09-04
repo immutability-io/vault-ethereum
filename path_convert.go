@@ -183,6 +183,12 @@ func ConvertFromWei(normalizeUnit string, amount decimal.Decimal) decimal.Decima
 	return result
 }
 
+// swagger:route  PUT /convert Convert pathConvertWrite
+//
+// Handler returning various ETH conversions.
+//
+// responses:
+//        200: ConversionResponse
 func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	unitFrom, err := ValidUnit(data.Get("unit_from").(string))
 	if err != nil {
