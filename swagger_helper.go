@@ -68,7 +68,6 @@ type ConversionRequest struct {
 }
 
 // BaseStruct stores the names of the account to allow reverse lookup by address
-// swagger:model baseStruct
 type BaseStruct struct {
 	RequestId string `json:"request_id"`
 	LeaseId string `json:"lease_id"`

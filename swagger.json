@@ -394,6 +394,45 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
+    "BaseStruct": {
+      "description": "BaseStruct stores the names of the account to allow reverse lookup by address",
+      "type": "object",
+      "properties": {
+        "auths": {
+          "type": "string",
+          "x-go-name": "Auth"
+        },
+        "lease_duration": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LeaseDuration"
+        },
+        "lease_id": {
+          "type": "string",
+          "x-go-name": "LeaseId"
+        },
+        "renewable": {
+          "type": "boolean",
+          "x-go-name": "Renewable"
+        },
+        "request_id": {
+          "type": "string",
+          "x-go-name": "RequestId"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Warnings"
+        },
+        "wrap_info": {
+          "type": "string",
+          "x-go-name": "WrapInfo"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
     "ConversionRequest": {
       "type": "object",
       "required": [
@@ -482,46 +521,6 @@
         }
       },
       "x-go-name": "SwaggerConvertStruct",
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "baseStruct": {
-      "description": "BaseStruct stores the names of the account to allow reverse lookup by address",
-      "type": "object",
-      "properties": {
-        "auths": {
-          "type": "string",
-          "x-go-name": "Auth"
-        },
-        "lease_duration": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "LeaseDuration"
-        },
-        "lease_id": {
-          "type": "string",
-          "x-go-name": "LeaseId"
-        },
-        "renewable": {
-          "type": "boolean",
-          "x-go-name": "Renewable"
-        },
-        "request_id": {
-          "type": "string",
-          "x-go-name": "RequestId"
-        },
-        "warnings": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Warnings"
-        },
-        "wrap_info": {
-          "type": "string",
-          "x-go-name": "WrapInfo"
-        }
-      },
-      "x-go-name": "BaseStruct",
       "x-go-package": "github.com/zambien/vault-ethereum"
     }
   },
