@@ -107,7 +107,7 @@ type AddressesVerifiedResponse struct {
 
 // Addresses stores the calculated conversion data
 // swagger:model ConversionResponse
-type SwaggerConvertStruct struct {
+type ConversionResponse struct {
 	BaseStruct
 	Data struct {
 		AmountFrom string `json:"amount_from"`
