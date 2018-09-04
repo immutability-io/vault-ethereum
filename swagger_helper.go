@@ -15,7 +15,7 @@
 package main
 
 // swagger:parameters pathAddressesRead
-type AddressParam struct {
+type AddressRequest struct {
 	// The address to lookup
 	//
 	// in: path
@@ -24,7 +24,7 @@ type AddressParam struct {
 }
 
 // swagger:parameters pathAddressesList
-type AddressListParams struct {
+type AddressListRequest struct {
 	// So that we can get the list from Vault.  Do not change this.
 	//
 	// in: query
@@ -34,7 +34,7 @@ type AddressListParams struct {
 }
 
 // swagger:parameters pathAddressesVerify
-type AddressVerifyParams struct {
+type AddressVerifyRequest struct {
 	// The address to lookup
 	//
 	// in: path

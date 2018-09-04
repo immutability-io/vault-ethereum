@@ -226,7 +226,7 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
-    "AddressListParams": {
+    "AddressListRequest": {
       "type": "object",
       "required": [
         "list"
@@ -241,7 +241,7 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
-    "AddressParam": {
+    "AddressRequest": {
       "type": "object",
       "required": [
         "address"
@@ -255,7 +255,7 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
-    "AddressVerifyParams": {
+    "AddressVerifyRequest": {
       "type": "object",
       "required": [
         "address",
@@ -520,7 +520,6 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-name": "SwaggerConvertStruct",
       "x-go-package": "github.com/zambien/vault-ethereum"
     }
   },
