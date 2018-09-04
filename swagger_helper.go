@@ -14,7 +14,6 @@
 
 package main
 
-
 // swagger:parameters pathAddressesRead
 type AddressParam struct {
 	// The address to lookup
@@ -23,7 +22,6 @@ type AddressParam struct {
 	// required: true
 	Address string `json:"address"`
 }
-
 
 // swagger:parameters pathAddressesList
 type AddressListParams struct {
@@ -47,7 +45,7 @@ type AddressVerifyParams struct {
 	// schema:
 	//	 type: string
 	Data struct {
-		Data string `json:"data"`
+		Data      string `json:"data"`
 		Signature string `json:"signature"`
 	} `json:"data"`
 }
@@ -60,22 +58,22 @@ type ConversionRequest struct {
 	// required: true
 	// schema:
 	//	 type: string
-	Data struct  {
-		AmountIn string `json:"amount"`
+	Data struct {
+		AmountIn   string `json:"amount"`
 		UnitFromIn string `json:"unit_from"`
-		UnitToIn string `json:"unit_to"`
+		UnitToIn   string `json:"unit_to"`
 	} `json:"data"`
 }
 
 // BaseStruct stores the names of the account to allow reverse lookup by address
 type BaseStruct struct {
-	RequestId string `json:"request_id"`
-	LeaseId string `json:"lease_id"`
-	Renewable bool `json:"renewable"`
-	LeaseDuration int `json:"lease_duration"`
-	WrapInfo string `json:"wrap_info"`
-	Warnings []string `json:"warnings"`
-	Auth string `json:"auths"`
+	RequestId     string   `json:"request_id"`
+	LeaseId       string   `json:"lease_id"`
+	Renewable     bool     `json:"renewable"`
+	LeaseDuration int      `json:"lease_duration"`
+	WrapInfo      string   `json:"wrap_info"`
+	Warnings      []string `json:"warnings"`
+	Auth          string   `json:"auths"`
 }
 
 // Addresses stores the names of the account to allow reverse lookup by address
@@ -84,7 +82,7 @@ type AddressesResponse struct {
 	BaseStruct
 	Data struct {
 		Keys []string `json:"keys"`
-	}  `json:"data"`
+	} `json:"data"`
 }
 
 // AccountNamesResponse stores the list of addresses
@@ -101,9 +99,9 @@ type AccountNamesResponse struct {
 type AddressesVerifiedResponse struct {
 	BaseStruct
 	Data struct {
-		Address string `json:"address"`
+		Address   string `json:"address"`
 		Signature string `json:"signature"`
-		Verified bool `json:"verified"`
+		Verified  bool   `json:"verified"`
 	} `json:"data"`
 }
 
@@ -113,8 +111,8 @@ type SwaggerConvertStruct struct {
 	BaseStruct
 	Data struct {
 		AmountFrom string `json:"amount_from"`
-		AmountTo string `json:"amount_to"`
-		UnitFrom string `json:"unit_from"`
-		UnitTo string `json:"unit_to"`
+		AmountTo   string `json:"amount_to"`
+		UnitFrom   string `json:"unit_from"`
+		UnitTo     string `json:"unit_to"`
 	} `json:"data"`
 }
