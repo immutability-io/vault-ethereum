@@ -22,7 +22,7 @@ fi
 cp -r $COLD_STORAGE/etc $HOME/etc
 nohup /usr/local/bin/vault server -config $HOME/etc/vault.d/vault.hcl &> /dev/null &
 
-mv $COLD_STORAGE/"$KEYBASE_USER"_* .
+cp $COLD_STORAGE/"$KEYBASE_USER"_* .
 vault operator unseal $(keybase decrypt -i $KEYBASE_USER"_UNSEAL_1.txt")
 vault operator unseal $(keybase decrypt -i $KEYBASE_USER"_UNSEAL_2.txt")
 vault operator unseal $(keybase decrypt -i $KEYBASE_USER"_UNSEAL_3.txt")
