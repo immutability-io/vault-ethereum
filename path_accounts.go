@@ -234,20 +234,6 @@ Sign data using a given Ethereum account.
 					Description: "The gas price for the transaction in wei.",
 					Default:     "0",
 				},
-				"chain_id": &framework.FieldSchema{
-					Type: framework.TypeString,
-					Description: `Ethereum network - can be one of the following values:
-
-					1 - Ethereum mainnet
-					2 - Morden (disused), Expanse mainnet
-					3 - Ropsten
-					4 - Rinkeby
-					30 - Rootstock mainnet
-					31 - Rootstock testnet
-					42 - Kovan
-					61 - Ethereum Classic mainnet
-					62 - Ethereum Classic testnet`,
-				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -734,7 +720,7 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 }
 
 func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	_, err := b.configured(ctx, req)
+	config, err := b.configured(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -754,7 +740,7 @@ func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, 
 		return nil, fmt.Errorf("invalid value")
 	}
 
-	chainID := ValidNumber(data.Get("chain_id").(string))
+	chainID := ValidNumber(config.ChainID)
 	if chainID == nil {
 		return nil, fmt.Errorf("invalid chain ID")
 	}

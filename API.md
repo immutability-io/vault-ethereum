@@ -556,7 +556,6 @@ This endpoint will sign transaction.
 * `tx_data` (`string: <optional>`) - Transaction data in HEX string.
 * `gas_limit` (`string: <optional>`) - The gas limit for the transaction - defaults to 21000.
 * `gas_price` (`string: <optional>`) - The gas price for the transaction in wei. Default - 0.
-* `chain_id` (`string: <required>`) - Specifies the Ethereum network.
 
 #### Sample Payload
 

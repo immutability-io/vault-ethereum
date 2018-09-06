@@ -176,10 +176,6 @@
                 "gas_price": {
                   "type": "string",
                   "x-go-name": "gasPrice"
-                },
-                "chain_id": {
-                  "type": "string",
-                  "x-go-name": "chainId"
                 }
               }
             }
