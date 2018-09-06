@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PLUGIN_VERSION="0.2.0"
+PLUGIN_VERSION="0.2.1"
 VAULT_VERSION="0.11.0"
 
 function print_help {
