@@ -136,6 +136,11 @@ Send ETH from an account.
 					Description: "The gas price for the transaction in wei.",
 					Default:     "0",
 				},
+				"send": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Description: "Send the transaction to the network.",
+					Default:     true,
+				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -172,6 +177,11 @@ Transfer ERC20 tokens.
 					Type:        framework.TypeString,
 					Description: "The gas price for the transaction in wei.",
 					Default:     "0",
+				},
+				"send": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Description: "Send the transaction to the network.",
+					Default:     true,
 				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
@@ -541,6 +551,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	}
 
 	name := data.Get("name").(string)
+	sendTransaction := data.Get("send").(bool)
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
 		return nil, fmt.Errorf("error reading account")
@@ -608,10 +619,11 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if err != nil {
 		return nil, err
 	}
-
-	err = client.SendTransaction(context.Background(), signedTx)
-	if err != nil {
-		return nil, err
+	if sendTransaction {
+		err = client.SendTransaction(context.Background(), signedTx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	totalSpend, err := b.updateTotalSpend(ctx, req, fmt.Sprintf("accounts/%s", name), account, amount)
@@ -625,11 +637,15 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 			return nil, err
 		}
 	}
+	var signedTxBuff bytes.Buffer
+	signedTx.EncodeRLP(&signedTxBuff)
+
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"transaction_hash":        signedTx.Hash().Hex(),
-			"from_address":            account.Address,
-			"to_address":              toAddress.String(),
+			"signed_transaction":      hexutil.Encode(signedTxBuff.Bytes()),
+			"address_from":            account.Address,
+			"address_to":              toAddress.String(),
 			"amount":                  amount.String(),
 			"amount_in_usd":           amountInUSD,
 			"gas_price":               gasPrice.String(),
@@ -693,6 +709,7 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 	}
 
 	name := data.Get("name").(string)
+	sendTransaction := data.Get("send").(bool)
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
 		return nil, fmt.Errorf("error reading account")
@@ -765,17 +782,25 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 	if err != nil {
 		return nil, err
 	}
-	err = client.SendTransaction(context.Background(), signedTx)
+	if sendTransaction {
+		err = client.SendTransaction(context.Background(), signedTx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var signedTxBuff bytes.Buffer
+	signedTx.EncodeRLP(&signedTxBuff)
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"transaction_hash": signedTx.Hash().Hex(),
-			"from_address":     account.Address,
-			"to_address":       toAddress.String(),
-			"token_address":    tokenAddress.String(),
-			"amount":           amount.String(),
-			"gas_price":        gasPrice.String(),
-			"gas_limit":        strconv.FormatUint(gasLimit, 10),
+			"transaction_hash":   signedTx.Hash().Hex(),
+			"signed_transaction": hexutil.Encode(signedTxBuff.Bytes()),
+			"address_from":       account.Address,
+			"address_to":         toAddress.String(),
+			"token_address":      tokenAddress.String(),
+			"amount":             amount.String(),
+			"gas_price":          gasPrice.String(),
+			"gas_limit":          strconv.FormatUint(gasLimit, 10),
 		},
 	}, nil
 }

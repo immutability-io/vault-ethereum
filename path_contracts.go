@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"errors"
@@ -24,6 +25,7 @@ import (
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -72,6 +74,11 @@ Deploys an Ethereum contract.
 					Type:        framework.TypeString,
 					Description: "The gas limit in Wei for the transaction.",
 				},
+				"send": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Description: "Send the transaction to the network.",
+					Default:     true,
+				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -109,6 +116,7 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 
 	input := []byte(data.Get("transaction_data").(string))
 	name := data.Get("name").(string)
+	sendTransaction := data.Get("send").(bool)
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
 		return nil, fmt.Errorf("error reading account")
@@ -187,9 +195,11 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 	if err != nil {
 		return nil, err
 	}
-	err = client.SendTransaction(ctx, signedTx)
-	if err != nil {
-		return nil, err
+	if sendTransaction {
+		err = client.SendTransaction(ctx, signedTx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	contractJSON := &Contract{TransactionHash: signedTx.Hash().Hex()}
@@ -213,13 +223,16 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 			return nil, err
 		}
 	}
+	var signedTxBuff bytes.Buffer
+	signedTx.EncodeRLP(&signedTxBuff)
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"transaction_hash": signedTx.Hash().Hex(),
-			"total_spend":      totalSpend,
-			"amount":           amount.String(),
-			"amount_in_usd":    amountInUSD,
+			"transaction_hash":   signedTx.Hash().Hex(),
+			"signed_transaction": hexutil.Encode(signedTxBuff.Bytes()),
+			"total_spend":        totalSpend,
+			"amount":             amount.String(),
+			"amount_in_usd":      amountInUSD,
 		},
 	}, nil
 

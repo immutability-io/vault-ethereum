@@ -408,12 +408,12 @@ Key                       Value
 ---                       -----
 amount                    200000000000000000
 amount_in_usd             0
-from_address              0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+address_from              0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
 gas_limit                 21000
 gas_price                 2000000000
 starting_balance          1000000000000000000
 starting_balance_in_usd   0
-to_address                0x36D1F896E55a6577C62FDD6b84fbF74582266700
+address_to                0x36D1F896E55a6577C62FDD6b84fbF74582266700
 total_spend               200000000000000000
 transaction_hash          0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
 ```

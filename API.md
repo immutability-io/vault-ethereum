@@ -287,6 +287,7 @@ This endpoint will debit an Ethereum account.
 * `amount` (`string: <required>`) - The amount of ether - in wei.
 * `gas_price` (`string: <optional>`) - The price in gas for the transaction. If omitted, we will use the suggested gas price.
 * `gas_limit` (`string: <optional>`) - The gas limit for the transaction. If omitted, we will estimate the gas limit.
+* `send` (`bool: <optional - defaults to true>`) - Indicates whether the transaction should be sent to the network. 
 
 #### Sample Payload
 
@@ -315,21 +316,22 @@ The example below shows the output for the successfully sending ETH from `/ether
 
 ```
 {
-  "request_id": "ac79079d-9e8c-e340-b718-fe19a27ff914",
+  "request_id": "b921207e-c0d9-a3c1-442b-ef8b1884238d",
   "lease_id": "",
   "lease_duration": 0,
   "renewable": false,
   "data": {
-    "amount": "200000000000000000"
-    "amount_in_usd": 59.8820422884
-    "from_address": "0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8"
-    "gas_limit": "21000"
-    "gas_price": "2000000000"
-    "starting_balance": "1000000000000000000"
-    "starting_balance_in_usd": 299.410211442
-    "to_address": "0x36D1F896E55a6577C62FDD6b84fbF74582266700"
-    "total_spend": "200000000000000000"
-    "transaction_hash": "0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769"
+    "amount": "100000000000000000",
+    "amount_in_usd": "0",
+    "address_from": "0x4169c9508728285e8a9f7945d08645bb6b3576e5",
+    "gas_limit": "21000",
+    "gas_price": "1000000000",
+    "signed_transaction": "0xf86b06843b9aca00825208948ac5e6617f65c071f6dd5d7bd400bf4a46434d4188016345785d8a0000802ca0ff3fccbde1964047db6be33410436a9220c91ea4080b0e14489dc35fbdabd008a0448fe3ec216a639e1b0eb87b0e4b20aab2e5ec46dad4c38cfc81a1c54e309d21",
+    "starting_balance": 8460893507395267000,
+    "starting_balance_in_usd": "0",
+    "address_to": "0x8AC5e6617F65c071f6dD5d7bD400bf4a46434D41",
+    "total_spend": "100000000000000000",
+    "transaction_hash": "0x3a103587ea6bdeee944e5f68f90ed7b1f4c7699236167d1b1d29495b0319fb26"
   },
   "warnings": null
 }
@@ -396,6 +398,7 @@ This endpoint will sign a provided Ethereum contract.
 * `nonce` (`string: <optional> - defaults to "1"`) - The nonce for the transaction
 * `gas_price` (`string: <required>`) - The price in gas for the transaction in wei.
 * `gas_limit` (`string: <required>`) - The gas limit for the transaction.
+* `send` (`bool: <optional - defaults to true>`) - Indicates whether the transaction should be sent to the network. 
 
 #### Sample Payload
 
