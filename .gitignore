@@ -1,3 +1,6 @@
+*.code-workspace
+.idea
+*.iml
 scripts/**
 **/data
 **/test/data
