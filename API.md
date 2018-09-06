@@ -329,12 +329,12 @@ The example below shows the output for the successfully sending ETH from `/ether
     "amount": "100000000000000000",
     "amount_in_usd": "0",
     "address_from": "0x4169c9508728285e8a9f7945d08645bb6b3576e5",
+    "address_to": "0x8AC5e6617F65c071f6dD5d7bD400bf4a46434D41",
     "gas_limit": "21000",
     "gas_price": "1000000000",
     "signed_transaction": "0xf86b06843b9aca00825208948ac5e6617f65c071f6dd5d7bd400bf4a46434d4188016345785d8a0000802ca0ff3fccbde1964047db6be33410436a9220c91ea4080b0e14489dc35fbdabd008a0448fe3ec216a639e1b0eb87b0e4b20aab2e5ec46dad4c38cfc81a1c54e309d21",
     "starting_balance": 8460893507395267000,
     "starting_balance_in_usd": "0",
-    "address_to": "0x8AC5e6617F65c071f6dD5d7bD400bf4a46434D41",
     "total_spend": "100000000000000000",
     "transaction_hash": "0x3a103587ea6bdeee944e5f68f90ed7b1f4c7699236167d1b1d29495b0319fb26"
   },
