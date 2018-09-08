@@ -289,3 +289,8 @@ HA Enabled      false
 ```
 
 All that remains is for you to authenticate to vault to perform whatever actions you wish.
+
+## Install MFA
+
+Unfortunately, support for MFA has ended for OSS Vault. However, it still works. You will need to signup for a free Duo developer account to get this working. I [discuss how to do this here](https://www.hashicorp.com/blog/using-vault-to-build-an-ethereum-wallet). 
+

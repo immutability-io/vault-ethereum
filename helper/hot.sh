@@ -20,6 +20,7 @@ else
 fi
 
 cp -r $COLD_STORAGE/etc $HOME/etc
+unset VAULT_TOKEN
 nohup /usr/local/bin/vault server -config $HOME/etc/vault.d/vault.hcl &> /dev/null &
 
 cp $COLD_STORAGE/"$KEYBASE_USER"_* .
