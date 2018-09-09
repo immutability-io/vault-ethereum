@@ -57,6 +57,7 @@ EOF
 
   openssl req \
     -new \
+    -sha256 \
     -newkey rsa:2048 \
     -days 120 \
     -nodes \
@@ -66,7 +67,7 @@ EOF
     -out "${TMPDIR}/ca.crt"
 
   # Generate the private key for the service. Again, you may want to increase
-  # the bits to 4096.
+  # the bits to 2048.
   openssl genrsa -out "${TMPDIR}/my-service.key" 2048
 
   # Generate a CSR using the configuration and the key just generated. We will
@@ -85,6 +86,7 @@ EOF
     -CA "${TMPDIR}/ca.crt" \
     -CAkey "${TMPDIR}/ca.key" \
     -CAcreateserial \
+    -sha256 \
     -extensions v3_req \
     -extfile "${TMPDIR}/openssl.cnf" \
     -out "${TMPDIR}/my-service.crt"
