@@ -20,7 +20,7 @@ function gencerts {
   cat > "${TMPDIR}/openssl.cnf" << EOF
 [req]
 default_bits = 2048
-encrypt_key  = no # Change to encrypt the private key using des3 or similar
+encrypt_key  = no 
 default_md   = sha256
 prompt       = no
 utf8         = yes
