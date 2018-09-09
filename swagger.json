@@ -129,6 +129,68 @@
         }
       }
     },
+    "/addresses/{address}/sign-tx": {
+      "post": {
+        "tags": [
+          "Addresses"
+        ],
+        "summary": "This endpoint will sign transaction.",
+        "operationId": "pathAddressesSignTx",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Address",
+            "description": "The address to lookup",
+            "name": "address",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nonce": {
+                  "type": "string",
+                  "x-go-name": "Nonce"
+                },
+                "address_to": {
+                  "type": "string",
+                  "x-go-name": "AddressTo"
+                },
+                "value": {
+                  "type": "string",
+                  "x-go-name": "Value"
+                },
+                "tx_data": {
+                  "type": "string",
+                  "x-go-name": "txData"
+                },
+                "gas_limit": {
+                  "type": "string",
+                  "x-go-name": "gasLimit"
+                },
+                "gas_price": {
+                  "type": "string",
+                  "x-go-name": "gasPrice"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SignerTransactionResponse",
+            "schema": {
+              "$ref": "#/definitions/SignerTransactionResponse"
+            }
+          }
+        }
+      }
+    },
     "/convert": {
       "put": {
         "tags": [
@@ -359,6 +421,59 @@
             "verified": {
               "type": "boolean",
               "x-go-name": "Verified"
+            }
+          },
+          "x-go-name": "Data"
+        },
+        "lease_duration": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LeaseDuration"
+        },
+        "lease_id": {
+          "type": "string",
+          "x-go-name": "LeaseId"
+        },
+        "renewable": {
+          "type": "boolean",
+          "x-go-name": "Renewable"
+        },
+        "request_id": {
+          "type": "string",
+          "x-go-name": "RequestId"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Warnings"
+        },
+        "wrap_info": {
+          "type": "string",
+          "x-go-name": "WrapInfo"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
+    "SignerTransactionResponse": {
+      "description": "Signed transaction and public key of signer.",
+      "type": "object",
+      "properties": {
+        "auths": {
+          "type": "string",
+          "x-go-name": "Auth"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "x-go-name": "Address"
+            },
+            "signed_tx": {
+              "type": "string",
+              "x-go-name": "Signature"
             }
           },
           "x-go-name": "Data"

@@ -10,7 +10,8 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── accounts `&nbsp;&nbsp;([list](./API.md#list-accounts))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#create-account), [update](./API.md#update-account), [read](./API.md#read-account), [delete](./API.md#delete-account))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── debit `&nbsp;&nbsp;([update](./API.md#debit-account))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign `&nbsp;&nbsp;([update](./API.md#sign))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign `&nbsp;&nbsp;([update](./API.md#sign))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign-tx `&nbsp;&nbsp;([update](./API.md#sign-tx))
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── transfer `&nbsp;&nbsp;([update](./API.md#transfer))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](./API.md#list-addresses))  
@@ -540,6 +541,71 @@ The example below shows output for the successful signing of some data by the pr
   "warnings": null,
   "auth": null
 }
+```
+
+### SIGN-TX
+
+This endpoint will sign transaction.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/sign-tx`  | `200 application/json` |
+
+#### Parameters
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `nonce` (`string: <required>`) - The nonce for the transaction.
+* `address_to` (`string: <required>`) - The address of the account to send ETH to.
+* `value` (`string: <required>`) - Value of ETH (in wei).
+* `tx_data` (`string: <optional>`) - Transaction data in HEX string.
+* `gas_limit` (`string: <optional>`) - The gas limit for the transaction - defaults to 21000.
+* `gas_price` (`string: <optional>`) - The gas price for the transaction in wei. Default - 0.
+
+#### Sample Payload
+
+```json
+
+{
+  "nonce":"1",
+  "gas_price":"1000000000000000000",
+  "gas_limit":"21000",
+  "address_to":"0xF4E6e6fa97E10ddc057c94F501B94C1d24EF85Aa",
+  "value":"9000000000000000000",
+  "tx_data":"0x",
+  "chain_id":3
+}
+
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/main/sign-tx | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful signing of transaction by the private key associated with  `/ethereum/accounts/main`.
+Signed raw transaction in hex format and ready for broadcasting to network.
+
+```json
+
+{
+  "request_id": "61b9b5c8-866f-99d6-97f6-5ee0b6489a35",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "address": "0x84b1858e0bdd6346db6d0f14b574b9be243cc4da",
+    "signed_tx": "0xf86f01880de0b6b3a764000082520894f4e6e6fa97e10ddc057c94f501b94c1d24ef85aa887ce66c50e28400008029a043e16edbcaf7c066372fc7eb665d1fe04cf254303df142ccf64c332c730bfac5a0794263d33fd9ed8770aeb534f6a9de513366cce278589c6d2623845c6f901b84"
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+
 ```
 
 ### TRANSFER

@@ -209,6 +209,47 @@ Sign data using a given Ethereum account.
 				logical.CreateOperation: b.pathSign,
 			},
 		},
+		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign-tx",
+			HelpSynopsis: "Sign raw transaction data in json format.",
+			HelpDescription: `
+				Sign transaction json data using a given Ethereum account. 
+				Result will be a raw transaction ready for publishing in network.`,
+			Fields: map[string]*framework.FieldSchema{
+				"name": &framework.FieldSchema{Type: framework.TypeString},
+				"nonce": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The nonce for the transaction.",
+				},
+				"address_to": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The address of the account to send ETH to.",
+				},
+				"value": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Value of ETH (in wei).",
+				},
+				"tx_data": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Transaction data in HEX string.",
+					Default:     "0x",
+				},
+				"gas_limit": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The gas limit for the transaction - defaults to 21000.",
+					Default:     "21000",
+				},
+				"gas_price": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The gas price for the transaction in wei.",
+					Default:     "0",
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathSignTx,
+			},
+		},
 	}
 }
 
@@ -689,6 +730,82 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"signature": hexutil.Encode(signature),
+			"address":   account.Address,
+		},
+	}, nil
+}
+
+func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	config, err := b.configured(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	name := data.Get("name").(string)
+	account, err := b.readAccount(ctx, req, name)
+	if err != nil {
+		return nil, fmt.Errorf("error reading account")
+	}
+	if account == nil {
+		return nil, nil
+	}
+
+	// Read tx parameters from json body
+	value := ValidNumber(data.Get("value").(string))
+	if value == nil {
+		return nil, fmt.Errorf("invalid value")
+	}
+
+	chainID := ValidNumber(config.ChainID)
+	if chainID == nil {
+		return nil, fmt.Errorf("invalid chain ID")
+	}
+
+	nonceIn := ValidNumber(data.Get("nonce").(string))
+	if nonceIn == nil {
+		return nil, fmt.Errorf("invalid nonce")
+	}
+	nonce := nonceIn.Uint64()
+
+	gasLimitIn := ValidNumber(data.Get("gas_limit").(string))
+	if gasLimitIn == nil {
+		return nil, fmt.Errorf("invalid gas limit")
+	}
+	gasLimit := gasLimitIn.Uint64()
+
+	gasPrice := ValidNumber(data.Get("gas_price").(string))
+	if gasPrice == nil {
+		return nil, fmt.Errorf("invalid gas price")
+	}
+
+	hexAddress := data.Get("address_to").(string)
+	if !common.IsHexAddress(hexAddress) {
+		return nil, fmt.Errorf("invalid transaction receiver address")
+	}
+	addressTo := common.HexToAddress(data.Get("address_to").(string))
+
+	txData, err := hexutil.Decode(data.Get("tx_data").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	privateKey, err := crypto.HexToECDSA(account.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	defer ZeroKey(privateKey)
+
+	// Create transaction
+	tx := types.NewTransaction(nonce, addressTo, value, gasLimit, gasPrice, txData)
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+
+	// Encode raw transaction and prepare for pushing in network
+	var signedTxBuff bytes.Buffer
+	signedTx.EncodeRLP(&signedTxBuff)
+
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"signed_tx": hexutil.Encode(signedTxBuff.Bytes()),
 			"address":   account.Address,
 		},
 	}, nil
