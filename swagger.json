@@ -28,6 +28,31 @@
   "host": "localhost:8200",
   "basePath": "/v1/ethereum",
   "paths": {
+    "/accounts": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "Handler returning the list of accounts.",
+        "operationId": "pathAccountsList",
+        "parameters": [
+          {
+            "type": "boolean",
+            "default": true,
+            "x-go-name": "List",
+            "description": "So that we can get the list from Vault.  Do not change this.",
+            "name": "list",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/KeyListResponse"
+          }
+        }
+      }
+    },
     "/addresses": {
       "get": {
         "tags": [
@@ -48,10 +73,7 @@
         ],
         "responses": {
           "200": {
-            "description": "AddressesResponse",
-            "schema": {
-              "$ref": "#/definitions/AddressesResponse"
-            }
+            "$ref": "#/responses/KeyListResponse"
           }
         }
       }
@@ -75,10 +97,31 @@
         ],
         "responses": {
           "200": {
-            "description": "AccountNamesResponse",
-            "schema": {
-              "$ref": "#/definitions/AccountNamesResponse"
-            }
+            "$ref": "#/responses/AccountNamesResponse"
+          }
+        }
+      }
+    },
+    "/addresses/{address}/balance": {
+      "get": {
+        "tags": [
+          "Addresses"
+        ],
+        "summary": "Handler returning the balance for an address.",
+        "operationId": "pathAccountBalanceReadByAddress",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Address",
+            "description": "The address to lookup",
+            "name": "address",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/AddressBalanceResponse"
           }
         }
       }
@@ -121,16 +164,120 @@
         ],
         "responses": {
           "200": {
-            "description": "AddressesVerifiedResponse",
+            "$ref": "#/responses/AddressesVerifiedResponse"
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Handler which reads and returns the configuration for the plugin.",
+        "operationId": "pathReadConfig",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ConfigResponse"
+          }
+        }
+      },
+      "put": {
+        "description": "\nNote, an empty body sets the defaults of rinkeby",
+        "tags": [
+          "Config"
+        ],
+        "summary": "Handler which updates the configuration for the plugin.",
+        "operationId": "pathCreateConfig",
+        "parameters": [
+          {
+            "x-go-name": "Data",
+            "description": "The conversion inputs",
+            "name": "data",
+            "in": "body",
+            "required": true,
             "schema": {
-              "$ref": "#/definitions/AddressesVerifiedResponse"
+              "type": "object",
+              "properties": {
+                "api_key": {
+                  "type": "string",
+                  "x-go-name": "ApiKey"
+                },
+                "bound_cidr_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "x-go-name": "BoundCidrList"
+                },
+                "chain_id": {
+                  "type": "string",
+                  "x-go-name": "ChainId"
+                },
+                "rpc_url": {
+                  "type": "string",
+                  "x-go-name": "RpcUrl"
+                }
+              }
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ConfigResponse"
+          }
+        }
+      },
+      "post": {
+        "description": "\nNote, an empty body sets the defaults of rinkeby",
+        "tags": [
+          "Config"
+        ],
+        "summary": "Handler which updates the configuration for the plugin.",
+        "operationId": "pathCreateConfig",
+        "parameters": [
+          {
+            "x-go-name": "Data",
+            "description": "The conversion inputs",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "api_key": {
+                  "type": "string",
+                  "x-go-name": "ApiKey"
+                },
+                "bound_cidr_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "x-go-name": "BoundCidrList"
+                },
+                "chain_id": {
+                  "type": "string",
+                  "x-go-name": "ChainId"
+                },
+                "rpc_url": {
+                  "type": "string",
+                  "x-go-name": "RpcUrl"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ConfigResponse"
           }
         }
       }
     },
     "/convert": {
       "put": {
+        "description": "### This endpoint will convert one Ethereum unit to another.\n\n## Inputs:\n\n Name    | Type     | Required | Description                |\n ------- | -------- | -------- | -------------------------- |\n amount   | string    | true  | Specifies amount to convert. |\n unit_from   | string    | true  | Specifies unit to convert from. |\n unit_to   | string    | true  | Specifies unit to convert to. |",
         "tags": [
           "Convert"
         ],
@@ -164,363 +311,10 @@
         ],
         "responses": {
           "200": {
-            "description": "ConversionResponse",
-            "schema": {
-              "$ref": "#/definitions/ConversionResponse"
-            }
+            "$ref": "#/responses/ConversionResponse"
           }
         }
       }
-    }
-  },
-  "definitions": {
-    "AccountNamesResponse": {
-      "description": "AccountNamesResponse stores the list of addresses",
-      "type": "object",
-      "properties": {
-        "auths": {
-          "type": "string",
-          "x-go-name": "Auth"
-        },
-        "data": {
-          "type": "object",
-          "properties": {
-            "names": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "x-go-name": "Names"
-            }
-          },
-          "x-go-name": "Data"
-        },
-        "lease_duration": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "LeaseDuration"
-        },
-        "lease_id": {
-          "type": "string",
-          "x-go-name": "LeaseId"
-        },
-        "renewable": {
-          "type": "boolean",
-          "x-go-name": "Renewable"
-        },
-        "request_id": {
-          "type": "string",
-          "x-go-name": "RequestId"
-        },
-        "warnings": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Warnings"
-        },
-        "wrap_info": {
-          "type": "string",
-          "x-go-name": "WrapInfo"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "AddressListRequest": {
-      "type": "object",
-      "required": [
-        "list"
-      ],
-      "properties": {
-        "list": {
-          "description": "So that we can get the list from Vault.  Do not change this.\n\nin: query",
-          "type": "boolean",
-          "default": true,
-          "x-go-name": "List"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "AddressRequest": {
-      "type": "object",
-      "required": [
-        "address"
-      ],
-      "properties": {
-        "address": {
-          "description": "The address to lookup\n\nin: path",
-          "type": "string",
-          "x-go-name": "Address"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "AddressVerifyRequest": {
-      "type": "object",
-      "required": [
-        "address",
-        "data"
-      ],
-      "properties": {
-        "address": {
-          "description": "The address to lookup\n\nin: path",
-          "type": "string",
-          "x-go-name": "Address"
-        },
-        "data": {
-          "description": "in: body",
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "string",
-              "x-go-name": "Data"
-            },
-            "signature": {
-              "type": "string",
-              "x-go-name": "Signature"
-            }
-          },
-          "x-go-name": "Data"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "AddressesResponse": {
-      "description": "Addresses stores the names of the account to allow reverse lookup by address",
-      "type": "object",
-      "properties": {
-        "auths": {
-          "type": "string",
-          "x-go-name": "Auth"
-        },
-        "data": {
-          "type": "object",
-          "properties": {
-            "keys": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "x-go-name": "Keys"
-            }
-          },
-          "x-go-name": "Data"
-        },
-        "lease_duration": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "LeaseDuration"
-        },
-        "lease_id": {
-          "type": "string",
-          "x-go-name": "LeaseId"
-        },
-        "renewable": {
-          "type": "boolean",
-          "x-go-name": "Renewable"
-        },
-        "request_id": {
-          "type": "string",
-          "x-go-name": "RequestId"
-        },
-        "warnings": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Warnings"
-        },
-        "wrap_info": {
-          "type": "string",
-          "x-go-name": "WrapInfo"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "AddressesVerifiedResponse": {
-      "description": "Addresses stores the status of an Address verification response",
-      "type": "object",
-      "properties": {
-        "auths": {
-          "type": "string",
-          "x-go-name": "Auth"
-        },
-        "data": {
-          "type": "object",
-          "properties": {
-            "address": {
-              "type": "string",
-              "x-go-name": "Address"
-            },
-            "signature": {
-              "type": "string",
-              "x-go-name": "Signature"
-            },
-            "verified": {
-              "type": "boolean",
-              "x-go-name": "Verified"
-            }
-          },
-          "x-go-name": "Data"
-        },
-        "lease_duration": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "LeaseDuration"
-        },
-        "lease_id": {
-          "type": "string",
-          "x-go-name": "LeaseId"
-        },
-        "renewable": {
-          "type": "boolean",
-          "x-go-name": "Renewable"
-        },
-        "request_id": {
-          "type": "string",
-          "x-go-name": "RequestId"
-        },
-        "warnings": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Warnings"
-        },
-        "wrap_info": {
-          "type": "string",
-          "x-go-name": "WrapInfo"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "BaseStruct": {
-      "description": "BaseStruct stores the names of the account to allow reverse lookup by address",
-      "type": "object",
-      "properties": {
-        "auths": {
-          "type": "string",
-          "x-go-name": "Auth"
-        },
-        "lease_duration": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "LeaseDuration"
-        },
-        "lease_id": {
-          "type": "string",
-          "x-go-name": "LeaseId"
-        },
-        "renewable": {
-          "type": "boolean",
-          "x-go-name": "Renewable"
-        },
-        "request_id": {
-          "type": "string",
-          "x-go-name": "RequestId"
-        },
-        "warnings": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Warnings"
-        },
-        "wrap_info": {
-          "type": "string",
-          "x-go-name": "WrapInfo"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "ConversionRequest": {
-      "type": "object",
-      "required": [
-        "data"
-      ],
-      "properties": {
-        "data": {
-          "description": "The conversion inputs\n\nin: body",
-          "type": "object",
-          "properties": {
-            "amount": {
-              "type": "string",
-              "x-go-name": "AmountIn"
-            },
-            "unit_from": {
-              "type": "string",
-              "x-go-name": "UnitFromIn"
-            },
-            "unit_to": {
-              "type": "string",
-              "x-go-name": "UnitToIn"
-            }
-          },
-          "x-go-name": "Data"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "ConversionResponse": {
-      "description": "Addresses stores the calculated conversion data",
-      "type": "object",
-      "properties": {
-        "auths": {
-          "type": "string",
-          "x-go-name": "Auth"
-        },
-        "data": {
-          "type": "object",
-          "properties": {
-            "amount_from": {
-              "type": "string",
-              "x-go-name": "AmountFrom"
-            },
-            "amount_to": {
-              "type": "string",
-              "x-go-name": "AmountTo"
-            },
-            "unit_from": {
-              "type": "string",
-              "x-go-name": "UnitFrom"
-            },
-            "unit_to": {
-              "type": "string",
-              "x-go-name": "UnitTo"
-            }
-          },
-          "x-go-name": "Data"
-        },
-        "lease_duration": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "LeaseDuration"
-        },
-        "lease_id": {
-          "type": "string",
-          "x-go-name": "LeaseId"
-        },
-        "renewable": {
-          "type": "boolean",
-          "x-go-name": "Renewable"
-        },
-        "request_id": {
-          "type": "string",
-          "x-go-name": "RequestId"
-        },
-        "warnings": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Warnings"
-        },
-        "wrap_info": {
-          "type": "string",
-          "x-go-name": "WrapInfo"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
     }
   },
   "securityDefinitions": {

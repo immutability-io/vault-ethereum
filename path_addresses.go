@@ -131,7 +131,7 @@ func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Re
 // Handler returning the list of addresses.
 //
 // Responses:
-//        200: AddressesResponse
+//        200: KeyListResponse
 func (b *EthereumBackend) pathAddressesList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -192,6 +192,12 @@ func (b *EthereumBackend) pathAddressesVerify(ctx context.Context, req *logical.
 	return b.verifySignature(ctx, req, data, account.Names[0])
 }
 
+// swagger:route  GET /addresses/{address}/balance Addresses pathAccountBalanceReadByAddress
+//
+// Handler returning the balance for an address.
+//
+// Responses:
+//        200: AddressBalanceResponse
 func (b *EthereumBackend) pathAccountBalanceReadByAddress(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	address := data.Get("address").(string)
 

@@ -684,7 +684,7 @@ This endpoint will return the balance for an address.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `POST`  | `:mount-path/addresses/:address/balance`  | `200 application/json` |
+| `GET`  | `:mount-path/addresses/:address/balance`  | `200 application/json` |
 
 #### Parameters
 
@@ -1066,7 +1066,7 @@ This endpoint returns the configuration of a plugin at a mount.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `PUT`  | `:mount-path/config`  | `200 application/json` |
+| `GET`  | `:mount-path/config`  | `200 application/json` |
 
 #### Parameters
 
@@ -1113,7 +1113,7 @@ This endpoint will convert one Ethereum unit to another.
 
 #### Parameters
 
-* `amount_from` (`string: <required>`) - Specifies amount to convert.
+* `amount` (`string: <required>`) - Specifies amount to convert.
 * `unit_from` (`string: <required>`) - Specifies unit to convert from.
 * `unit_to` (`string: <required>`) - Specifies unit to convert to.
 
@@ -1504,7 +1504,7 @@ You must also allow CORS in Vault.  For example:
 # swagger built binary is no good for golang 1.11 so we will build and install it
 go get -u github.com/go-swagger/go-swagger/cmd/swagger
 cd $GOPATH/src/github.com/go-swagger/go-swagger/cmd/swagger \
-    && git checkout 0.16.0 \ # because master is broke
+    && git checkout 0.16.0 \
     && go build \
     && sudo cp swagger /usr/local/bin/swagger \
     && cd -

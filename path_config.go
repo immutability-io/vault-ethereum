@@ -155,6 +155,23 @@ func getDefaultNetwork(chainID string) string {
 	return Local
 }
 
+// swagger:route  POST /config Config pathCreateConfig
+//
+// Handler which creates the configuration for the plugin.
+//
+// ---
+// Note, an empty body sets the defaults of rinkeby
+// Responses:
+//        200: ConfigResponse
+
+// swagger:route  PUT /config Config pathCreateConfig
+//
+// Handler which updates the configuration for the plugin.
+//
+// ---
+// Note, an empty body sets the defaults of rinkeby
+// Responses:
+//        200: ConfigResponse
 func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	rpcURL := data.Get("rpc_url").(string)
 	apiKey := data.Get("api_key").(string)
@@ -192,6 +209,12 @@ func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Req
 	}, nil
 }
 
+// swagger:route  GET /config Config pathReadConfig
+//
+// Handler which reads and returns the configuration for the plugin.
+//
+// Responses:
+//        200: ConfigResponse
 func (b *EthereumBackend) pathReadConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	configBundle, err := b.readConfig(ctx, req.Storage)
 	if err != nil {

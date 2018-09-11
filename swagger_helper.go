@@ -14,7 +14,7 @@
 
 package main
 
-// swagger:parameters pathAddressesRead
+// swagger:parameters pathAddressesRead pathAccountBalanceReadByAddress
 type AddressRequest struct {
 	// The address to lookup
 	//
@@ -23,8 +23,8 @@ type AddressRequest struct {
 	Address string `json:"address"`
 }
 
-// swagger:parameters pathAddressesList
-type AddressListRequest struct {
+// swagger:parameters pathAddressesList pathAccountsList
+type ListRequest struct {
 	// So that we can get the list from Vault.  Do not change this.
 	//
 	// in: query
@@ -50,6 +50,20 @@ type AddressVerifyRequest struct {
 	} `json:"data"`
 }
 
+// swagger:parameters pathCreateConfig
+type ConfigRequest struct {
+	// The conversion inputs
+	//
+	// in: body
+	// required: true
+	Data struct {
+		RpcUrl        string   `json:"rpc_url,omitempty"`
+		ChainId       string   `json:"chain_id,omitempty"`
+		BoundCidrList []string `json:"bound_cidr_list,omitempty"`
+		ApiKey        string   `json:"api_key,omitempty"`
+	} `json:"data"`
+}
+
 // swagger:parameters pathConvertWrite
 type ConversionRequest struct {
 	// The conversion inputs
@@ -65,8 +79,8 @@ type ConversionRequest struct {
 	} `json:"data"`
 }
 
-// BaseStruct stores the names of the account to allow reverse lookup by address
-type BaseStruct struct {
+// BaseResponse stores the names of the account to allow reverse lookup by address
+type BaseResponse struct {
 	RequestId     string   `json:"request_id"`
 	LeaseId       string   `json:"lease_id"`
 	Renewable     bool     `json:"renewable"`
@@ -76,28 +90,36 @@ type BaseStruct struct {
 	Auth          string   `json:"auths"`
 }
 
-// Addresses stores the names of the account to allow reverse lookup by address
-// swagger:model AddressesResponse
-type AddressesResponse struct {
-	BaseStruct
+// Returns a list of keys
+// swagger:model KeyListResponse
+type KeyListResponse struct {
+	BaseResponse
 	Data struct {
 		Keys []string `json:"keys"`
 	} `json:"data"`
 }
 
-// AccountNamesResponse stores the list of addresses
+// swagger:model AddressBalanceResponse
+type AddressBalanceResponse struct {
+	BaseResponse
+	Data struct {
+		Address      string `json:"address"`
+		Balance      string `json:"balance"`
+		BalanceInUsd bool   `json:"balance_in_usd"`
+	}
+}
+
 // swagger:model AccountNamesResponse
 type AccountNamesResponse struct {
-	BaseStruct
+	BaseResponse
 	Data struct {
 		Names []string `json:"names"`
 	} `json:"data"`
 }
 
-// Addresses stores the status of an Address verification response
 // swagger:model AddressesVerifiedResponse
 type AddressesVerifiedResponse struct {
-	BaseStruct
+	BaseResponse
 	Data struct {
 		Address   string `json:"address"`
 		Signature string `json:"signature"`
@@ -105,10 +127,20 @@ type AddressesVerifiedResponse struct {
 	} `json:"data"`
 }
 
-// Addresses stores the calculated conversion data
+// swagger:model ConfigResponse
+type ConfigResponse struct {
+	BaseResponse
+	Data struct {
+		ApiKey        string   `json:"api_key"`
+		BoundCidrList []string `json:"bound_cidr_list"`
+		ChainId       string   `json:"chain_id"`
+		RpcUrl        string   `json:"rpc_url"`
+	} `json:"data"`
+}
+
 // swagger:model ConversionResponse
 type ConversionResponse struct {
-	BaseStruct
+	BaseResponse
 	Data struct {
 		AmountFrom string `json:"amount_from"`
 		AmountTo   string `json:"amount_to"`

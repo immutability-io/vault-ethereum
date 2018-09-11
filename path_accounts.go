@@ -202,6 +202,12 @@ Sign data using a given Ethereum account.
 	}
 }
 
+// swagger:route  GET /accounts Accounts pathAccountsList
+//
+// Handler returning the list of accounts.
+//
+// Responses:
+//        200: KeyListResponse
 func (b *EthereumBackend) pathAccountsList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	vals, err := req.Storage.List(ctx, "accounts/")
 	if err != nil {
