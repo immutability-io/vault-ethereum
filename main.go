@@ -20,7 +20,7 @@
 //
 //     Schemes: https
 //     Host: localhost:8200
-//     BasePath: /v1/ethereum
+//     BasePath: /v1
 //     Version: 0.0.1
 //     License: Apache2 https://opensource.org/licenses/Apache-2.0
 //     Contact: Jeff Ploughman<jeff@immutability.io> https://immutability.io

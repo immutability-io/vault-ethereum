@@ -75,7 +75,7 @@ func configPaths(b *EthereumBackend) []*framework.Path {
 			Pattern: "config",
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.CreateOperation: b.pathCreateConfig,
-				logical.UpdateOperation: b.pathCreateConfig,
+				logical.UpdateOperation: b.pathUpdateConfig,
 				logical.ReadOperation:   b.pathReadConfig,
 			},
 			HelpSynopsis: "Configure the trustee plugin.",
@@ -155,21 +155,24 @@ func getDefaultNetwork(chainID string) string {
 	return Local
 }
 
-// swagger:route  POST /config Config pathCreateConfig
+// swagger:route  POST /{mount-path}/config  Config pathCreateConfig
 //
 // Handler which creates the configuration for the plugin.
 //
-// ---
-// Note, an empty body sets the defaults of rinkeby
-// Responses:
-//        200: ConfigResponse
-
-// swagger:route  PUT /config Config pathCreateConfig
+// ### This endpoint configures the plugin at a mount.
 //
-// Handler which updates the configuration for the plugin.
-//
-// ---
 // Note, an empty body sets the defaults of rinkeby
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
+// | rpc_url   | string    | false  | https://rinkeby.infura.io | Specifies the RPC URL of the Ethereum node. |
+// | chain_id   | string    | false  | 4 |  Specifies the Ethereum network. Defaults to Rinkeby. |
+// | bound_cidr_list   | string    | false  | | Comma delimited list of allowed CIDR blocks. |
+// | api_key   | string    | false  | | The Infura API key. |
+//
 // Responses:
 //        200: ConfigResponse
 func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -209,9 +212,43 @@ func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Req
 	}, nil
 }
 
-// swagger:route  GET /config Config pathReadConfig
+// swagger:route  PUT /{mount-path}/config  Config pathUpdateConfig
+//
+// Handler which updates the configuration for the plugin.
+//
+// ### This endpoint configures the plugin at a mount.
+//
+// Note, an empty body sets the defaults of rinkeby
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
+// | rpc_url   | string    | false  | https://rinkeby.infura.io | Specifies the RPC URL of the Ethereum node. |
+// | chain_id   | string    | false  | 4 |  Specifies the Ethereum network. Defaults to Rinkeby. |
+// | bound_cidr_list   | string    | false  | | Comma delimited list of allowed CIDR blocks. |
+// | api_key   | string    | false  | | The Infura API key. |
+//
+// Responses:
+//        200: ConfigResponse
+func (b *EthereumBackend) pathUpdateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	return b.pathCreateConfig(ctx, req, data)
+}
+
+// swagger:route  GET /{mount-path}/config Config pathReadConfig
 //
 // Handler which reads and returns the configuration for the plugin.
+//
+// ### This endpoint returns the configuration of a plugin at a mount.
+//
+// Note, an empty body sets the defaults of rinkeby
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
 //
 // Responses:
 //        200: ConfigResponse

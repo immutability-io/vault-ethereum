@@ -14,6 +14,15 @@
 
 package main
 
+// swagger:parameters pathCreateConfig pathUpdateConfig pathReadConfig pathConvertWrite
+type MountPath struct {
+	// The endpoint configured for the plugin mount
+	//
+	// in: path
+	// required: true
+	MountPath string `json:"mount-path"`
+}
+
 // swagger:parameters pathAddressesRead pathAccountBalanceReadByAddress
 type AddressRequest struct {
 	// The address to lookup
@@ -50,7 +59,7 @@ type AddressVerifyRequest struct {
 	} `json:"data"`
 }
 
-// swagger:parameters pathCreateConfig
+// swagger:parameters pathCreateConfig pathUpdateConfig
 type ConfigRequest struct {
 	// The conversion inputs
 	//
