@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PLUGIN_VERSION="0.2.1"
-VAULT_VERSION="0.11.0"
+VAULT_VERSION="0.11.1"
 
 function print_help {
     echo "Usage: bash install_vault.sh OPTIONS"
@@ -116,7 +116,7 @@ function grab_hashitool {
     exit 2
   fi
   unzip ./$1.zip
-  mv ./$1 /usr/local/bin/$1
+  sudo mv ./$1 /usr/local/bin/$1
   rm ./$1_$2_SHA256SUMS.sig
   rm ./$1_$2_SHA256SUMS
   rm ./$1.zip
