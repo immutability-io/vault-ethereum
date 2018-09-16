@@ -141,18 +141,18 @@ $ ./config_plugin.sh cypherhat
 Message authored by cypherhat
 ADDING TO CATALOG: sys/plugins/catalog/ethereum-plugin
 Success! Data written to: sys/plugins/catalog/ethereum-plugin
-MOUNTING: ethereum/mainnet
-Success! Enabled the ethereum-plugin plugin at: ethereum/mainnet/
-MOUNTING: ethereum/rinkeby
-Success! Enabled the ethereum-plugin plugin at: ethereum/rinkeby/
-CONFIGURE: ethereum/mainnet
+MOUNTING: ethereum/prod
+Success! Enabled the ethereum-plugin plugin at: ethereum/prod/
+MOUNTING: ethereum/dev
+Success! Enabled the ethereum-plugin plugin at: ethereum/dev/
+CONFIGURE: ethereum/prod
 Key                Value
 ---                -----
 api_key            n/a
 bound_cidr_list    <nil>
 chain_id           1
 rpc_url            https://mainnet.infura.io
-CONFIGURE: ethereum/rinkeby
+CONFIGURE: ethereum/dev
 Key                Value
 ---                -----
 api_key            n/a
@@ -163,8 +163,13 @@ rpc_url            https://rinkeby.infura.io
 
 This will mount the plugin at 2 paths:
 
-- [x] - `ethereum/mainnet/` which points to the live mainnet (using the Infura endpoint)
-- [x] - `ethereum/rinkeby/` which points to the Rinkeby testnet (using the Infura endpoint)
+- [x] - `ethereum/prod/` which points to the live mainnet (using the Infura endpoint)
+- [x] - `ethereum/dev/` which points to the Rinkeby testnet (using the Infura endpoint)
+
+We are configuring vault and the plugin to effect this deployment model:
+
+![Vault Deployment Model](../docs/deployment.png?raw=true "One Vault 2 Ethereum Networks")
+
 
 ## Using the plugin
 
@@ -179,7 +184,7 @@ VAULT_CACERT=/Users/cypherhat/etc/vault.d/root.crt
 You can play with the plugin before you authenticate using the unauthenticated paths. For example, you can convert units of ethereum:
 
 ```
-$ vault write -format=json ethereum/mainnet/convert amount=12 unit_to=babbage unit_from=wei | jq .data
+$ vault write -format=json ethereum/prod/convert amount=12 unit_to=babbage unit_from=wei | jq .data
 {
   "amount_from": "12",
   "amount_to": "0.000012",
@@ -192,10 +197,10 @@ $ vault write -format=json ethereum/mainnet/convert amount=12 unit_to=babbage un
 However if you want to access features that will use private keys, you still have to authenticate to Vault. 
 
 ```
-$ vault write -f -format=json ethereum/rinkeby/accounts/muchwow | jq .data
-Error writing data to ethereum/rinkeby/accounts/muchwow: Error making API request.
+$ vault write -f -format=json ethereum/dev/accounts/muchwow | jq .data
+Error writing data to ethereum/dev/accounts/muchwow: Error making API request.
 
-URL: PUT https://localhost:8200/v1/ethereum/rinkeby/accounts/muchwow
+URL: PUT https://localhost:8200/v1/ethereum/dev/accounts/muchwow
 Code: 400. Errors:
 
 * missing client token
@@ -211,7 +216,7 @@ Message authored by cypherhat
 Now you can create accounts:
 
 ```
-$ vault write -f -format=json ethereum/rinkeby/accounts/muchwow | jq .data
+$ vault write -f -format=json ethereum/dev/accounts/muchwow | jq .data
 {
   "address": "0xd90b08955547e97e325a17ae223f3f482e9e0a37",
   "blacklist": null,
