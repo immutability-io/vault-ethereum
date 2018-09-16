@@ -212,7 +212,7 @@ Sign data using a given Ethereum account.
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the accounts to list. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 //
 // Responses:
 //        200: KeyListResponse
@@ -234,7 +234,7 @@ func (b *EthereumBackend) pathAccountsList(ctx context.Context, req *logical.Req
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account to delete. This is specified as part of the URL. |
 //
 // Responses:
@@ -289,7 +289,7 @@ func (b *EthereumBackend) readAccount(ctx context.Context, req *logical.Request,
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account to read. This is specified as part of the URL. |
 //
 // Responses:
@@ -335,7 +335,7 @@ func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Req
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |
 // | spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |
 // | spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |
@@ -432,7 +432,7 @@ func (b *EthereumBackend) pathAccountsCreate(ctx context.Context, req *logical.R
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account to update. This is specified as part of the URL. |
 // | spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |
 // | spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |
@@ -604,7 +604,7 @@ func (b *EthereumBackend) verifySignature(ctx context.Context, req *logical.Requ
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | specifies the name of the account to use for signing. This is specified as part of the URL. |
 // | data   | false    | true  | | Some data. |
 // | signature   | false    | true  | | The signature to verify. |
@@ -644,7 +644,7 @@ func ValidNumber(input string) *big.Int {
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account to use for the debit. This is specified as part of the URL. |
 // | address_to   | false    | true  | | A Hex string specifying the Ethereum address to send the ETH to. |
 // | amount   | false    | true  | | The amount of ether - in wei. |
@@ -770,7 +770,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account to use for signing. This is specified as part of the URL. |
 // | data   | false    | true  | | Some data. |
 //
@@ -823,7 +823,7 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
 //
 // Responses:

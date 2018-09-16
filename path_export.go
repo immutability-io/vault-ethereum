@@ -209,7 +209,7 @@ func writeKeyFile(file string, content []byte) error {
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
 // | path   | string    | true  | | The directory where the JSON keystore file will be exported to. |
 //

@@ -111,7 +111,7 @@ func (b *EthereumBackend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpt
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
 // | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
 // | transaction_data   | string    | true  | | The compiled Ethereum contract. |
@@ -256,7 +256,7 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
 // | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
 //
@@ -321,7 +321,7 @@ func (b *EthereumBackend) pathReadContract(ctx context.Context, req *logical.Req
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
 // | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
 //

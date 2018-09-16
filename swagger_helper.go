@@ -14,8 +14,8 @@
 
 package main
 
-// swagger:parameters pathCreateConfig pathUpdateConfig pathReadConfig pathConvertWrite pathAddressesRead pathAddressesList pathAddressesVerify pathAccountBalanceReadByAddress pathAccountsList pathAccountsDelete pathAccountsRead pathAccountsCreate pathAccountUpdate pathVerify pathDebit pathContractsList pathTransfer pathSign pathCreateContract pathReadContract pathContractsDelete pathBlockRead pathBlockTransactionsList pathExportCreate
-type MountPath struct {
+// swagger:parameters pathCreateConfig pathUpdateConfig pathReadConfig pathConvertWrite pathAddressesRead pathAddressesList pathAddressesVerify pathAccountBalanceReadByAddress pathAccountsList pathAccountsDelete pathAccountsRead pathAccountsCreate pathAccountUpdate pathVerify pathDebit pathContractsList pathTransfer pathSign pathCreateContract pathReadContract pathContractsDelete pathBlockRead pathBlockTransactionsList pathExportCreate pathImportCreate pathNamesList pathNamesRead pathNamesVerify pathTransactionRead
+type MountPathParam struct {
 	// The endpoint configured for the plugin mount
 	//
 	// in: path
@@ -23,7 +23,7 @@ type MountPath struct {
 	MountPath string `json:"mount-path"`
 }
 
-// swagger:parameters pathAccountsDelete pathAccountsRead pathAccountsCreate pathAccountUpdate pathVerify pathDebit pathContractsList pathTransfer pathSign pathCreateContract pathReadContract pathContractsDelete pathExportCreate
+// swagger:parameters pathAccountsDelete pathAccountsRead pathAccountsCreate pathAccountUpdate pathVerify pathDebit pathContractsList pathTransfer pathSign pathCreateContract pathReadContract pathContractsDelete pathExportCreate pathImportCreate pathNamesRead pathNamesVerify
 type AccountNameParam struct {
 	// The account name
 	//
@@ -49,7 +49,7 @@ type AccountRequest struct {
 }
 
 // swagger:parameters pathAddressesRead pathAccountBalanceReadByAddress pathAddressesVerify
-type AddressRequest struct {
+type AddressParam struct {
 	// The address to lookup
 	//
 	// in: path
@@ -77,7 +77,7 @@ type ContractNameParam struct {
 }
 
 // swagger:parameters pathExportCreate
-type ExportPathParam struct {
+type ExportRequest struct {
 	// The path to export to
 	//
 	// in: body
@@ -89,7 +89,21 @@ type ExportPathParam struct {
 	} `json:"data"`
 }
 
-// swagger:parameters pathAddressesList pathAccountsList pathContractsList
+// swagger:parameters pathImportCreate
+type ImportRequest struct {
+	// The data to import from
+	//
+	// in: body
+	// required: true
+	// schema:
+	//	 type: string
+	Data struct {
+		ImportPath               string `json:"path"`
+		ImportPassphrase               string `json:"passphrase"`
+	} `json:"data"`
+}
+
+// swagger:parameters pathAddressesList pathAccountsList pathContractsList pathNamesList
 type ListRequest struct {
 	// So that we can get the list from Vault.  Do not change this.
 	//
@@ -97,18 +111,6 @@ type ListRequest struct {
 	// required: true
 	// default: true
 	List bool `json:"list"`
-}
-
-// swagger:parameters pathAddressesVerify
-type AddressVerifyRequest struct {
-	// in: body
-	// required: true
-	// schema:
-	//	 type: string
-	Data struct {
-		Data      string `json:"data"`
-		Signature string `json:"signature"`
-	} `json:"data"`
 }
 
 // swagger:parameters pathCreateConfig pathUpdateConfig
@@ -172,6 +174,26 @@ type DebitRequest struct {
 	} `json:"data"`
 }
 
+// swagger:parameters pathAddressesVerify pathTransactionRead
+type TransactionHashParam struct {
+	// in: path
+	// required: true
+	TransactionHash string `json:"transaction_hash"`
+}
+
+// swagger:parameters pathAddressesVerify pathNamesVerify
+type VerifyRequest struct {
+	// in: body
+	// required: true
+	// schema:
+	//	 type: string
+	Data struct {
+		Data      string `json:"data"`
+		Signature string `json:"signature"`
+	} `json:"data"`
+}
+
+
 // BaseResponse stores the names of the account to allow reverse lookup by address
 type BaseResponse struct {
 	RequestId     string   `json:"request_id"`
@@ -190,6 +212,14 @@ type KeyListResponse struct {
 	Data struct {
 		Keys []string `json:"keys"`
 	} `json:"data"`
+}
+
+// swagger:model AddressListResponse
+type AddressListResponse struct {
+	BaseResponse
+	Data struct {
+		Address      []string `json:"address"`
+	}
 }
 
 // swagger:model AccountResponse
@@ -312,6 +342,22 @@ type SignedResponse struct {
 	Data struct {
 		Address   string `json:"address"`
 		Signature string `json:"signature"`
+	} `json:"data"`
+}
+
+// swagger:model TransactionResponse
+type TransactionResponse struct {
+	BaseResponse
+	Data struct {
+		AddressFrom   string `json:"address_from"`
+		AddressTo   string `json:"address_to"`
+		Gas   string `json:"gas"`
+		GasPrice   string `json:"gas_price"`
+		Nonce   int `json:"nonce"`
+		Pending   bool `json:"pending"`
+		ReceiptStatus   string `json:"receipt_status"`
+		TransactionHash   string `json:"transaction_hash"`
+		Value   string `json:"value"`
 	} `json:"data"`
 }
 

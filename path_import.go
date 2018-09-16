@@ -105,6 +105,24 @@ func (b *EthereumBackend) importJSONKeystore(ctx context.Context, keystorePath s
 	return key.PrivateKey, err
 }
 
+// swagger:route  POST /{mount-path}/import/{name} Import pathImportCreate
+//
+// Handler imports from a JSON Keystore and passphrase
+//
+// ###
+//This endpoint will import a JSON Keystore and passphrase into Vault at a path. It will create an account and map it to the `mount-path`/accounts/`name`. If an account already exists for this name, the operation fails.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
+// | name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |
+// | path   | string    | true  | | The path of the JSON keystore file. |
+// | passphrase   | string    | true  | | The passphrase that was used to encrypt the keystore. |
+//
+// Responses:
+//        200: AccountResponse
 func (b *EthereumBackend) pathImportCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

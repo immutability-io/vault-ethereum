@@ -30,7 +30,7 @@
   "paths": {
     "/{mount-path}/accounts": {
       "get": {
-        "description": "### This endpoint will list all accounts stores at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the accounts to list. This is specified as part of the URL. |",
+        "description": "### This endpoint will list all accounts stores at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |",
         "tags": [
           "Accounts"
         ],
@@ -67,7 +67,7 @@
     },
     "/{mount-path}/accounts/{name}": {
       "get": {
-        "description": "### This endpoint will list details about the Ethereum account at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account to read. This is specified as part of the URL. |",
+        "description": "### This endpoint will list details about the Ethereum account at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to read. This is specified as part of the URL. |",
         "tags": [
           "Accounts"
         ],
@@ -101,7 +101,7 @@
         }
       },
       "put": {
-        "description": "### This endpoint will update an account's constraints.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account to update. This is specified as part of the URL. |\n spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |\n spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |\n whitelist   | string    | false  | | Comma delimited list of allowed accounts. |\n blacklist   | string    | false  | | Comma delimited list of disallowed accounts. Note: `blacklist` overrides whitelist. |",
+        "description": "### This endpoint will update an account's constraints.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to update. This is specified as part of the URL. |\n spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |\n spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |\n whitelist   | string    | false  | | Comma delimited list of allowed accounts. |\n blacklist   | string    | false  | | Comma delimited list of disallowed accounts. Note: `blacklist` overrides whitelist. |",
         "tags": [
           "Accounts"
         ],
@@ -135,7 +135,7 @@
         }
       },
       "post": {
-        "description": "### This endpoint will create an Ethereum account at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |\n spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |\n spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |\n whitelist   | string    | false  | | Comma delimited list of allowed accounts. |\n blacklist   | string    | false  | | Comma delimited list of disallowed accounts. Note: `blacklist` overrides whitelist. |",
+        "description": "### This endpoint will create an Ethereum account at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |\n spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |\n spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |\n whitelist   | string    | false  | | Comma delimited list of allowed accounts. |\n blacklist   | string    | false  | | Comma delimited list of disallowed accounts. Note: `blacklist` overrides whitelist. |",
         "tags": [
           "Accounts"
         ],
@@ -196,7 +196,7 @@
         }
       },
       "delete": {
-        "description": "### This endpoint will delete the account - and its passphrase - from Vault.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account to delete. This is specified as part of the URL. |",
+        "description": "### This endpoint will delete the account - and its passphrase - from Vault.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to delete. This is specified as part of the URL. |",
         "tags": [
           "Accounts"
         ],
@@ -229,7 +229,7 @@
     },
     "/{mount-path}/accounts/{name}/contracts": {
       "get": {
-        "description": "### This endpoint will list all accounts stores at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |",
+        "description": "### This endpoint will list all accounts stores at a path.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |",
         "tags": [
           "Contracts"
         ],
@@ -274,7 +274,7 @@
     },
     "/{mount-path}/accounts/{name}/contracts/{contract-name}": {
       "post": {
-        "description": "### This endpoint will sign a provided Ethereum contract.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |",
+        "description": "### This endpoint will sign a provided Ethereum contract.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |",
         "tags": [
           "Contracts"
         ],
@@ -316,7 +316,7 @@
         }
       },
       "delete": {
-        "description": "### This endpoint will delete a provided Ethereum contract?  NOT DOCUMENTED IN API.MD!!!!1one!!!ONE111!!\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |",
+        "description": "### This endpoint will delete a provided Ethereum contract?  NOT DOCUMENTED IN API.MD!!!!1one!!!ONE111!!\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |",
         "tags": [
           "Contracts"
         ],
@@ -357,7 +357,7 @@
     },
     "/{mount-path}/accounts/{name}/debit": {
       "post": {
-        "description": "### This endpoint will debit an Ethereum account.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account to use for the debit. This is specified as part of the URL. |\n address_to   | false    | true  | | A Hex string specifying the Ethereum address to send the ETH to. |\n amount   | false    | true  | | The amount of ether - in wei. |\n gas_price   | false    | false  | | - The price in gas for the transaction. If omitted, we will use the suggested gas price. |\n gas_limit   | false    | false  | | The gas limit for the transaction. If omitted, we will estimate the gas limit.. |",
+        "description": "### This endpoint will debit an Ethereum account.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to use for the debit. This is specified as part of the URL. |\n address_to   | false    | true  | | A Hex string specifying the Ethereum address to send the ETH to. |\n amount   | false    | true  | | The amount of ether - in wei. |\n gas_price   | false    | false  | | - The price in gas for the transaction. If omitted, we will use the suggested gas price. |\n gas_limit   | false    | false  | | The gas limit for the transaction. If omitted, we will estimate the gas limit.. |",
         "tags": [
           "Accounts"
         ],
@@ -424,7 +424,7 @@
     },
     "/{mount-path}/accounts/{name}/export": {
       "post": {
-        "description": "### This endpoint will export a JSON Keystore for use in another wallet.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n path   | string    | true  | | The directory where the JSON keystore file will be exported to. |",
+        "description": "### This endpoint will export a JSON Keystore for use in another wallet.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n path   | string    | true  | | The directory where the JSON keystore file will be exported to. |",
         "tags": [
           "Export"
         ],
@@ -476,7 +476,7 @@
     },
     "/{mount-path}/accounts/{name}/sign": {
       "post": {
-        "description": "### This endpoint will sign the provided data.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | Specifies the name of the account to use for signing. This is specified as part of the URL. |\n data   | false    | true  | | Some data. |",
+        "description": "### This endpoint will sign the provided data.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to use for signing. This is specified as part of the URL. |\n data   | false    | true  | | Some data. |",
         "tags": [
           "Accounts"
         ],
@@ -545,7 +545,7 @@
     },
     "/{mount-path}/accounts/{name}/verify": {
       "post": {
-        "description": "### This endpoint will verify that this account signed some data.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |\n name   | string    | true  | | specifies the name of the account to use for signing. This is specified as part of the URL. |\n data   | false    | true  | | Some data. |\n signature   | false    | true  | | The signature to verify. |",
+        "description": "### This endpoint will verify that this account signed some data.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | specifies the name of the account to use for signing. This is specified as part of the URL. |\n data   | false    | true  | | Some data. |\n signature   | false    | true  | | The signature to verify. |",
         "tags": [
           "Accounts"
         ],
@@ -710,6 +710,13 @@
             "x-go-name": "Address",
             "description": "The address to lookup",
             "name": "address",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "TransactionHash",
+            "name": "transaction_hash",
             "in": "path",
             "required": true
           },
@@ -1008,6 +1015,225 @@
           }
         }
       }
+    },
+    "/{mount-path}/import/{name}": {
+      "post": {
+        "description": "###\nThis endpoint will import a JSON Keystore and passphrase into Vault at a path. It will create an account and map it to the `mount-path`/accounts/`name`. If an account already exists for this name, the operation fails.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |\n path   | string    | true  | | The path of the JSON keystore file. |\n passphrase   | string    | true  | | The passphrase that was used to encrypt the keystore. |",
+        "tags": [
+          "Import"
+        ],
+        "summary": "Handler imports from a JSON Keystore and passphrase",
+        "operationId": "pathImportCreate",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "AccountName",
+            "description": "The account name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "description": "The data to import from",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "passphrase": {
+                  "type": "string",
+                  "x-go-name": "ImportPassphrase"
+                },
+                "path": {
+                  "type": "string",
+                  "x-go-name": "ImportPath"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AccountResponse",
+            "schema": {
+              "$ref": "#/definitions/AccountResponse"
+            }
+          }
+        }
+      }
+    },
+    "/{mount-path}/names": {
+      "get": {
+        "description": "### This endpoint will list all account names.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |",
+        "tags": [
+          "Names"
+        ],
+        "summary": "Handler returning the list of account names.",
+        "operationId": "pathNamesList",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "default": true,
+            "x-go-name": "List",
+            "description": "So that we can get the list from Vault.  Do not change this.",
+            "name": "list",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "KeyListResponse",
+            "schema": {
+              "$ref": "#/definitions/KeyListResponse"
+            }
+          }
+        }
+      }
+    },
+    "/{mount-path}/names/{name}": {
+      "get": {
+        "description": "### This endpoint will list the addresses associated with a named account.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | Specifies the name of the account to read. This is specified as part of the URL. |",
+        "tags": [
+          "Names"
+        ],
+        "summary": "Handler returning the list of addresses associated with a named account",
+        "operationId": "pathNamesRead",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "AccountName",
+            "description": "The account name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AddressListResponse",
+            "schema": {
+              "$ref": "#/definitions/AddressListResponse"
+            }
+          }
+        }
+      }
+    },
+    "/{mount-path}/names/{name}/verify": {
+      "get": {
+        "description": "### This endpoint will list all account names.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | Specifies the name of the account to read. This is specified as part of the URL. |\n data   | string    | true  | Some data. |\n signature   | string    | true  | The signature to verify. |",
+        "tags": [
+          "Names"
+        ],
+        "summary": "Handler returning the list of account names.",
+        "operationId": "pathNamesVerify",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "AccountName",
+            "description": "The account name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "x-go-name": "Data"
+                },
+                "signature": {
+                  "type": "string",
+                  "x-go-name": "Signature"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "VerifiedResponse",
+            "schema": {
+              "$ref": "#/definitions/VerifiedResponse"
+            }
+          }
+        }
+      }
+    },
+    "/{mount-path}/transaction/{transaction_hash}": {
+      "get": {
+        "description": "### This endpoint will read details associated with a transaction hash.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n transaction_hash   | string    | true  | Specifies the transaction hash to read. This is specified as part of the URL. |",
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Handler returning details associated with a transaction hash",
+        "operationId": "pathTransactionRead",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "TransactionHash",
+            "name": "transaction_hash",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TransactionResponse",
+            "schema": {
+              "$ref": "#/definitions/TransactionResponse"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -1238,7 +1464,57 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
-    "AddressRequest": {
+    "AddressListResponse": {
+      "type": "object",
+      "properties": {
+        "Data": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "x-go-name": "Address"
+            }
+          }
+        },
+        "auths": {
+          "type": "string",
+          "x-go-name": "Auth"
+        },
+        "lease_duration": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LeaseDuration"
+        },
+        "lease_id": {
+          "type": "string",
+          "x-go-name": "LeaseId"
+        },
+        "renewable": {
+          "type": "boolean",
+          "x-go-name": "Renewable"
+        },
+        "request_id": {
+          "type": "string",
+          "x-go-name": "RequestId"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Warnings"
+        },
+        "wrap_info": {
+          "type": "string",
+          "x-go-name": "WrapInfo"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
+    "AddressParam": {
       "type": "object",
       "required": [
         "address"
@@ -1248,30 +1524,6 @@
           "description": "The address to lookup\n\nin: path",
           "type": "string",
           "x-go-name": "Address"
-        }
-      },
-      "x-go-package": "github.com/zambien/vault-ethereum"
-    },
-    "AddressVerifyRequest": {
-      "type": "object",
-      "required": [
-        "data"
-      ],
-      "properties": {
-        "data": {
-          "description": "in: body",
-          "type": "object",
-          "properties": {
-            "data": {
-              "type": "string",
-              "x-go-name": "Data"
-            },
-            "signature": {
-              "type": "string",
-              "x-go-name": "Signature"
-            }
-          },
-          "x-go-name": "Data"
         }
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
@@ -1846,7 +2098,7 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
-    "ExportPathParam": {
+    "ExportRequest": {
       "type": "object",
       "required": [
         "data"
@@ -1918,6 +2170,30 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
+    "ImportRequest": {
+      "type": "object",
+      "required": [
+        "data"
+      ],
+      "properties": {
+        "data": {
+          "description": "The data to import from\n\nin: body",
+          "type": "object",
+          "properties": {
+            "passphrase": {
+              "type": "string",
+              "x-go-name": "ImportPassphrase"
+            },
+            "path": {
+              "type": "string",
+              "x-go-name": "ImportPath"
+            }
+          },
+          "x-go-name": "Data"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
     "KeyListResponse": {
       "description": "Returns a list of keys",
       "type": "object",
@@ -1985,7 +2261,7 @@
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
     },
-    "MountPath": {
+    "MountPathParam": {
       "type": "object",
       "required": [
         "mount-path"
@@ -2016,6 +2292,101 @@
             "signature": {
               "type": "string",
               "x-go-name": "Signature"
+            }
+          },
+          "x-go-name": "Data"
+        },
+        "lease_duration": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LeaseDuration"
+        },
+        "lease_id": {
+          "type": "string",
+          "x-go-name": "LeaseId"
+        },
+        "renewable": {
+          "type": "boolean",
+          "x-go-name": "Renewable"
+        },
+        "request_id": {
+          "type": "string",
+          "x-go-name": "RequestId"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Warnings"
+        },
+        "wrap_info": {
+          "type": "string",
+          "x-go-name": "WrapInfo"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
+    "TransactionHashParam": {
+      "type": "object",
+      "required": [
+        "transaction_hash"
+      ],
+      "properties": {
+        "transaction_hash": {
+          "description": "in: path",
+          "type": "string",
+          "x-go-name": "TransactionHash"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
+    "TransactionResponse": {
+      "type": "object",
+      "properties": {
+        "auths": {
+          "type": "string",
+          "x-go-name": "Auth"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "address_from": {
+              "type": "string",
+              "x-go-name": "AddressFrom"
+            },
+            "address_to": {
+              "type": "string",
+              "x-go-name": "AddressTo"
+            },
+            "gas": {
+              "type": "string",
+              "x-go-name": "Gas"
+            },
+            "gas_price": {
+              "type": "string",
+              "x-go-name": "GasPrice"
+            },
+            "nonce": {
+              "type": "integer",
+              "format": "int64",
+              "x-go-name": "Nonce"
+            },
+            "pending": {
+              "type": "boolean",
+              "x-go-name": "Pending"
+            },
+            "receipt_status": {
+              "type": "string",
+              "x-go-name": "ReceiptStatus"
+            },
+            "transaction_hash": {
+              "type": "string",
+              "x-go-name": "TransactionHash"
+            },
+            "value": {
+              "type": "string",
+              "x-go-name": "Value"
             }
           },
           "x-go-name": "Data"
@@ -2103,6 +2474,30 @@
         "wrap_info": {
           "type": "string",
           "x-go-name": "WrapInfo"
+        }
+      },
+      "x-go-package": "github.com/zambien/vault-ethereum"
+    },
+    "VerifyRequest": {
+      "type": "object",
+      "required": [
+        "data"
+      ],
+      "properties": {
+        "data": {
+          "description": "in: body",
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "string",
+              "x-go-name": "Data"
+            },
+            "signature": {
+              "type": "string",
+              "x-go-name": "Signature"
+            }
+          },
+          "x-go-name": "Data"
         }
       },
       "x-go-package": "github.com/zambien/vault-ethereum"
