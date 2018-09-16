@@ -101,6 +101,27 @@ func (b *EthereumBackend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpt
 	}
 }
 
+// swagger:route  POST /{mount-path}/accounts/{name}/contracts/{contract-name} Contracts pathCreateContract
+//
+// Handler signs a provided Ethereum contract.
+//
+// ### This endpoint will sign a provided Ethereum contract.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
+// | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
+// | transaction_data   | string    | true  | | The compiled Ethereum contract. |
+// | amount   | string    | true  | |  The amount of ether in wei to fund the contract with. |
+// | nonce   | string    | false  | 1 | The nonce for the transaction |
+// | gas_price   | string    | true  | | The price in gas for the transaction in wei. |
+// | gas_limit   | string    | true  | | The gas limit for the transaction. |
+//
+// Responses:
+//        200: ContractResponse
 func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {
@@ -225,6 +246,22 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 
 }
 
+// swagger:route  POST /{mount-path}/accounts/{name}/contracts/{contract-name} Contracts pathReadContract
+//
+// Handler signs a provided Ethereum contract.
+//
+// ### This endpoint will sign a provided Ethereum contract.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
+// | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
+//
+// Responses:
+//        200: ContractResponse
 func (b *EthereumBackend) pathReadContract(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {
@@ -274,6 +311,22 @@ func (b *EthereumBackend) pathReadContract(ctx context.Context, req *logical.Req
 	}, nil
 }
 
+// swagger:route  DELETE /{mount-path}/accounts/{name}/contracts/{contract-name} Contracts pathContractsDelete
+//
+// Handler deletes a provided Ethereum contract?  NOT DOCUMENTED IN API.MD!!!!1one!!!ONE111!!
+//
+// ### This endpoint will delete a provided Ethereum contract?  NOT DOCUMENTED IN API.MD!!!!1one!!!ONE111!!
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
+// | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
+//
+// Responses:
+//        200: {}
 func (b *EthereumBackend) pathContractsDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

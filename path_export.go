@@ -199,6 +199,22 @@ func writeKeyFile(file string, content []byte) error {
 	return os.Rename(f.Name(), file)
 }
 
+// swagger:route  POST /{mount-path}/accounts/{name}/export Export pathExportCreate
+//
+// Handler exports a JSON Keystore for use in another wallet
+//
+// ### This endpoint will export a JSON Keystore for use in another wallet.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
+// | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
+// | path   | string    | true  | | The directory where the JSON keystore file will be exported to. |
+//
+// Responses:
+//        200: ExportResponse
 func (b *EthereumBackend) pathExportCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

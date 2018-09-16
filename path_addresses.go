@@ -96,9 +96,18 @@ func addressesPaths(b *EthereumBackend) []*framework.Path {
 	}
 }
 
-// swagger:route GET /addresses/{address} Addresses pathAddressesRead
+// swagger:route GET /{mount-path}/addresses/{address} Addresses pathAddressesRead
 //
 // Handler returning Account Names for an Address.
+//
+// ### This endpoint will list the names associated with an address.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
+// | address   | string    | true  | | Specifies the address of the account to read. This is specified as part of the URL. |
 //
 // Responses:
 //        200: AccountNamesResponse
@@ -126,9 +135,17 @@ func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Re
 	}, nil
 }
 
-// swagger:route  GET /addresses Addresses pathAddressesList
+// swagger:route  GET /{mount-path}/addresses Addresses pathAddressesList
 //
 // Handler returning the list of addresses.
+//
+// ### This endpoint will list all account addresses.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
 //
 // Responses:
 //        200: KeyListResponse
@@ -164,12 +181,23 @@ func (b *EthereumBackend) readAddress(ctx context.Context, req *logical.Request,
 	return &accountNames, nil
 }
 
-// swagger:route  POST /addresses/{address}/verify Addresses pathAddressesVerify
+// swagger:route  POST /{mount-path}/addresses/{address}/verify Addresses pathAddressesVerify
 //
 // Handler verifying that this account signed some data.
 //
+// ### This endpoint will verify that this account signed some data.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
+// | address   | string    | true  | | Specifies the address of the account to use for signing. This is specified as part of the URL. |
+// | data   | string    | true  | | Some data. |
+// | signature   | string    | true  | | The signature to verify. |
+//
 // Responses:
-//        200: AddressesVerifiedResponse
+//        200: VerifiedResponse
 func (b *EthereumBackend) pathAddressesVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -192,9 +220,18 @@ func (b *EthereumBackend) pathAddressesVerify(ctx context.Context, req *logical.
 	return b.verifySignature(ctx, req, data, account.Names[0])
 }
 
-// swagger:route  GET /addresses/{address}/balance Addresses pathAccountBalanceReadByAddress
+// swagger:route  GET /{mount-path}/addresses/{address}/balance Addresses pathAccountBalanceReadByAddress
 //
 // Handler returning the balance for an address.
+//
+// ### This endpoint will return the balance for an address.
+//
+// ## Inputs:
+//
+// | Name    | Type     | Required | Default | Description                |
+// | ------- | -------- | -------- | ---------| -------------------------- |
+// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
+// | address   | string    | true  | | Specifies the address of the account. This is specified as part of the URL. |
 //
 // Responses:
 //        200: AddressBalanceResponse

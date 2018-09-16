@@ -14,7 +14,7 @@
 
 package main
 
-// swagger:parameters pathCreateConfig pathUpdateConfig pathReadConfig pathConvertWrite
+// swagger:parameters pathCreateConfig pathUpdateConfig pathReadConfig pathConvertWrite pathAddressesRead pathAddressesList pathAddressesVerify pathAccountBalanceReadByAddress pathAccountsList pathAccountsDelete pathAccountsRead pathAccountsCreate pathAccountUpdate pathVerify pathDebit pathContractsList pathTransfer pathSign pathCreateContract pathReadContract pathContractsDelete pathBlockRead pathBlockTransactionsList pathExportCreate
 type MountPath struct {
 	// The endpoint configured for the plugin mount
 	//
@@ -23,7 +23,32 @@ type MountPath struct {
 	MountPath string `json:"mount-path"`
 }
 
-// swagger:parameters pathAddressesRead pathAccountBalanceReadByAddress
+// swagger:parameters pathAccountsDelete pathAccountsRead pathAccountsCreate pathAccountUpdate pathVerify pathDebit pathContractsList pathTransfer pathSign pathCreateContract pathReadContract pathContractsDelete pathExportCreate
+type AccountNameParam struct {
+	// The account name
+	//
+	// in: path
+	// required: true
+	AccountName               string `json:"name"`
+}
+
+// swagger:parameters pathAccountsCreate pathAccountsUpdate
+type AccountRequest struct {
+	// The account to modify
+	//
+	// in: body
+	// required: true
+	// schema:
+	//	 type: string
+	Data struct {
+		SpendingLimitTx    string `json:"spending_limit_tx,omitempty"`
+		SpendingLimitTotal string `json:"spending_limit_total,omitempty"`
+		Whitelist          string `json:"whitelist,omitempty"`
+		Blacklist          string `json:"blacklist,omitempty"`
+	}
+}
+
+// swagger:parameters pathAddressesRead pathAccountBalanceReadByAddress pathAddressesVerify
 type AddressRequest struct {
 	// The address to lookup
 	//
@@ -32,7 +57,39 @@ type AddressRequest struct {
 	Address string `json:"address"`
 }
 
-// swagger:parameters pathAddressesList pathAccountsList
+// swagger:parameters pathBlockRead pathBlockTransactionsList
+type BlockNumberParam struct {
+	// The block number
+	//
+	// in: path
+	// required: true
+	BlockNumber               string `json:"block-number"`
+}
+
+
+// swagger:parameters pathCreateContract pathReadContract pathContractsDelete
+type ContractNameParam struct {
+	// The contract name
+	//
+	// in: path
+	// required: true
+	ContractName               string `json:"contract-name"`
+}
+
+// swagger:parameters pathExportCreate
+type ExportPathParam struct {
+	// The path to export to
+	//
+	// in: body
+	// required: true
+	// schema:
+	//	 type: string
+	Data struct {
+		ExportPath               string `json:"path"`
+	} `json:"data"`
+}
+
+// swagger:parameters pathAddressesList pathAccountsList pathContractsList
 type ListRequest struct {
 	// So that we can get the list from Vault.  Do not change this.
 	//
@@ -44,11 +101,6 @@ type ListRequest struct {
 
 // swagger:parameters pathAddressesVerify
 type AddressVerifyRequest struct {
-	// The address to lookup
-	//
-	// in: path
-	// required: true
-	Address string `json:"address"`
 	// in: body
 	// required: true
 	// schema:
@@ -73,6 +125,24 @@ type ConfigRequest struct {
 	} `json:"data"`
 }
 
+
+// swagger:parameters pathCreateContract
+type ContractRequest struct {
+	// The contract inputs
+	//
+	// in: body
+	// required: true
+	// schema:
+	//	 type: string
+	Data struct {
+		TransactionData   string `json:"transaction_data"`
+		Amount string `json:"amount"`
+		Nonce   string `json:"nonce,omitempty"`
+		GasPrice string `json:"gas_price"`
+		GasLimit string `json:"gas_limit"`
+	} `json:"data"`
+}
+
 // swagger:parameters pathConvertWrite
 type ConversionRequest struct {
 	// The conversion inputs
@@ -85,6 +155,20 @@ type ConversionRequest struct {
 		AmountIn   string `json:"amount"`
 		UnitFromIn string `json:"unit_from"`
 		UnitToIn   string `json:"unit_to"`
+	} `json:"data"`
+}
+
+// swagger:parameters pathCreateConfig pathDebit
+type DebitRequest struct {
+	// The debit inputs
+	//
+	// in: body
+	// required: true
+	Data struct {
+		AddressTo        string   `json:"address_to"`
+		Amount       string   `json:"amount"`
+		GasPrice []string `json:"gas_price"`
+		GasLimit        string   `json:"gas_limit"`
 	} `json:"data"`
 }
 
@@ -108,6 +192,21 @@ type KeyListResponse struct {
 	} `json:"data"`
 }
 
+// swagger:model AccountResponse
+type AccountReponse struct {
+	BaseResponse
+	Data struct {
+		Address      string `json:"address"`
+		Balance      string `json:"balance"`
+		BalanceInUsd bool   `json:"balance_in_usd"`
+		Blacklist string `json:"blacklist"`
+		SpendingLimitTotal string `json:"spending_limit_total"`
+		SpendingLimitTx string `json:"spending_limit_tx"`
+		TotalSpend string `json:"total_spend"`
+		Whitelist string `json:"whitelist"`
+	}
+}
+
 // swagger:model AddressBalanceResponse
 type AddressBalanceResponse struct {
 	BaseResponse
@@ -126,13 +225,26 @@ type AccountNamesResponse struct {
 	} `json:"data"`
 }
 
-// swagger:model AddressesVerifiedResponse
-type AddressesVerifiedResponse struct {
+// swagger:model BlockResponse
+type BlockResponse struct {
 	BaseResponse
 	Data struct {
-		Address   string `json:"address"`
-		Signature string `json:"signature"`
-		Verified  bool   `json:"verified"`
+		Block string `json:"block"`
+		BlockHash string `json:"block_hash"`
+		Difficulty int `json:"difficulty"`
+		Time string `json:"time"`
+		TransactionCount string `json:"transaction_count"`
+	} `json:"data"`
+}
+
+
+// swagger:model BlockTransactionsResponse
+type BlockTransactionsResponse struct {
+	BaseResponse
+	Data []struct {
+		Block struct {
+			AddressTo string `json:"address_to"`
+		} `json:"block"`
 	} `json:"data"`
 }
 
@@ -147,6 +259,16 @@ type ConfigResponse struct {
 	} `json:"data"`
 }
 
+// swagger:model ContractResponse
+type ContractResponse struct {
+	BaseResponse
+	Data struct {
+		Address string `json:"transaction_hash,omitempty"`
+		TransactionHash string `json:"transaction_hash"`
+
+	} `json:"data"`
+}
+
 // swagger:model ConversionResponse
 type ConversionResponse struct {
 	BaseResponse
@@ -155,5 +277,50 @@ type ConversionResponse struct {
 		AmountTo   string `json:"amount_to"`
 		UnitFrom   string `json:"unit_from"`
 		UnitTo     string `json:"unit_to"`
+	} `json:"data"`
+}
+
+// swagger:model DebitResponse
+type DebitResponse struct {
+	BaseResponse
+	Data struct {
+		Amount       string   `json:"amount"`
+		FromAddress        string   `json:"from_address"`
+		GasLimit        string   `json:"gas_limit"`
+		GasPrice string `json:"gas_price"`
+		Balance string `json:"balance"`
+		ToAddress string `json:"to_address"`
+		TotalSpend string `json:"total_spend"`
+		TransactionHash string `json:"transaction_hash"`
+
+	} `json:"data"`
+}
+
+// swagger:model ExportResponse
+type ExportResponse struct {
+	BaseResponse
+	Data struct {
+		Passphrase       string   `json:"passphrase"`
+		Path        string   `json:"path"`
+
+	} `json:"data"`
+}
+
+// swagger:model SignedResponse
+type SignedResponse struct {
+	BaseResponse
+	Data struct {
+		Address   string `json:"address"`
+		Signature string `json:"signature"`
+	} `json:"data"`
+}
+
+// swagger:model VerifiedResponse
+type VerifiedResponse struct {
+	BaseResponse
+	Data struct {
+		Address   string `json:"address"`
+		Signature string `json:"signature"`
+		Verified  bool   `json:"verified"`
 	} `json:"data"`
 }
