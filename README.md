@@ -5,6 +5,8 @@ Ethereum plugin for Vault
 
 The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support the enterprise adoption of Ethereum though it can be used for a standalone Ethereum wallet. Leveraging [HashiCorp Vault's](https://www.vaultproject.io/) capability set, many different access control patterns are supported. This plugin never exposes the private keys that it manages - all siging operations occur within the Vault secure enclave. The plugin supports smart contract continuous development practices including contract deployment and testing. Some of the functionality (conversion of Ethereum units, retrieving exchange rates, creating accounts and signing transactions) can happen without network connectivity. Other functionality (reading blocks, transactions, account balances and deploying contracts and sending transactions) will require access to an Ethereum RPC interface.
 
+If you prefer to play before you read, [I have provided some simple scripts so you can install Vault and this plugin](https://github.com/immutability-io/vault-ethereum/tree/master/helper).
+
 Why is this Important?
 -----------------
 
