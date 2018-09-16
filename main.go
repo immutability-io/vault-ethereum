@@ -18,7 +18,7 @@
 //
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the License for the specific language governing permissions and limitations under the License.
 //
-// If you haven't setup vault you won't be able to test as this defaults to https://localhost:8200.  To get setup with a local development environment, check here:  https://github.com/immutability-io/immutability-project/blob/master/VAULT.md
+// This assumes you have setup vault locally.  To get setup with a local development environment, check here:  https://github.com/immutability-io/immutability-project/blob/master/VAULT.md .
 //
 //     Schemes: https
 //     Host: localhost:8200
