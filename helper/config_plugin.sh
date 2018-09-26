@@ -45,7 +45,7 @@ else
   KEYBASE_USER=$1
 fi
 
-export VAULT_TOKEN=$(keybase decrypt -i $KEYBASE_USER"_VAULT_ROOT_TOKEN.txt")
+source ./.as-root $KEYBASE_USER
 
 install_plugin
 
