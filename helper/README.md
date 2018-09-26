@@ -47,63 +47,12 @@ To initialize vault using the Keybase identity `cypherhat`:
 
 ```
 $ ./initialize_vault.sh cypherhat
-Key                Value
----                -----
-Seal Type          shamir
-Sealed             true
-Total Shares       5
-Threshold          3
-Unseal Progress    1/3
-Unseal Nonce       6bf3d366-0fb9-dce8-bd98-5a2e8a2bff8b
-Version            0.11.0
-HA Enabled         false
-Key                Value
----                -----
-Seal Type          shamir
-Sealed             true
-Total Shares       5
-Threshold          3
-Unseal Progress    2/3
-Unseal Nonce       6bf3d366-0fb9-dce8-bd98-5a2e8a2bff8b
-Version            0.11.0
-HA Enabled         false
-Key             Value
----             -----
-Seal Type       shamir
-Sealed          false
-Total Shares    5
-Threshold       3
-Version         0.11.0
-Cluster Name    vault-cluster-4ccd2d1e
-Cluster ID      9ed36d67-cdb2-d65c-b0c8-7dea61848668
-HA Enabled      false
-Key             Value
----             -----
-Seal Type       shamir
-Sealed          false
-Total Shares    5
-Threshold       3
-Version         0.11.0
-Cluster Name    vault-cluster-4ccd2d1e
-Cluster ID      9ed36d67-cdb2-d65c-b0c8-7dea61848668
-HA Enabled      false
-Key             Value
----             -----
-Seal Type       shamir
-Sealed          false
-Total Shares    5
-Threshold       3
-Version         0.11.0
-Cluster Name    vault-cluster-4ccd2d1e
-Cluster ID      9ed36d67-cdb2-d65c-b0c8-7dea61848668
-HA Enabled      false
 ```
 
 If we look at the resulting file system, we see that all secrets (encrypted) are named using the Keybase identity:
 
 ```
 $ ls -ltr cypherhat_*
--rw-r--r--  1 cypherhat  staff  1742 Sep  1 08:34 cypherhat_VAULT_ROOT_TOKEN.txt
 -rw-r--r--  1 cypherhat  staff  1786 Sep  1 08:34 cypherhat_UNSEAL_0.txt
 -rw-r--r--  1 cypherhat  staff  1786 Sep  1 08:34 cypherhat_UNSEAL_1.txt
 -rw-r--r--  1 cypherhat  staff  1786 Sep  1 08:35 cypherhat_UNSEAL_2.txt
@@ -130,8 +79,7 @@ OPTIONS:
 The `config_plugin.sh` script will authenticate to Vault using the following approach:
 
 ```
-$ export VAULT_TOKEN=$(keybase decrypt -i cypherhat_VAULT_ROOT_TOKEN.txt)
-Message authored by cypherhat
+$ source ./.as-root cypherhat
 ```
 
 Assuming this works (which it should if you are logged into Keybase as the user - in my case that user is `cypherhat` - you specify to the script), you should see something like:
@@ -206,11 +154,10 @@ Code: 400. Errors:
 * missing client token
 ```
 
-To use the plugin in anything like a production setting, you will want to create policies and attach them to various identities to allow the kind of access you wish. However, for this exercise, you can authenticate with the root token:
+To use the plugin in anything like a production setting, you will want to create policies and attach them to various identities to allow the kind of access you wish. However, for this exercise, you can authenticate with an ephemeral root token:
 
 ```
-$ export VAULT_TOKEN=$(keybase decrypt -i cypherhat_VAULT_ROOT_TOKEN.txt)
-Message authored by cypherhat
+$  . ./.as-root cypherhat
 ```
 
 Now you can create accounts:
@@ -239,9 +186,10 @@ Usage: bash cold.sh OPTIONS
 
 OPTIONS:
   [keybase]	Name of Keybase user used to encrypt Vault keys
-  [path]	Path to mounted Flash drive or other media
+  [wallet]	Path to mounted Flash drive or other media where your wallet will reside
+  [keys]	Path to mounted Flash drive or other media where your keys will reside
 
-$ ./cold.sh cypherhat /Volumes/cold
+$ ./cold.sh cypherhat /Volumes/wallet/family /Volumes/cold/keys/family
 ```
 
 After you run this, there is nothing left on the original file system containing your private keys. **You should always logout of Keybase after doing this - the script does not do this.**
@@ -254,10 +202,10 @@ Usage: bash hot.sh OPTIONS
 
 OPTIONS:
   [keybase]	Name of Keybase user used to encrypt Vault keys
-  [path]	Path to cold storage
-
+  [wallet]	Path to mounted Flash drive or other media where your wallet will reside
+  [keys]	Path to mounted Flash drive or other media where your keys will reside
   
-$ ./hot.sh cypherhat /Volumes/cold
+$ ./hot.sh cypherhat /Volumes/wallet/family /Volumes/cold/keys/family
 Message authored by cypherhat
 Key                Value
 ---                -----
