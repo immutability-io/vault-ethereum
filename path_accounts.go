@@ -603,7 +603,6 @@ func (b *EthereumBackend) verifySignature(ctx context.Context, req *logical.Requ
 
 }
 
-
 // swagger:route  POST /{mount-path}/accounts/{name}/verify Accounts pathVerify
 //
 // Handler verifies that this account signed some data

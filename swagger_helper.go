@@ -29,7 +29,7 @@ type AccountNameParam struct {
 	//
 	// in: path
 	// required: true
-	AccountName               string `json:"name"`
+	AccountName string `json:"name"`
 }
 
 // swagger:parameters pathAccountsCreate pathAccountUpdate
@@ -63,9 +63,8 @@ type BlockNumberParam struct {
 	//
 	// in: path
 	// required: true
-	BlockNumber               string `json:"block-number"`
+	BlockNumber string `json:"block-number"`
 }
-
 
 // swagger:parameters pathCreateContract pathReadContract pathContractsDelete
 type ContractNameParam struct {
@@ -73,7 +72,7 @@ type ContractNameParam struct {
 	//
 	// in: path
 	// required: true
-	ContractName               string `json:"contract-name"`
+	ContractName string `json:"contract-name"`
 }
 
 // swagger:parameters pathExportCreate
@@ -85,7 +84,7 @@ type ExportRequest struct {
 	// schema:
 	//	 type: string
 	Data struct {
-		ExportPath               string `json:"path"`
+		ExportPath string `json:"path"`
 	} `json:"data"`
 }
 
@@ -98,8 +97,8 @@ type ImportRequest struct {
 	// schema:
 	//	 type: string
 	Data struct {
-		ImportPath               string `json:"path"`
-		ImportPassphrase               string `json:"passphrase"`
+		ImportPath       string `json:"path"`
+		ImportPassphrase string `json:"passphrase"`
 	} `json:"data"`
 }
 
@@ -127,7 +126,6 @@ type ConfigRequest struct {
 	} `json:"data"`
 }
 
-
 // swagger:parameters pathCreateContract
 type ContractRequest struct {
 	// The contract inputs
@@ -137,12 +135,12 @@ type ContractRequest struct {
 	// schema:
 	//	 type: string
 	Data struct {
-		TransactionData   string `json:"transaction_data"`
-		Amount string `json:"amount"`
-		Nonce   string `json:"nonce,omitempty"`
-		GasPrice string `json:"gas_price"`
-		GasLimit string `json:"gas_limit"`
-		Send bool 		`json:"send"`
+		TransactionData string `json:"transaction_data"`
+		Amount          string `json:"amount"`
+		Nonce           string `json:"nonce,omitempty"`
+		GasPrice        string `json:"gas_price"`
+		GasLimit        string `json:"gas_limit"`
+		Send            bool   `json:"send"`
 	} `json:"data"`
 }
 
@@ -168,10 +166,10 @@ type DebitRequest struct {
 	// in: body
 	// required: true
 	Data struct {
-		AddressTo        string   `json:"address_to"`
-		Amount       string   `json:"amount"`
-		GasPrice []string `json:"gas_price"`
-		GasLimit        string   `json:"gas_limit"`
+		AddressTo string   `json:"address_to"`
+		Amount    string   `json:"amount"`
+		GasPrice  []string `json:"gas_price"`
+		GasLimit  string   `json:"gas_limit"`
 	} `json:"data"`
 }
 
@@ -193,7 +191,6 @@ type VerifyRequest struct {
 		Signature string `json:"signature"`
 	} `json:"data"`
 }
-
 
 // BaseResponse stores the names of the account to allow reverse lookup by address
 type BaseResponse struct {
@@ -219,7 +216,7 @@ type KeyListResponse struct {
 type AddressListResponse struct {
 	BaseResponse
 	Data struct {
-		Address      []string `json:"address"`
+		Address []string `json:"address"`
 	}
 }
 
@@ -227,14 +224,14 @@ type AddressListResponse struct {
 type AccountReponse struct {
 	BaseResponse
 	Data struct {
-		Address      string `json:"address"`
-		Balance      string `json:"balance"`
-		BalanceInUsd bool   `json:"balance_in_usd"`
-		Blacklist string `json:"blacklist"`
+		Address            string `json:"address"`
+		Balance            string `json:"balance"`
+		BalanceInUsd       bool   `json:"balance_in_usd"`
+		Blacklist          string `json:"blacklist"`
 		SpendingLimitTotal string `json:"spending_limit_total"`
-		SpendingLimitTx string `json:"spending_limit_tx"`
-		TotalSpend string `json:"total_spend"`
-		Whitelist string `json:"whitelist"`
+		SpendingLimitTx    string `json:"spending_limit_tx"`
+		TotalSpend         string `json:"total_spend"`
+		Whitelist          string `json:"whitelist"`
 	}
 }
 
@@ -260,14 +257,13 @@ type AccountNamesResponse struct {
 type BlockResponse struct {
 	BaseResponse
 	Data struct {
-		Block string `json:"block"`
-		BlockHash string `json:"block_hash"`
-		Difficulty int `json:"difficulty"`
-		Time string `json:"time"`
+		Block            string `json:"block"`
+		BlockHash        string `json:"block_hash"`
+		Difficulty       int    `json:"difficulty"`
+		Time             string `json:"time"`
 		TransactionCount string `json:"transaction_count"`
 	} `json:"data"`
 }
-
 
 // swagger:model BlockTransactionsResponse
 type BlockTransactionsResponse struct {
@@ -294,9 +290,8 @@ type ConfigResponse struct {
 type ContractResponse struct {
 	BaseResponse
 	Data struct {
-		Address string `json:"transaction_hash,omitempty"`
+		Address         string `json:"transaction_hash,omitempty"`
 		TransactionHash string `json:"transaction_hash"`
-
 	} `json:"data"`
 }
 
@@ -315,15 +310,14 @@ type ConversionResponse struct {
 type DebitResponse struct {
 	BaseResponse
 	Data struct {
-		Amount       string   `json:"amount"`
-		FromAddress        string   `json:"from_address"`
-		GasLimit        string   `json:"gas_limit"`
-		GasPrice string `json:"gas_price"`
-		Balance string `json:"balance"`
-		ToAddress string `json:"to_address"`
-		TotalSpend string `json:"total_spend"`
+		Amount          string `json:"amount"`
+		FromAddress     string `json:"from_address"`
+		GasLimit        string `json:"gas_limit"`
+		GasPrice        string `json:"gas_price"`
+		Balance         string `json:"balance"`
+		ToAddress       string `json:"to_address"`
+		TotalSpend      string `json:"total_spend"`
 		TransactionHash string `json:"transaction_hash"`
-
 	} `json:"data"`
 }
 
@@ -331,9 +325,8 @@ type DebitResponse struct {
 type ExportResponse struct {
 	BaseResponse
 	Data struct {
-		Passphrase       string   `json:"passphrase"`
-		Path        string   `json:"path"`
-
+		Passphrase string `json:"passphrase"`
+		Path       string `json:"path"`
 	} `json:"data"`
 }
 
@@ -350,15 +343,15 @@ type SignedResponse struct {
 type TransactionResponse struct {
 	BaseResponse
 	Data struct {
-		AddressFrom   string `json:"address_from"`
-		AddressTo   string `json:"address_to"`
-		Gas   string `json:"gas"`
-		GasPrice   string `json:"gas_price"`
-		Nonce   int `json:"nonce"`
-		Pending   bool `json:"pending"`
+		AddressFrom     string `json:"address_from"`
+		AddressTo       string `json:"address_to"`
+		Gas             string `json:"gas"`
+		GasPrice        string `json:"gas_price"`
+		Nonce           int    `json:"nonce"`
+		Pending         bool   `json:"pending"`
 		ReceiptStatus   string `json:"receipt_status"`
-		TransactionHash   string `json:"transaction_hash"`
-		Value   string `json:"value"`
+		TransactionHash string `json:"transaction_hash"`
+		Value           string `json:"value"`
 	} `json:"data"`
 }
 

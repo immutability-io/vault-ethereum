@@ -46,7 +46,6 @@ Query a transaction on the blockchain.
 	}
 }
 
-
 // swagger:route  GET /{mount-path}/transaction/{transaction_hash} Transactions pathTransactionRead
 //
 // Handler returning details associated with a transaction hash
