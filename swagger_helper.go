@@ -32,7 +32,7 @@ type AccountNameParam struct {
 	AccountName               string `json:"name"`
 }
 
-// swagger:parameters pathAccountsCreate pathAccountsUpdate
+// swagger:parameters pathAccountsCreate pathAccountUpdate
 type AccountRequest struct {
 	// The account to modify
 	//

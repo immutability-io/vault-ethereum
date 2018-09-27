@@ -181,7 +181,7 @@ func (b *EthereumBackend) readName(ctx context.Context, req *logical.Request, na
 	return &accountAddress, nil
 }
 
-// swagger:route  GET /{mount-path}/names/{name}/verify Names pathNamesVerify
+// swagger:route  POST /{mount-path}/names/{name}/verify Names pathNamesVerify
 //
 // Handler returning the list of account names.
 //

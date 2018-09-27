@@ -199,7 +199,7 @@ func writeKeyFile(file string, content []byte) error {
 	return os.Rename(f.Name(), file)
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/export Export pathExportCreate
+// swagger:route  POST /{mount-path}/export/{name} Export pathExportCreate
 //
 // Handler exports a JSON Keystore for use in another wallet
 //

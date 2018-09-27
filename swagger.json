@@ -123,6 +123,33 @@
             "name": "name",
             "in": "path",
             "required": true
+          },
+          {
+            "description": "The account to modify",
+            "name": "Data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "blacklist": {
+                  "type": "string",
+                  "x-go-name": "Blacklist"
+                },
+                "spending_limit_total": {
+                  "type": "string",
+                  "x-go-name": "SpendingLimitTotal"
+                },
+                "spending_limit_tx": {
+                  "type": "string",
+                  "x-go-name": "SpendingLimitTx"
+                },
+                "whitelist": {
+                  "type": "string",
+                  "x-go-name": "Whitelist"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -417,58 +444,6 @@
             "description": "DebitResponse",
             "schema": {
               "$ref": "#/definitions/DebitResponse"
-            }
-          }
-        }
-      }
-    },
-    "/{mount-path}/accounts/{name}/export": {
-      "post": {
-        "description": "### This endpoint will export a JSON Keystore for use in another wallet.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n path   | string    | true  | | The directory where the JSON keystore file will be exported to. |",
-        "tags": [
-          "Export"
-        ],
-        "summary": "Handler exports a JSON Keystore for use in another wallet",
-        "operationId": "pathExportCreate",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "MountPath",
-            "description": "The endpoint configured for the plugin mount",
-            "name": "mount-path",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "AccountName",
-            "description": "The account name",
-            "name": "name",
-            "in": "path",
-            "required": true
-          },
-          {
-            "x-go-name": "Data",
-            "description": "The path to export to",
-            "name": "data",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "x-go-name": "ExportPath"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ExportResponse",
-            "schema": {
-              "$ref": "#/definitions/ExportResponse"
             }
           }
         }
@@ -1016,6 +991,58 @@
         }
       }
     },
+    "/{mount-path}/export/{name}": {
+      "post": {
+        "description": "### This endpoint will export a JSON Keystore for use in another wallet.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |\n path   | string    | true  | | The directory where the JSON keystore file will be exported to. |",
+        "tags": [
+          "Export"
+        ],
+        "summary": "Handler exports a JSON Keystore for use in another wallet",
+        "operationId": "pathExportCreate",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "AccountName",
+            "description": "The account name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "description": "The path to export to",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "x-go-name": "ExportPath"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ExportResponse",
+            "schema": {
+              "$ref": "#/definitions/ExportResponse"
+            }
+          }
+        }
+      }
+    },
     "/{mount-path}/import/{name}": {
       "post": {
         "description": "###\nThis endpoint will import a JSON Keystore and passphrase into Vault at a path. It will create an account and map it to the `mount-path`/accounts/`name`. If an account already exists for this name, the operation fails.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |\n path   | string    | true  | | The path of the JSON keystore file. |\n passphrase   | string    | true  | | The passphrase that was used to encrypt the keystore. |",
@@ -1146,7 +1173,7 @@
       }
     },
     "/{mount-path}/names/{name}/verify": {
-      "get": {
+      "post": {
         "description": "### This endpoint will list all account names.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | Specifies the name of the account to read. This is specified as part of the URL. |\n data   | string    | true  | Some data. |\n signature   | string    | true  | The signature to verify. |",
         "tags": [
           "Names"
