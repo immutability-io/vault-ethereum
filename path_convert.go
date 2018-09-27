@@ -224,6 +224,11 @@ func ConvertToUSD(amountInWei string) (decimal.Decimal, error) {
 // responses:
 //        200: ConversionResponse
 func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	_, err := b.configured(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
 	usdFrom := false
 	usdTo := false
 	exchangeValue, _ := decimal.NewFromString("0")

@@ -5,6 +5,8 @@ Ethereum plugin for Vault
 
 The Ethereum secret backend is intended to provide many of the capabilities of an Ethereum wallet. It is designed to support the enterprise adoption of Ethereum though it can be used for a standalone Ethereum wallet. Leveraging [HashiCorp Vault's](https://www.vaultproject.io/) capability set, many different access control patterns are supported. This plugin never exposes the private keys that it manages - all siging operations occur within the Vault secure enclave. The plugin supports smart contract continuous development practices including contract deployment and testing. Some of the functionality (conversion of Ethereum units, retrieving exchange rates, creating accounts and signing transactions) can happen without network connectivity. Other functionality (reading blocks, transactions, account balances and deploying contracts and sending transactions) will require access to an Ethereum RPC interface.
 
+If you prefer to play before you read, [I have provided some simple scripts so you can install Vault and this plugin](https://github.com/immutability-io/vault-ethereum/tree/master/helper).
+
 Why is this Important?
 -----------------
 
@@ -14,7 +16,7 @@ To put it another way:  If your org is dealing in crypto you need this or someth
 
 ## No Warrantees Implied
 
-Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](mailto:sales@immutability.io).
+Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](mailto:jeff@immutability.io).
 
 ## API
 
@@ -203,7 +205,7 @@ Since Immutability's Ethereum Wallet has several unauthenticated endpoints ([det
 
 ### ETH Unit Converter
 
-[There is a website](https://etherconverter.online/) that will convert any ETH unit to any other. Since Immutability's Ethereum Wallet only allows you to send ETH in wei, I thought it would be useful to replicate this capability:
+[There is a website](https://etherconverter.online/) that will convert any ETH unit to any other. Since Immutability's Ethereum Wallet only allows you to send ETH in wei, I thought it would be useful to replicate this capability. **NOTE** we can also get the current average exchange value but converting any unit to USD. We can also convert from USD to any unit:
 
 ```
 $ vault write ethereum/convert unit_from="wei" unit_to="tether" amount="4.4"
@@ -221,6 +223,14 @@ amount_from    4.4
 amount_to      4400000000000000000
 unit_from      ether
 unit_to        wei
+
+$ vault write ethereum/convert amount=1 unit_from=eth unit_to=usd
+Key            Value
+---            -----
+amount_from    1
+amount_to      224.982648392
+unit_from      ether
+unit_to        usd
 ```
 
 All known ETH units are supported.
@@ -403,17 +413,19 @@ unit_to        wei
 Now, we send the ETH from the `muchwow` account to the address of the `lesswow` account. I use suggested gas price and the default gas limit of 21000.
 
 ```
+
 $ vault write ethereum/accounts/muchwow/debit amount=200000000000000000 address_to="0x36d1f896e55a6577c62fdd6b84fbf74582266700"
 Key                       Value
 ---                       -----
 amount                    200000000000000000
 amount_in_usd             0
-from_address              0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+address_from              0x7b715f8748ef586b98d3e7c88f326b5a8f409cd8
+address_to                0x36D1F896E55a6577C62FDD6b84fbF74582266700
 gas_limit                 21000
 gas_price                 2000000000
+signed_transaction        0xf86b07843b9aca00825208948440a3f9243b96cd934de1b7a400368d880b041d88016345785d8a0000802ca0c8f2511d337ce9180deb525fb714100157a89fba7e990677f74609dde74bad21a0239b33f6439b28a9f9d9e8cbbb45fd77e1c1dddc33d16c07345667ee12d2a767
 starting_balance          1000000000000000000
 starting_balance_in_usd   0
-to_address                0x36D1F896E55a6577C62FDD6b84fbF74582266700
 total_spend               200000000000000000
 transaction_hash          0x0b4938a1a44f545deeea500d50761c22bfe2bc006b26be8adf4dcd4fc0597769
 ```

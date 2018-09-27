@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PLUGIN_VERSION="0.2.0"
-VAULT_VERSION="0.11.0"
+PLUGIN_VERSION="0.2.3"
+VAULT_VERSION="0.11.1"
 
 function print_help {
     echo "Usage: bash install_vault.sh OPTIONS"
@@ -20,7 +20,7 @@ function gencerts {
   cat > "${TMPDIR}/openssl.cnf" << EOF
 [req]
 default_bits = 2048
-encrypt_key  = no # Change to encrypt the private key using des3 or similar
+encrypt_key  = no 
 default_md   = sha256
 prompt       = no
 utf8         = yes
@@ -57,6 +57,7 @@ EOF
 
   openssl req \
     -new \
+    -sha256 \
     -newkey rsa:2048 \
     -days 120 \
     -nodes \
@@ -66,7 +67,7 @@ EOF
     -out "${TMPDIR}/ca.crt"
 
   # Generate the private key for the service. Again, you may want to increase
-  # the bits to 4096.
+  # the bits to 2048.
   openssl genrsa -out "${TMPDIR}/my-service.key" 2048
 
   # Generate a CSR using the configuration and the key just generated. We will
@@ -85,6 +86,7 @@ EOF
     -CA "${TMPDIR}/ca.crt" \
     -CAkey "${TMPDIR}/ca.key" \
     -CAcreateserial \
+    -sha256 \
     -extensions v3_req \
     -extfile "${TMPDIR}/openssl.cnf" \
     -out "${TMPDIR}/my-service.crt"
@@ -114,7 +116,7 @@ function grab_hashitool {
     exit 2
   fi
   unzip ./$1.zip
-  mv ./$1 /usr/local/bin/$1
+  sudo mv ./$1 /usr/local/bin/$1
   rm ./$1_$2_SHA256SUMS.sig
   rm ./$1_$2_SHA256SUMS
   rm ./$1.zip

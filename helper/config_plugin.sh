@@ -11,22 +11,22 @@ function install_plugin {
     exit 2
   fi
 
-  echo "MOUNTING: ethereum/mainnet"
-  vault secrets enable -path=ethereum/mainnet -description="Immutability's Ethereum Wallet - Mainnet" -plugin-name=ethereum-plugin plugin
+  echo "MOUNTING: ethereum/prod"
+  vault secrets enable -path=ethereum/prod -description="Immutability's Ethereum Wallet - PROD" -plugin-name=ethereum-plugin plugin
   if [[ $? -eq 2 ]] ; then
-    echo "Failed to mount Ethereum plugin for mainnet!"
+    echo "Failed to mount Ethereum plugin for prod!"
     exit 2
   fi
-  echo "MOUNTING: ethereum/rinkeby"
-  vault secrets enable -path=ethereum/rinkeby -description="Immutability's Ethereum Wallet - Rinkeby" -plugin-name=ethereum-plugin plugin
+  echo "MOUNTING: ethereum/dev"
+  vault secrets enable -path=ethereum/dev -description="Immutability's Ethereum Wallet - DEV" -plugin-name=ethereum-plugin plugin
   if [[ $? -eq 2 ]] ; then
-    echo "Failed to mount Ethereum plugin for rinkeby!"
+    echo "Failed to mount Ethereum plugin for dev!"
     exit 2
   fi
-  echo "CONFIGURE: ethereum/mainnet"
-  vault write ethereum/mainnet/config rpc_url="https://mainnet.infura.io" chain_id="1"
-  echo "CONFIGURE: ethereum/rinkeby"
-  vault write -f ethereum/rinkeby/config
+  echo "CONFIGURE: ethereum/prod"
+  vault write ethereum/prod/config rpc_url="https://mainnet.infura.io" chain_id="1"
+  echo "CONFIGURE: ethereum/dev"
+  vault write -f ethereum/dev/config
 }
 
 function print_help {
@@ -45,7 +45,7 @@ else
   KEYBASE_USER=$1
 fi
 
-export VAULT_TOKEN=$(keybase decrypt -i $KEYBASE_USER"_VAULT_ROOT_TOKEN.txt")
+source ./.as-root $KEYBASE_USER
 
 install_plugin
 

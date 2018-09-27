@@ -14,20 +14,13 @@ function initialize {
     echo "Vault initialization failed!"
     exit 2
   fi
-  ROOT_TOKEN=$(echo $VAULT_INIT | jq -r .root_token)
-  keybase encrypt $KEYBASE -m $ROOT_TOKEN -o ./"$KEYBASE"_VAULT_ROOT_TOKEN.txt
-  if [[ $? -eq 2 ]] ; then
-    echo "Keybase encryption failed!"
-    exit 2
-  fi
   for (( COUNTER=0; COUNTER<5; COUNTER++ ))
   do
     key=$(echo $VAULT_INIT | jq -r '.unseal_keys_hex['"$COUNTER"']')
-    vault operator unseal $key
+    vault operator unseal $key > /dev/null 2>&1
     keybase encrypt $KEYBASE -m $key -o ./"$KEYBASE"_UNSEAL_"$COUNTER".txt
   done
   unset VAULT_INIT
-  unset ROOT_TOKEN
 }
 
 if [ -z "$1" ]; then
