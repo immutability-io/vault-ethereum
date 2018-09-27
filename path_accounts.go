@@ -829,7 +829,7 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 	}, nil
 }
 
-// swagger:route  GET /{mount-path}/accounts/{name}/contracts Contracts pathContractsList
+// swagger:route  GET /{mount-path}/deploy/{name}/contracts Contracts pathContractsList
 //
 // Handler returning the list of accounts.
 //

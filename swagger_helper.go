@@ -142,6 +142,7 @@ type ContractRequest struct {
 		Nonce   string `json:"nonce,omitempty"`
 		GasPrice string `json:"gas_price"`
 		GasLimit string `json:"gas_limit"`
+		Send bool 		`json:"send"`
 	} `json:"data"`
 }
 

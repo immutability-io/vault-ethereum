@@ -108,7 +108,7 @@ func (b *EthereumBackend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpt
 	}
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/contracts/{contract-name} Contracts pathCreateContract
+// swagger:route  POST /{mount-path}/deploy/{name}/contracts/{contract-name} Contracts pathCreateContract
 //
 // Handler signs a provided Ethereum contract.
 //
@@ -126,6 +126,7 @@ func (b *EthereumBackend) NewTransactor(key *ecdsa.PrivateKey) *bind.TransactOpt
 // | nonce   | string    | false  | 1 | The nonce for the transaction |
 // | gas_price   | string    | true  | | The price in gas for the transaction in wei. |
 // | gas_limit   | string    | true  | | The gas limit for the transaction. |
+// | send   | bool    | false  | true | Indicates whether the transaction should be sent to the network. |
 //
 // Responses:
 //        200: ContractResponse
@@ -259,7 +260,7 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/contracts/{contract-name} Contracts pathReadContract
+// swagger:route  GET /{mount-path}/deploy/{name}/contracts/{contract-name} Contracts pathReadContract
 //
 // Handler signs a provided Ethereum contract.
 //
@@ -269,7 +270,7 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 //
 // | Name    | Type     | Required | Default | Description                |
 // | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
+// | mount-path   | string    | true  | |  The endpoint configured for the plugin mount. |
 // | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
 // | contract-name   | string    | true  | | Specifies the name of the contract. This is specified as part of the URL. |
 //
@@ -324,7 +325,7 @@ func (b *EthereumBackend) pathReadContract(ctx context.Context, req *logical.Req
 	}, nil
 }
 
-// swagger:route  DELETE /{mount-path}/accounts/{name}/contracts/{contract-name} Contracts pathContractsDelete
+// swagger:route  DELETE /{mount-path}/deploy/{name}/contracts/{contract-name} Contracts pathContractsDelete
 //
 // Handler deletes a provided Ethereum contract?  NOT DOCUMENTED IN API.MD!!!!1one!!!ONE111!!
 //
