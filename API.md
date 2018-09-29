@@ -36,9 +36,22 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    └── transaction `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](./API.md#read-transaction))  
 
+
 ### Swagger Doc:
 
-http://petstore.swagger.io/?url=https://raw.githubusercontent.com/zambien/vault-ethereum/got_that_swagger/swagger.json
+http://petstore.swagger.io/?url=https://raw.githubusercontent.com/immutability-io/vault-ethereum/master/swagger.json
+
+#### Swagger Setup:
+
+You must trust the cert for the vault in question.  For example on a Mac assuming you followed the Vault setup instructions in Immutability:
+
+`sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/etc/vault.d/root.crt`
+
+For Windows or Ubuntu you must follow the appropriate steps to get your browser to trust the Vault certificate.
+
+You must also allow CORS in Vault.  For example:
+`vault write sys/config/cors enabled=true allowed_origins="*"`
+
 
 
 ### LIST ACCOUNTS
@@ -1491,32 +1504,3 @@ The example below shows output for a read of `/ethereum/transaction/0x4773f64900
   "auth": null
 }
 ```
-
-
-### Swagger local setup
-
-If you are using a local vault you must trust the cert for the local vault.  For example on a Mac assuming you followed the Vault setup instructions in Immutability:
-
-`sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/etc/vault.d/root.crt`
-
-You must also allow CORS in Vault.  For example:
-`vault write sys/config/cors enabled=true allowed_origins="*"`
-
-
-```
-# swagger built binary is no good for golang 1.11 so we will build and install it
-go get -u github.com/go-swagger/go-swagger/cmd/swagger
-cd $GOPATH/src/github.com/go-swagger/go-swagger/cmd/swagger \
-    && git checkout 0.16.0 \
-    && go build \
-    && sudo cp swagger /usr/local/bin/swagger \
-    && cd -
-    
-# generate and serve swagger json    
-swagger generate spec -o ./swagger.json --scan-models \
-  && swagger serve -F=swagger swagger.json
-  
-# or if you prefer ReDoc
-swagger generate spec -o ./swagger.json --scan-models \
-  && swagger serve swagger.json      
-```    

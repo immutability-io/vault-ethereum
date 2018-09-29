@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/vault/logical/framework"
 )
 
+// AccountNames holds a list of names
 type AccountNames struct {
 	Names []string `json:"names"`
 }
@@ -95,21 +96,6 @@ func namesPaths(b *EthereumBackend) []*framework.Path {
 	}
 }
 
-// swagger:route  GET /{mount-path}/names/{name} Names pathNamesRead
-//
-// Handler returning the list of addresses associated with a named account
-//
-// ### This endpoint will list the addresses associated with a named account.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | Specifies the name of the account to read. This is specified as part of the URL. |
-//
-// Responses:
-//        200: AddressListResponse
 func (b *EthereumBackend) pathNamesRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -134,20 +120,6 @@ func (b *EthereumBackend) pathNamesRead(ctx context.Context, req *logical.Reques
 	}, nil
 }
 
-// swagger:route  GET /{mount-path}/names Names pathNamesList
-//
-// Handler returning the list of account names.
-//
-// ### This endpoint will list all account names.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-//
-// Responses:
-//        200: KeyListResponse
 func (b *EthereumBackend) pathNamesList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -181,23 +153,6 @@ func (b *EthereumBackend) readName(ctx context.Context, req *logical.Request, na
 	return &accountAddress, nil
 }
 
-// swagger:route  POST /{mount-path}/names/{name}/verify Names pathNamesVerify
-//
-// Handler returning the list of account names.
-//
-// ### This endpoint will list all account names.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | Specifies the name of the account to read. This is specified as part of the URL. |
-// | data   | string    | true  | Some data. |
-// | signature   | string    | true  | The signature to verify. |
-//
-// Responses:
-//        200: VerifiedResponse
 func (b *EthereumBackend) pathNamesVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

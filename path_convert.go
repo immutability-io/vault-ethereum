@@ -207,22 +207,6 @@ func ConvertToUSD(amountInWei string) (decimal.Decimal, error) {
 	return exchangeValue, nil
 }
 
-// swagger:route  PUT /{mount-path}/convert Convert pathConvertWrite
-//
-// Handler returning various ETH conversions.
-//
-// ### This endpoint will convert one Ethereum unit to another.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Description                |
-// | ------- | -------- | -------- | -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | amount   | string    | true  | Specifies amount to convert. |
-// | unit_from   | string    | true  | Specifies unit to convert from. |
-// | unit_to   | string    | true  | Specifies unit to convert to. |
-// responses:
-//        200: ConversionResponse
 func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

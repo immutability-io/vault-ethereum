@@ -46,21 +46,6 @@ Query a transaction on the blockchain.
 	}
 }
 
-// swagger:route  GET /{mount-path}/transaction/{transaction_hash} Transactions pathTransactionRead
-//
-// Handler returning details associated with a transaction hash
-//
-// ### This endpoint will read details associated with a transaction hash.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | transaction_hash   | string    | true  | Specifies the transaction hash to read. This is specified as part of the URL. |
-//
-// Responses:
-//        200: TransactionResponse
 func (b *EthereumBackend) pathTransactionRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {

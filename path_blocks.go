@@ -68,21 +68,6 @@ Get a list of all the transaction IDs on a block.
 	}
 }
 
-// swagger:route GET /{mount-path}/block/{block-number} Blocks pathBlockRead
-//
-// Handler returning details associated with a block.
-//
-// ### This endpoint will read details associated with a block.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
-// | block-number   | string    | true  | | Specifies the number of the block to read. This is specified as part of the URL. |
-//
-// Responses:
-//        200: BlockResponse
 func (b *EthereumBackend) pathBlockRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {
@@ -112,21 +97,6 @@ func (b *EthereumBackend) pathBlockRead(ctx context.Context, req *logical.Reques
 	}, nil
 }
 
-// swagger:route GET /{mount-path}/block/{block-number}/transactions Blocks pathBlockTransactionsList
-//
-// Handler returning transactions associated with a block.
-//
-// ### This endpoint will read transactions associated with a block.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | The endpoint configured for the plugin mount. |
-// | block-number   | string    | true  | | Specifies the number of the block to read. This is specified as part of the URL. |
-//
-// Responses:
-//        200: BlockTransactionsResponse
 func (b *EthereumBackend) pathBlockTransactionsList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {

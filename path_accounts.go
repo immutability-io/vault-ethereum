@@ -212,20 +212,6 @@ Sign data using a given Ethereum account.
 	}
 }
 
-// swagger:route  GET /{mount-path}/accounts Accounts pathAccountsList
-//
-// Handler returning the list of accounts.
-//
-// ### This endpoint will list all accounts stores at a path.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-//
-// Responses:
-//        200: KeyListResponse
 func (b *EthereumBackend) pathAccountsList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	vals, err := req.Storage.List(ctx, "accounts/")
 	if err != nil {
@@ -234,21 +220,6 @@ func (b *EthereumBackend) pathAccountsList(ctx context.Context, req *logical.Req
 	return logical.ListResponse(vals), nil
 }
 
-// swagger:route  DELETE /{mount-path}/accounts/{name} Accounts pathAccountsDelete
-//
-// Handler deletes an account
-//
-// ### This endpoint will delete the account - and its passphrase - from Vault.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account to delete. This is specified as part of the URL. |
-//
-// Responses:
-//        200: {}
 func (b *EthereumBackend) pathAccountsDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -289,21 +260,6 @@ func (b *EthereumBackend) readAccount(ctx context.Context, req *logical.Request,
 	return &account, nil
 }
 
-// swagger:route  GET /{mount-path}/accounts/{name} Accounts pathAccountsRead
-//
-// Handler displays account details
-//
-// ### This endpoint will list details about the Ethereum account at a path.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account to read. This is specified as part of the URL. |
-//
-// Responses:
-//        200: AccountResponse
 func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -335,25 +291,6 @@ func (b *EthereumBackend) pathAccountsRead(ctx context.Context, req *logical.Req
 	}, nil
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name} Accounts pathAccountsCreate
-//
-// Handler creates an account
-//
-// ### This endpoint will create an Ethereum account at a path.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account to create. This is specified as part of the URL. |
-// | spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |
-// | spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |
-// | whitelist   | string    | false  | | Comma delimited list of allowed accounts. |
-// | blacklist   | string    | false  | | Comma delimited list of disallowed accounts. Note: `blacklist` overrides whitelist. |
-//
-// Responses:
-//        200: AccountResponse
 func (b *EthereumBackend) pathAccountsCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -432,25 +369,6 @@ func (b *EthereumBackend) pathAccountsCreate(ctx context.Context, req *logical.R
 	}, nil
 }
 
-// swagger:route  PUT /{mount-path}/accounts/{name} Accounts pathAccountUpdate
-//
-// Handler updates an account
-//
-// ### This endpoint will update an account's constraints.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account to update. This is specified as part of the URL. |
-// | spending_limit_tx   | false    | true  | | The total amount of Wei allowed to be spent in a single transaction. |
-// | spending_limit_total   | false    | true  | |  The total amount of Wei allowed to be spent for this account. |
-// | whitelist   | string    | false  | | Comma delimited list of allowed accounts. |
-// | blacklist   | string    | false  | | Comma delimited list of disallowed accounts. Note: `blacklist` overrides whitelist. |
-//
-// Responses:
-//        200: AccountResponse
 func (b *EthereumBackend) pathAccountUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -603,23 +521,6 @@ func (b *EthereumBackend) verifySignature(ctx context.Context, req *logical.Requ
 
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/verify Accounts pathVerify
-//
-// Handler verifies that this account signed some data
-//
-// ### This endpoint will verify that this account signed some data.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | specifies the name of the account to use for signing. This is specified as part of the URL. |
-// | data   | false    | true  | | Some data. |
-// | signature   | false    | true  | | The signature to verify. |
-//
-// Responses:
-//        200: VerifiedResponse
 func (b *EthereumBackend) pathVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -643,25 +544,6 @@ func ValidNumber(input string) *big.Int {
 	return amount.Abs(amount)
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/debit Accounts pathDebit
-//
-// Handler debits an account
-//
-// ### This endpoint will debit an Ethereum account.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account to use for the debit. This is specified as part of the URL. |
-// | address_to   | false    | true  | | A Hex string specifying the Ethereum address to send the ETH to. |
-// | amount   | false    | true  | | The amount of ether - in wei. |
-// | gas_price   | false    | false  | | - The price in gas for the transaction. If omitted, we will use the suggested gas price. |
-// | gas_limit   | false    | false  | | The gas limit for the transaction. If omitted, we will estimate the gas limit.. |
-//
-// Responses:
-//        200: DebitResponse
 func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {
@@ -775,22 +657,6 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	}, nil
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/sign Accounts pathSign
-//
-// Handler signs provided data
-//
-// ### This endpoint will sign the provided data.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account to use for signing. This is specified as part of the URL. |
-// | data   | false    | true  | | Some data. |
-//
-// Responses:
-//        200: SignedResponse
 func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -828,21 +694,6 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 	}, nil
 }
 
-// swagger:route  GET /{mount-path}/deploy/{name}/contracts Contracts pathContractsList
-//
-// Handler returning the list of accounts.
-//
-// ### This endpoint will list all accounts stores at a path.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | The endpoint configured for the plugin mount. |
-// | name   | string    | true  | | Specifies the name of the account. This is specified as part of the URL. |
-//
-// Responses:
-//        200: KeyListResponse
 func (b *EthereumBackend) pathContractsList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	vals, err := req.Storage.List(ctx, req.Path)
 	if err != nil {
@@ -851,20 +702,6 @@ func (b *EthereumBackend) pathContractsList(ctx context.Context, req *logical.Re
 	return logical.ListResponse(vals), nil
 }
 
-// swagger:route  POST /{mount-path}/accounts/{name}/transfer Accounts pathTransfer
-//
-// Handler NEEDS TO BE DOCUMENTED - MISSING FROM API.MD.
-//
-// ### This endpoint NEEDS TO BE DOCUMENTED - MISSING FROM API.MD.
-//
-// ## Inputs:
-//
-// | Name    | Type     | Required | Default | Description                |
-// | ------- | -------- | -------- | ---------| -------------------------- |
-// | mount-path   | string    | true  | | Specifies the path of the account. This is specified as part of the URL. |
-//
-// Responses:
-//        200: {}
 func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
 	if err != nil {
