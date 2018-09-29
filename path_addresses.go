@@ -96,12 +96,6 @@ func addressesPaths(b *EthereumBackend) []*framework.Path {
 	}
 }
 
-// swagger:route GET /addresses/{address} Addresses pathAddressesRead
-//
-// Handler returning Account Names for an Address.
-//
-// Responses:
-//        200: AccountNamesResponse
 func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -126,12 +120,6 @@ func (b *EthereumBackend) pathAddressesRead(ctx context.Context, req *logical.Re
 	}, nil
 }
 
-// swagger:route  GET /addresses Addresses pathAddressesList
-//
-// Handler returning the list of addresses.
-//
-// Responses:
-//        200: AddressesResponse
 func (b *EthereumBackend) pathAddressesList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {
@@ -164,12 +152,6 @@ func (b *EthereumBackend) readAddress(ctx context.Context, req *logical.Request,
 	return &accountNames, nil
 }
 
-// swagger:route  POST /addresses/{address}/verify Addresses pathAddressesVerify
-//
-// Handler verifying that this account signed some data.
-//
-// Responses:
-//        200: AddressesVerifiedResponse
 func (b *EthereumBackend) pathAddressesVerify(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

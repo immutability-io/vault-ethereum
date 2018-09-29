@@ -207,12 +207,6 @@ func ConvertToUSD(amountInWei string) (decimal.Decimal, error) {
 	return exchangeValue, nil
 }
 
-// swagger:route  PUT /convert Convert pathConvertWrite
-//
-// Handler returning various ETH conversions.
-//
-// responses:
-//        200: ConversionResponse
 func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	_, err := b.configured(ctx, req)
 	if err != nil {

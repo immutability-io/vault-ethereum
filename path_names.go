@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/vault/logical/framework"
 )
 
+// AccountNames holds a list of names
 type AccountNames struct {
 	Names []string `json:"names"`
 }

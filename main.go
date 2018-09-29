@@ -12,46 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Vault-Ethereum API
-//
-// Copyright © 2018 Immutability, LLC
-//
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the License for the specific language governing permissions and limitations under the License.
-//
-//     Schemes: https
-//     Host: localhost:8200
-//     BasePath: /v1/ethereum
-//     Version: 0.0.1
-//     License: Apache2 https://opensource.org/licenses/Apache-2.0
-//     Contact: Jeff Ploughman<jeff@immutability.io> https://immutability.io
-//
-//     Consumes:
-//     - application/json
-//     - application/xml
-//
-//     Produces:
-//     - application/json
-//     - application/xml
-//
-//     Security:
-//     - api_key:
-//
-//     SecurityDefinitions:
-//     api_key:
-//          type: apiKey
-//          name: X-Vault-Token
-//          in: header
-//
-//     Extensions:
-//     x-meta-value: value
-//     x-meta-array:
-//       - value1
-//       - value2
-//     x-meta-array-obj:
-//       - name: obj
-//         value: field
-//
-// swagger:meta
 package main
 
 import (
