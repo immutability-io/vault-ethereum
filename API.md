@@ -37,6 +37,23 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`        └── <TRANSACTION_HASH> `&nbsp;&nbsp;([read](./API.md#read-transaction))  
 
 
+### Swagger Doc:
+
+http://petstore.swagger.io/?url=https://raw.githubusercontent.com/immutability-io/vault-ethereum/master/swagger.json
+
+#### Swagger Setup:
+
+You must trust the cert for the vault in question.  For example on a Mac assuming you followed the Vault setup instructions in Immutability:
+
+`sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ~/etc/vault.d/root.crt`
+
+For Windows or Ubuntu you must follow the appropriate steps to get your browser to trust the Vault certificate.
+
+You must also allow CORS in Vault.  For example:
+`vault write sys/config/cors enabled=true allowed_origins="*"`
+
+
+
 ### LIST ACCOUNTS
 
 This endpoint will list all accounts stores at a path.
@@ -683,7 +700,7 @@ This endpoint will return the balance for an address.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `POST`  | `:mount-path/addresses/:address/balance`  | `200 application/json` |
+| `GET`  | `:mount-path/addresses/:address/balance`  | `200 application/json` |
 
 #### Parameters
 
@@ -1065,7 +1082,7 @@ This endpoint returns the configuration of a plugin at a mount.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `PUT`  | `:mount-path/config`  | `200 application/json` |
+| `GET`  | `:mount-path/config`  | `200 application/json` |
 
 #### Parameters
 
@@ -1112,7 +1129,7 @@ This endpoint will convert one Ethereum unit to another.
 
 #### Parameters
 
-* `amount_from` (`string: <required>`) - Specifies amount to convert.
+* `amount` (`string: <required>`) - Specifies amount to convert.
 * `unit_from` (`string: <required>`) - Specifies unit to convert from.
 * `unit_to` (`string: <required>`) - Specifies unit to convert to.
 
@@ -1487,4 +1504,3 @@ The example below shows output for a read of `/ethereum/transaction/0x4773f64900
   "auth": null
 }
 ```
-
