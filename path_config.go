@@ -75,7 +75,7 @@ func configPaths(b *EthereumBackend) []*framework.Path {
 			Pattern: "config",
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.CreateOperation: b.pathCreateConfig,
-				logical.UpdateOperation: b.pathCreateConfig,
+				logical.UpdateOperation: b.pathUpdateConfig,
 				logical.ReadOperation:   b.pathReadConfig,
 			},
 			HelpSynopsis: "Configure the trustee plugin.",
@@ -190,6 +190,10 @@ func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Req
 			"rpc_url":         configBundle.RPC,
 		},
 	}, nil
+}
+
+func (b *EthereumBackend) pathUpdateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	return b.pathCreateConfig(ctx, req, data)
 }
 
 func (b *EthereumBackend) pathReadConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
