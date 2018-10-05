@@ -702,7 +702,64 @@
           "Config"
         ],
         "summary": "Handler which updates the configuration for the plugin.",
-        "operationId": "pathUpdateConfig",
+        "operationId": "pathWriteConfig",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "description": "The conversion inputs",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "api_key": {
+                  "type": "string",
+                  "x-go-name": "ApiKey"
+                },
+                "bound_cidr_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "x-go-name": "BoundCidrList"
+                },
+                "chain_id": {
+                  "type": "string",
+                  "x-go-name": "ChainId"
+                },
+                "rpc_url": {
+                  "type": "string",
+                  "x-go-name": "RpcUrl"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ConfigResponse",
+            "schema": {
+              "$ref": "#/definitions/ConfigResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "### This endpoint configures the plugin at a mount.\n\nNote, an empty body sets the defaults of rinkeby\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | The endpoint configured for the plugin mount. |\n rpc_url   | string    | false  | https://rinkeby.infura.io | Specifies the RPC URL of the Ethereum node. |\n chain_id   | string    | false  | 4 |  Specifies the Ethereum network. Defaults to Rinkeby. |\n bound_cidr_list   | string    | false  | | Comma delimited list of allowed CIDR blocks. |\n api_key   | string    | false  | | The Infura API key. |",
+        "tags": [
+          "Config"
+        ],
+        "summary": "Handler which updates the configuration for the plugin.",
+        "operationId": "pathWriteConfig",
         "parameters": [
           {
             "type": "string",
@@ -756,6 +813,56 @@
     },
     "/{mount-path}/convert": {
       "post": {
+        "description": "### This endpoint will convert one Ethereum unit to another.\n\n## Inputs:\n\n Name    | Type     | Required | Description                |\n ------- | -------- | -------- | -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n amount   | string    | true  | Specifies amount to convert. |\n unit_from   | string    | true  | Specifies unit to convert from. |\n unit_to   | string    | true  | Specifies unit to convert to. |",
+        "tags": [
+          "Convert"
+        ],
+        "summary": "Handler returning various ETH conversions.",
+        "operationId": "pathConvertWrite",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "description": "The conversion inputs",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "string",
+                  "x-go-name": "AmountIn"
+                },
+                "unit_from": {
+                  "type": "string",
+                  "x-go-name": "UnitFromIn"
+                },
+                "unit_to": {
+                  "type": "string",
+                  "x-go-name": "UnitToIn"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ConversionResponse",
+            "schema": {
+              "$ref": "#/definitions/ConversionResponse"
+            }
+          }
+        }
+      },
+      "put": {
         "description": "### This endpoint will convert one Ethereum unit to another.\n\n## Inputs:\n\n Name    | Type     | Required | Description                |\n ------- | -------- | -------- | -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n amount   | string    | true  | Specifies amount to convert. |\n unit_from   | string    | true  | Specifies unit to convert from. |\n unit_to   | string    | true  | Specifies unit to convert to. |",
         "tags": [
           "Convert"

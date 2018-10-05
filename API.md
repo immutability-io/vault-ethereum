@@ -20,7 +20,7 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── block `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NUMBER> `&nbsp;&nbsp;([read](./API.md#read-block))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── transactions `&nbsp;&nbsp;([read](./API.md#read-block-transactions))  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([update](./API.md#convert))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── convert `&nbsp;&nbsp;([create](./API.md#convert), [update](./API.md#convert))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── export `  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#export))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── deploy `  
@@ -1125,7 +1125,7 @@ This endpoint will convert one Ethereum unit to another.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `POST`  | `:mount-path/convert`  | `200 application/json` |
+| `POST/PUT`  | `:mount-path/convert`  | `200 application/json` |
 
 #### Parameters
 
@@ -1146,7 +1146,7 @@ This endpoint will convert one Ethereum unit to another.
 
 ```sh
 $ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
-    --request PUT \
+    --request POST \
     --data @convert.json \
     https://localhost:8200/v1/ethereum/convert | jq .
 ```

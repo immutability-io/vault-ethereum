@@ -74,7 +74,8 @@ func configPaths(b *EthereumBackend) []*framework.Path {
 		&framework.Path{
 			Pattern: "config",
 			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.UpdateOperation: b.pathUpdateConfig,
+				logical.CreateOperation: b.pathWriteConfig,
+				logical.UpdateOperation: b.pathWriteConfig,
 				logical.ReadOperation:   b.pathReadConfig,
 			},
 			HelpSynopsis: "Configure the trustee plugin.",
@@ -154,7 +155,7 @@ func getDefaultNetwork(chainID string) string {
 	return Local
 }
 
-func (b *EthereumBackend) pathUpdateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *EthereumBackend) pathWriteConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	rpcURL := data.Get("rpc_url").(string)
 	apiKey := data.Get("api_key").(string)
 	chainID := data.Get("chain_id").(string)
