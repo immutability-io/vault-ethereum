@@ -752,67 +752,10 @@
             }
           }
         }
-      },
-      "post": {
-        "description": "### This endpoint configures the plugin at a mount.\n\nNote, an empty body sets the defaults of rinkeby\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | | The endpoint configured for the plugin mount. |\n rpc_url   | string    | false  | https://rinkeby.infura.io | Specifies the RPC URL of the Ethereum node. |\n chain_id   | string    | false  | 4 |  Specifies the Ethereum network. Defaults to Rinkeby. |\n bound_cidr_list   | string    | false  | | Comma delimited list of allowed CIDR blocks. |\n api_key   | string    | false  | | The Infura API key. |",
-        "tags": [
-          "Config"
-        ],
-        "summary": "Handler which creates the configuration for the plugin.",
-        "operationId": "pathCreateConfig",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "MountPath",
-            "description": "The endpoint configured for the plugin mount",
-            "name": "mount-path",
-            "in": "path",
-            "required": true
-          },
-          {
-            "x-go-name": "Data",
-            "description": "The debit inputs",
-            "name": "data",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address_to": {
-                  "type": "string",
-                  "x-go-name": "AddressTo"
-                },
-                "amount": {
-                  "type": "string",
-                  "x-go-name": "Amount"
-                },
-                "gas_limit": {
-                  "type": "string",
-                  "x-go-name": "GasLimit"
-                },
-                "gas_price": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "x-go-name": "GasPrice"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ConfigResponse",
-            "schema": {
-              "$ref": "#/definitions/ConfigResponse"
-            }
-          }
-        }
       }
     },
     "/{mount-path}/convert": {
-      "put": {
+      "post": {
         "description": "### This endpoint will convert one Ethereum unit to another.\n\n## Inputs:\n\n Name    | Type     | Required | Description                |\n ------- | -------- | -------- | -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n amount   | string    | true  | Specifies amount to convert. |\n unit_from   | string    | true  | Specifies unit to convert from. |\n unit_to   | string    | true  | Specifies unit to convert to. |",
         "tags": [
           "Convert"
