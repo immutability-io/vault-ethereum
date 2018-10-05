@@ -79,6 +79,7 @@ func convertPaths(b *EthereumBackend) []*framework.Path {
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathConvertWrite,
 				logical.UpdateOperation: b.pathConvertWrite,
 			},
 		},

@@ -74,8 +74,8 @@ func configPaths(b *EthereumBackend) []*framework.Path {
 		&framework.Path{
 			Pattern: "config",
 			Callbacks: map[logical.Operation]framework.OperationFunc{
-				logical.CreateOperation: b.pathCreateConfig,
-				logical.UpdateOperation: b.pathUpdateConfig,
+				logical.CreateOperation: b.pathWriteConfig,
+				logical.UpdateOperation: b.pathWriteConfig,
 				logical.ReadOperation:   b.pathReadConfig,
 			},
 			HelpSynopsis: "Configure the trustee plugin.",
@@ -155,7 +155,7 @@ func getDefaultNetwork(chainID string) string {
 	return Local
 }
 
-func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *EthereumBackend) pathWriteConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	rpcURL := data.Get("rpc_url").(string)
 	apiKey := data.Get("api_key").(string)
 	chainID := data.Get("chain_id").(string)
@@ -190,10 +190,6 @@ func (b *EthereumBackend) pathCreateConfig(ctx context.Context, req *logical.Req
 			"rpc_url":         configBundle.RPC,
 		},
 	}, nil
-}
-
-func (b *EthereumBackend) pathUpdateConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	return b.pathCreateConfig(ctx, req, data)
 }
 
 func (b *EthereumBackend) pathReadConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -241,7 +237,7 @@ func (b *EthereumBackend) readConfig(ctx context.Context, s logical.Storage) (*C
 func (b *EthereumBackend) configured(ctx context.Context, req *logical.Request) (*Config, error) {
 	config, err := b.readConfig(ctx, req.Storage)
 	if err != nil {
-		return nil, fmt.Errorf("backend not properly configured")
+		return nil, err
 	}
 	if validConnection, err := b.validIPConstraints(config, req); !validConnection {
 		return nil, err
