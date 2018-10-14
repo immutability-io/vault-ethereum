@@ -148,6 +148,54 @@ Send ETH from an account.
 			},
 		},
 		&framework.Path{
+			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/sign-tx",
+			HelpSynopsis: "Sign a provided transaction. ",
+			HelpDescription: `
+
+Send ETH from an account.
+
+`,
+			Fields: map[string]*framework.FieldSchema{
+				"name": &framework.FieldSchema{Type: framework.TypeString},
+				"address_to": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The address of the account to send ETH to.",
+				},
+				"data": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The data to sign.",
+				},
+				"amount": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Amount of ETH (in wei).",
+				},
+				"nonce": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The transaction nonce.",
+				},
+				"gas_limit": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The gas limit for the transaction - defaults to 21000.",
+					Default:     "21000",
+				},
+				"gas_price": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "The gas price for the transaction in wei.",
+					Default:     "0",
+				},
+				"send": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Description: "Send the transaction to the network.",
+					Default:     true,
+				},
+			},
+			ExistenceCheck: b.pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathSignTx,
+				logical.UpdateOperation: b.pathSignTx,
+			},
+		},
+		&framework.Path{
 			Pattern:      "accounts/" + framework.GenericNameRegex("name") + "/transfer",
 			HelpSynopsis: "Transfer ERC20 tokens.",
 			HelpDescription: `
@@ -542,6 +590,117 @@ func ValidNumber(input string) *big.Int {
 	}
 	amount := math.MustParseBig256(input)
 	return amount.Abs(amount)
+}
+
+func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	config, err := b.configured(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	name := data.Get("name").(string)
+	dataToSign := data.Get("data").(string)
+	account, err := b.readAccount(ctx, req, name)
+	if err != nil {
+		return nil, fmt.Errorf("error reading account")
+	}
+	if account == nil {
+		return nil, nil
+	}
+	balance, _, exchangeValue, err := b.readAccountBalance(ctx, req, name)
+	if err != nil {
+		return nil, err
+	}
+	amount := ValidNumber(data.Get("amount").(string))
+	if amount == nil {
+		return nil, fmt.Errorf("invalid amount")
+	}
+	if amount.Cmp(balance) > 0 {
+		return nil, fmt.Errorf("Insufficient funds spend %v because the current account balance is %v", amount, balance)
+	}
+	if valid, err := b.validAccountConstraints(account, amount, data.Get("address_to").(string)); !valid {
+		return nil, err
+	}
+	chainID := ValidNumber(config.ChainID)
+	if chainID == nil {
+		return nil, fmt.Errorf("invalid chain ID")
+	}
+	gasLimitIn := ValidNumber(data.Get("gas_limit").(string))
+	if gasLimitIn == nil {
+		return nil, fmt.Errorf("invalid gas limit")
+	}
+	gasLimit := gasLimitIn.Uint64()
+	client, err := ethclient.Dial(config.getRPCURL())
+	if err != nil {
+		return nil, fmt.Errorf("cannot connect to " + config.getRPCURL())
+	}
+
+	gasPrice := ValidNumber(data.Get("gas_price").(string))
+	if big.NewInt(0).Cmp(gasPrice) == 0 {
+		gasPrice, err = client.SuggestGasPrice(context.Background())
+		if err != nil {
+			return nil, err
+		}
+	}
+	privateKey, err := crypto.HexToECDSA(account.PrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("error reconstructing private key")
+	}
+	defer ZeroKey(privateKey)
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("error casting public key to ECDSA")
+	}
+
+	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+	nonceIn := ValidNumber(data.Get("nonce").(string))
+	var nonce uint64
+	if nonceIn != nil && nonceIn.Cmp(big.NewInt(0)) != 0 {
+		nonce = nonceIn.Uint64()
+	} else {
+		nonce, err = client.PendingNonceAt(context.Background(), fromAddress)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	toAddress := common.HexToAddress(data.Get("address_to").(string))
+	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, []byte(dataToSign))
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	totalSpend, err := b.updateTotalSpend(ctx, req, fmt.Sprintf("accounts/%s", name), account, amount)
+	if err != nil {
+		return nil, err
+	}
+	amountInUSD, _ := decimal.NewFromString("0")
+	if config.ChainID == EthereumMainnet {
+		amountInUSD, err = ConvertToUSD(amount.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+	var signedTxBuff bytes.Buffer
+	signedTx.EncodeRLP(&signedTxBuff)
+
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"transaction_hash":        signedTx.Hash().Hex(),
+			"signed_transaction":      hexutil.Encode(signedTxBuff.Bytes()),
+			"address_from":            account.Address,
+			"address_to":              toAddress.String(),
+			"amount":                  amount.String(),
+			"amount_in_usd":           amountInUSD,
+			"gas_price":               gasPrice.String(),
+			"gas_limit":               gasLimitIn.String(),
+			"total_spend":             totalSpend,
+			"starting_balance":        balance,
+			"starting_balance_in_usd": exchangeValue,
+		},
+	}, nil
 }
 
 func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {

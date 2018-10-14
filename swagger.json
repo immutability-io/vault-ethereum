@@ -321,6 +321,81 @@
         }
       }
     },
+    "/{mount-path}/accounts/{name}/sign-tx": {
+      "post": {
+        "description": "### This endpoint will sign a transaction.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to use for the debit. This is specified as part of the URL. |\n address_to   | false    | true  | | A Hex string specifying the Ethereum address to send the ETH to. |\n amount   | false    | true  | | The amount of ether - in wei. |\n gas_price   | false    | false  | | - The price in gas for the transaction. If omitted, we will use the suggested gas price. |\n gas_limit   | false    | false  | | The gas limit for the transaction. If omitted, we will estimate the gas limit.. |",
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "Handler signs a transaction",
+        "operationId": "pathSignTx",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "MountPath",
+            "description": "The endpoint configured for the plugin mount",
+            "name": "mount-path",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "AccountName",
+            "description": "The account name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "x-go-name": "Data",
+            "description": "The debit inputs",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address_to": {
+                  "type": "string",
+                  "x-go-name": "AddressTo"
+                },
+                "amount": {
+                  "type": "string",
+                  "x-go-name": "Amount"
+                },
+                "gas_limit": {
+                  "type": "string",
+                  "x-go-name": "GasLimit"
+                },
+                "data": {
+                  "type": "string",
+                  "x-go-name": "Data"
+                },
+                "nonce": {
+                  "type": "string",
+                  "x-go-name": "Nonce"
+                },
+                "gas_price": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "x-go-name": "GasPrice"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SignTxResponse",
+            "schema": {
+              "$ref": "#/definitions/SignTxResponse"
+            }
+          }
+        }
+      }
+    },
     "/{mount-path}/accounts/{name}/sign": {
       "post": {
         "description": "### This endpoint will sign the provided data.\n\n## Inputs:\n\n Name    | Type     | Required | Default | Description                |\n ------- | -------- | -------- | ---------| -------------------------- |\n mount-path   | string    | true  | The endpoint configured for the plugin mount. |\n name   | string    | true  | | Specifies the name of the account to use for signing. This is specified as part of the URL. |\n data   | false    | true  | | Some data. |",
@@ -1404,7 +1479,7 @@
           "x-go-name": "AccountName"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "AccountNamesResponse": {
       "type": "object",
@@ -1455,7 +1530,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "AccountRequest": {
       "type": "object",
@@ -1486,7 +1561,7 @@
           }
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "AccountResponse": {
       "type": "object",
@@ -1562,7 +1637,7 @@
         }
       },
       "x-go-name": "AccountReponse",
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "AddressBalanceResponse": {
       "type": "object",
@@ -1617,7 +1692,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "AddressListResponse": {
       "type": "object",
@@ -1667,7 +1742,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "AddressParam": {
       "type": "object",
@@ -1681,7 +1756,7 @@
           "x-go-name": "Address"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "BaseResponse": {
       "description": "BaseResponse stores the names of the account to allow reverse lookup by address",
@@ -1720,7 +1795,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "BlockNumberParam": {
       "type": "object",
@@ -1734,7 +1809,7 @@
           "x-go-name": "BlockNumber"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "BlockResponse": {
       "type": "object",
@@ -1799,7 +1874,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "BlockTransactionsResponse": {
       "type": "object",
@@ -1856,7 +1931,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ConfigRequest": {
       "type": "object",
@@ -1891,7 +1966,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ConfigResponse": {
       "type": "object",
@@ -1954,7 +2029,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ContractNameParam": {
       "type": "object",
@@ -1968,7 +2043,7 @@
           "x-go-name": "ContractName"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ContractRequest": {
       "type": "object",
@@ -2008,7 +2083,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ContractResponse": {
       "type": "object",
@@ -2056,7 +2131,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ConversionRequest": {
       "type": "object",
@@ -2084,7 +2159,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ConversionResponse": {
       "type": "object",
@@ -2144,7 +2219,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "DebitRequest": {
       "type": "object",
@@ -2179,7 +2254,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "DebitResponse": {
       "type": "object",
@@ -2255,7 +2330,83 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
+    },
+    "SignTxResponse": {
+      "type": "object",
+      "properties": {
+        "auths": {
+          "type": "string",
+          "x-go-name": "Auth"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "string",
+              "x-go-name": "Amount"
+            },
+            "balance": {
+              "type": "string",
+              "x-go-name": "Balance"
+            },
+            "from_address": {
+              "type": "string",
+              "x-go-name": "FromAddress"
+            },
+            "gas_limit": {
+              "type": "string",
+              "x-go-name": "GasLimit"
+            },
+            "gas_price": {
+              "type": "string",
+              "x-go-name": "GasPrice"
+            },
+            "to_address": {
+              "type": "string",
+              "x-go-name": "ToAddress"
+            },
+            "total_spend": {
+              "type": "string",
+              "x-go-name": "TotalSpend"
+            },
+            "transaction_hash": {
+              "type": "string",
+              "x-go-name": "TransactionHash"
+            }
+          },
+          "x-go-name": "Data"
+        },
+        "lease_duration": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "LeaseDuration"
+        },
+        "lease_id": {
+          "type": "string",
+          "x-go-name": "LeaseId"
+        },
+        "renewable": {
+          "type": "boolean",
+          "x-go-name": "Renewable"
+        },
+        "request_id": {
+          "type": "string",
+          "x-go-name": "RequestId"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Warnings"
+        },
+        "wrap_info": {
+          "type": "string",
+          "x-go-name": "WrapInfo"
+        }
+      },
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ExportRequest": {
       "type": "object",
@@ -2275,7 +2426,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ExportResponse": {
       "type": "object",
@@ -2327,7 +2478,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ImportRequest": {
       "type": "object",
@@ -2351,7 +2502,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "KeyListResponse": {
       "description": "Returns a list of keys",
@@ -2403,7 +2554,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "ListRequest": {
       "type": "object",
@@ -2418,7 +2569,7 @@
           "x-go-name": "List"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "MountPathParam": {
       "type": "object",
@@ -2432,7 +2583,7 @@
           "x-go-name": "MountPath"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "SignedResponse": {
       "type": "object",
@@ -2484,7 +2635,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "TransactionHashParam": {
       "type": "object",
@@ -2498,7 +2649,7 @@
           "x-go-name": "TransactionHash"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "TransactionResponse": {
       "type": "object",
@@ -2579,7 +2730,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "VerifiedResponse": {
       "type": "object",
@@ -2635,7 +2786,7 @@
           "x-go-name": "WrapInfo"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     },
     "VerifyRequest": {
       "type": "object",
@@ -2659,7 +2810,7 @@
           "x-go-name": "Data"
         }
       },
-      "x-go-package": "github.com/zambien/vault-ethereum"
+      "x-go-package": "github.com/immutability-io/vault-ethereum"
     }
   },
   "securityDefinitions": {

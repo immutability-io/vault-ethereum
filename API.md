@@ -11,6 +11,7 @@ Vault provides a CLI that wraps the Vault REST interface. Any HTTP client (inclu
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │   └── <NAME> `&nbsp;&nbsp;([create](./API.md#create-account), [update](./API.md#update-account), [read](./API.md#read-account), [delete](./API.md#delete-account))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── debit `&nbsp;&nbsp;([update](./API.md#debit-account))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign `&nbsp;&nbsp;([update](./API.md#sign))  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── sign-tx `&nbsp;&nbsp;([update](./API.md#sign-tx))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       ├── transfer `&nbsp;&nbsp;([update](./API.md#transfer))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    │       └── verify `&nbsp;&nbsp;([update](./API.md#verify))  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ├── addresses `&nbsp;&nbsp;([list](./API.md#list-addresses))  
@@ -331,6 +332,70 @@ $ curl -s --cacert /etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" 
 #### Sample Response
 
 The example below shows the output for the successfully sending ETH from `/ethereum/accounts/test2`. The Transaction hash is returned.
+
+```
+{
+  "request_id": "b921207e-c0d9-a3c1-442b-ef8b1884238d",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": {
+    "amount": "100000000000000000",
+    "amount_in_usd": "0",
+    "address_from": "0x4169c9508728285e8a9f7945d08645bb6b3576e5",
+    "address_to": "0x8AC5e6617F65c071f6dD5d7bD400bf4a46434D41",
+    "gas_limit": "21000",
+    "gas_price": "1000000000",
+    "signed_transaction": "0xf86b06843b9aca00825208948ac5e6617f65c071f6dd5d7bd400bf4a46434d4188016345785d8a0000802ca0ff3fccbde1964047db6be33410436a9220c91ea4080b0e14489dc35fbdabd008a0448fe3ec216a639e1b0eb87b0e4b20aab2e5ec46dad4c38cfc81a1c54e309d21",
+    "starting_balance": 8460893507395267000,
+    "starting_balance_in_usd": "0",
+    "total_spend": "100000000000000000",
+    "transaction_hash": "0x3a103587ea6bdeee944e5f68f90ed7b1f4c7699236167d1b1d29495b0319fb26"
+  },
+  "warnings": null
+}
+```
+### SIGN-TX
+
+This endpoint will sign the provided transaction.
+
+| Method  | Path | Produces |
+| ------------- | ------------- | ------------- |
+| `POST`  | `:mount-path/accounts/:name/sign-tx`  | `200 application/json` |
+
+#### Parameters
+
+* `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
+* `address_to` (`string: <required>`) - A Hex string specifying the Ethereum address to send the ETH to.
+* `amount` (`string: <required>`) - The amount of ether - in wei.
+* `gas_price` (`string: <optional>`) - The price in gas for the transaction. If omitted, we will use the suggested gas price.
+* `gas_limit` (`string: <optional>`) - The gas limit for the transaction. If omitted, we will estimate the gas limit.
+* `nonce` (`string: <optional>`) - The nonce for the transaction. If omitted or zero, we will use the suggested nonce.
+* `data` (`string: <required>`) - Transaction data to sign.
+
+#### Sample Payload
+
+```sh
+
+{
+  "amount":"200000000000000000",
+  "to": "0x36D1F896E55a6577C62FDD6b84fbF74582266700",
+  "data": "transaction data"
+}
+```
+
+#### Sample Request
+
+```sh
+$ curl -s --cacert ~/etc/vault.d/root.crt --header "X-Vault-Token: $VAULT_TOKEN" \
+    --request POST \
+    --data @payload.json \
+    https://localhost:8200/v1/ethereum/accounts/test2/sign-tx | jq .
+```
+
+#### Sample Response
+
+The example below shows output for the successful signing of a transaction by the private key associated with  `/ethereum/accounts/test2`.
 
 ```
 {
