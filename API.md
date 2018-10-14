@@ -361,7 +361,7 @@ This endpoint will sign the provided transaction.
 
 | Method  | Path | Produces |
 | ------------- | ------------- | ------------- |
-| `POST`  | `:mount-path/accounts/:name/sign`  | `200 application/json` |
+| `POST`  | `:mount-path/accounts/:name/sign-tx`  | `200 application/json` |
 
 #### Parameters
 
