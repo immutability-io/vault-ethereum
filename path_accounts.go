@@ -678,7 +678,7 @@ func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, 
 	}
 	amountInUSD, _ := decimal.NewFromString("0")
 	if config.ChainID == EthereumMainnet {
-		amountInUSD, err = ConvertToUSD(amount.String())
+		amountInUSD, err = ConvertToUSD(amount.String(), config.CoinMarketCapAPIKey)
 		if err != nil {
 			return nil, err
 		}
@@ -791,7 +791,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	}
 	amountInUSD, _ := decimal.NewFromString("0")
 	if config.ChainID == EthereumMainnet {
-		amountInUSD, err = ConvertToUSD(amount.String())
+		amountInUSD, err = ConvertToUSD(amount.String(), config.CoinMarketCapAPIKey)
 		if err != nil {
 			return nil, err
 		}
@@ -980,7 +980,7 @@ func (b *EthereumBackend) readAccountBalanceByAddress(ctx context.Context, req *
 	}
 	// Calculate exchange rate value if on Mainnet
 	if config.ChainID == EthereumMainnet {
-		exchangeValue, err := ConvertToUSD(balance.String())
+		exchangeValue, err := ConvertToUSD(balance.String(), config.CoinMarketCapAPIKey)
 		if err != nil {
 			return nil, zero, err
 		}

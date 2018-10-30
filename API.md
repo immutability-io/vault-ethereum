@@ -1040,7 +1040,7 @@ This endpoint configure the plugin at a mount.
 * `rpc_url` (`string: <optional> default:"https://rinkeby.infura.io"`) - Specifies the RPC URL of the Ethereum node.
 * `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
 * `bound_cidr_list` (`string array: <optional>`) - Comma delimited list of allowed CIDR blocks.
-* `api_key` (`string: <optional>`) - The Infura API key.
+* `api_key` (`string: <optional>`) - The Coinmarketcap API key.
 
 #### Sample Payload
 
@@ -1097,7 +1097,7 @@ This endpoint reconfigures the plugin at a mount.
 * `rpc_url` (`string: <optional> default:"https://rinkeby.infura.io"`) - Specifies the RPC URL of the Ethereum node.
 * `chain_id` (`string: <optional> default:"4"`) - Specifies the Ethereum network. Defaults to Rinkeby.
 * `bound_cidr_list` (`string array: <optional>`) - Comma delimited list of allowed CIDR blocks.
-* `api_key` (`string: <optional>`) - The Infura API key.
+* `api_key` (`string: <optional>`) - The Coinmarketcap API key.
 
 #### Sample Payload
 

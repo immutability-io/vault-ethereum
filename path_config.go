@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/helper/cidrutil"
@@ -63,10 +62,10 @@ const (
 
 // Config contains the configuration for each mount
 type Config struct {
-	BoundCIDRList []string `json:"bound_cidr_list_list" structs:"bound_cidr_list" mapstructure:"bound_cidr_list"`
-	RPC           string   `json:"rpc_url"`
-	InfuraAPIKey  string   `json:"api_key"`
-	ChainID       string   `json:"chain_id"`
+	BoundCIDRList       []string `json:"bound_cidr_list_list" structs:"bound_cidr_list" mapstructure:"bound_cidr_list"`
+	RPC                 string   `json:"rpc_url"`
+	CoinMarketCapAPIKey string   `json:"api_key"`
+	ChainID             string   `json:"chain_id"`
 }
 
 func configPaths(b *EthereumBackend) []*framework.Path {
@@ -105,7 +104,7 @@ func configPaths(b *EthereumBackend) []*framework.Path {
 				},
 				"api_key": &framework.FieldSchema{
 					Type:        framework.TypeString,
-					Description: `The Infura API Key.`,
+					Description: `The Coinmarketcap API Key.`,
 				},
 				"bound_cidr_list": &framework.FieldSchema{
 					Type: framework.TypeCommaStringSlice,
@@ -118,12 +117,6 @@ IP addresses which can perform the login operation.`,
 }
 
 func (config *Config) getRPCURL() string {
-	if config.InfuraAPIKey != "" {
-		url := strings.TrimRight(config.RPC, "/")
-		if isInfuraNetwork(url) {
-			return fmt.Sprintf("%s/%s", url, config.InfuraAPIKey)
-		}
-	}
 	return config.RPC
 }
 
@@ -167,10 +160,10 @@ func (b *EthereumBackend) pathWriteConfig(ctx context.Context, req *logical.Requ
 		boundCIDRList = boundCIDRListRaw.([]string)
 	}
 	configBundle := Config{
-		BoundCIDRList: boundCIDRList,
-		RPC:           rpcURL,
-		ChainID:       chainID,
-		InfuraAPIKey:  apiKey,
+		BoundCIDRList:       boundCIDRList,
+		RPC:                 rpcURL,
+		ChainID:             chainID,
+		CoinMarketCapAPIKey: apiKey,
 	}
 	entry, err := logical.StorageEntryJSON("config", configBundle)
 
@@ -186,7 +179,7 @@ func (b *EthereumBackend) pathWriteConfig(ctx context.Context, req *logical.Requ
 		Data: map[string]interface{}{
 			"bound_cidr_list": configBundle.BoundCIDRList,
 			"chain_id":        configBundle.ChainID,
-			"api_key":         configBundle.InfuraAPIKey,
+			"api_key":         configBundle.CoinMarketCapAPIKey,
 			"rpc_url":         configBundle.RPC,
 		},
 	}, nil
@@ -207,7 +200,7 @@ func (b *EthereumBackend) pathReadConfig(ctx context.Context, req *logical.Reque
 		Data: map[string]interface{}{
 			"bound_cidr_list": configBundle.BoundCIDRList,
 			"chain_id":        configBundle.ChainID,
-			"api_key":         configBundle.InfuraAPIKey,
+			"api_key":         configBundle.CoinMarketCapAPIKey,
 			"rpc_url":         configBundle.RPC,
 		},
 	}, nil

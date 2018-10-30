@@ -17,11 +17,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
-	cmc "github.com/miguelmota/go-coinmarketcap"
+	cmc "github.com/miguelmota/go-coinmarketcap/pro/v1"
 	"github.com/shopspring/decimal"
 )
 
@@ -192,24 +193,49 @@ func ConvertFromWei(normalizeUnit string, amount decimal.Decimal) decimal.Decima
 }
 
 // ConvertToUSD uses Coinmarketcap to estimate value of ETH in USD
-func ConvertToUSD(amountInWei string) (decimal.Decimal, error) {
+func ConvertToUSD(amountInWei, apiKey string) (decimal.Decimal, error) {
 	zero, _ := decimal.NewFromString("0")
-	balanceInWei, err := decimal.NewFromString(amountInWei)
-	floatPrice, err := cmc.Price(&cmc.PriceOptions{
-		Symbol:  "ETH",
-		Convert: "USD",
+	if apiKey == "" {
+		return zero, nil
+	}
+
+	client := cmc.NewClient(&cmc.Config{
+		ProAPIKey: apiKey,
 	})
+
+	listings, err := client.CryptocurrencyListingsLatest(&cmc.CryptocurrencyListingsLatestOptions{
+		Limit: 10,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var ethListing *cmc.Listing
+	for _, listing := range listings {
+		if listing.Symbol == "ETH" {
+			ethListing = listing
+			break
+		}
+	}
+	if ethListing == nil {
+		return zero, nil
+	}
+	balanceInWei, err := decimal.NewFromString(amountInWei)
 	if err != nil {
 		return zero, err
 	}
-	price := decimal.NewFromFloat(floatPrice)
-	balanceInETH := ConvertFromWei(ETH, balanceInWei)
-	exchangeValue := price.Mul(balanceInETH)
-	return exchangeValue, nil
+	quote, ok := ethListing.Quote["USD"]
+	if ok {
+		price := decimal.NewFromFloat(quote.Price)
+		balanceInETH := ConvertFromWei(ETH, balanceInWei)
+		exchangeValue := price.Mul(balanceInETH)
+		return exchangeValue, nil
+	}
+	return zero, nil
+
 }
 
 func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	_, err := b.configured(ctx, req)
+	config, err := b.configured(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +264,10 @@ func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Req
 	}
 	if unitFrom == USD || unitTo == USD {
 		oneETHInWei := ConvertToWei(ETH, oneETH)
-		exchangeValue, err = ConvertToUSD(oneETHInWei.String())
+		exchangeValue, err = ConvertToUSD(oneETHInWei.String(), config.CoinMarketCapAPIKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if unitFrom == USD {
 		usdFrom = true
