@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/helper/cidrutil"
@@ -118,12 +117,6 @@ IP addresses which can perform the login operation.`,
 }
 
 func (config *Config) getRPCURL() string {
-	if config.CoinMarketCapAPIKey != "" {
-		url := strings.TrimRight(config.RPC, "/")
-		if isInfuraNetwork(url) {
-			return fmt.Sprintf("%s/%s", url, config.CoinMarketCapAPIKey)
-		}
-	}
 	return config.RPC
 }
 
