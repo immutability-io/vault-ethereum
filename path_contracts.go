@@ -218,7 +218,7 @@ func (b *EthereumBackend) pathCreateContract(ctx context.Context, req *logical.R
 	}
 	amountInUSD, _ := decimal.NewFromString("0")
 	if config.ChainID == EthereumMainnet {
-		amountInUSD, err = ConvertToUSD(amount.String())
+		amountInUSD, err = ConvertToUSD(amount.String(), config.CoinMarketCapAPIKey)
 		if err != nil {
 			return nil, err
 		}

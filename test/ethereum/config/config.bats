@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "test write rinkeby config" {
-  config="$(vault write -format=json ethereum/dev/config @rinkeby.json | jq .data)"
+  config="$(vault write -format=json ethereum/dev/config rpc_url="https://rinkeby.infura.io" chain_id="4" | jq .data)"
   api_key="$(echo $config | jq -r .api_key)"
   bound_cidr_list="$(echo $config | jq -r .bound_cidr_list)"
   chain_id="$(echo $config | jq -r .chain_id)"
@@ -12,18 +12,18 @@
 }
 
 @test "test write mainnet config" {
-  config="$(vault write -format=json ethereum/prod/config @mainnet.json | jq .data)"
+  config="$(vault write -format=json ethereum/prod/config rpc_url="https://mainnet.infura.io" chain_id="1" api_key="$COINMARKETCAP_API_KEY"  | jq .data)"
   api_key="$(echo $config | jq -r .api_key)"
   bound_cidr_list="$(echo $config | jq -r .bound_cidr_list)"
   chain_id="$(echo $config | jq -r .chain_id)"
   rpc_url="$(echo $config | jq -r .rpc_url)"
-    [ "$api_key" = "" ]
+    [ "$api_key" = "$COINMARKETCAP_API_KEY" ]
     [ "$chain_id" = "1" ]
     [ "$rpc_url" = "https://mainnet.infura.io" ]
 }
 
 @test "test read config" {
-  config="$(vault write -format=json ethereum/prod/config @mainnet.json | jq .data)"
+  config="$(vault write -format=json ethereum/prod/config rpc_url="https://mainnet.infura.io" chain_id="1" api_key="$COINMARKETCAP_API_KEY"  | jq .data)"
   api_key="$(echo $config | jq -r .api_key)"
   bound_cidr_list="$(echo $config | jq -r .bound_cidr_list)"
   chain_id="$(echo $config | jq -r .chain_id)"
