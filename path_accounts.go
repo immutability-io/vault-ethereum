@@ -29,11 +29,11 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 	"github.com/shopspring/decimal"
+	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -381,7 +381,7 @@ func (b *EthereumBackend) pathAccountsCreate(ctx context.Context, req *logical.R
 	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
 	publicKeyString := hexutil.Encode(publicKeyBytes)[4:]
 
-	hash := sha3.NewKeccak256()
+	hash := sha3.NewLegacyKeccak256()
 	hash.Write(publicKeyBytes[1:])
 	address := hexutil.Encode(hash.Sum(nil)[12:])
 
@@ -913,7 +913,7 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 	toAddress := common.HexToAddress(data.Get("address_to").(string))
 	tokenAddress := common.HexToAddress(data.Get("token_address").(string))
 	transferFnSignature := []byte("transfer(address,uint256)")
-	hash := sha3.NewKeccak256()
+	hash := sha3.NewLegacyKeccak256()
 	hash.Write(transferFnSignature)
 	methodID := hash.Sum(nil)[:4]
 	paddedAddress := common.LeftPadBytes(toAddress.Bytes(), 32)

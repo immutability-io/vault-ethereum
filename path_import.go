@@ -24,9 +24,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
+	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -135,7 +135,7 @@ func (b *EthereumBackend) pathImportCreate(ctx context.Context, req *logical.Req
 		publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
 		publicKeyString := hexutil.Encode(publicKeyBytes)[4:]
 
-		hash := sha3.NewKeccak256()
+		hash := sha3.NewLegacyKeccak256()
 		hash.Write(publicKeyBytes[1:])
 		address := hexutil.Encode(hash.Sum(nil)[12:])
 

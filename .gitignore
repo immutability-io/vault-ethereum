@@ -10,3 +10,4 @@ scripts/**
 **/.DS_Store
 **/helper/*.txt
 **/helper/SHA256SUM
+**/vault-ethereum
