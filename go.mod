@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/vault v1.0.2
 	github.com/mattn/go-isatty v0.0.4 // indirect
-	github.com/miguelmota/go-coinmarketcap v0.0.0-20190131021944-b0b8fc089275
+	github.com/miguelmota/go-coinmarketcap v0.1.0
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/pborman/uuid v1.2.0
