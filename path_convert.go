@@ -203,7 +203,7 @@ func ConvertToUSD(amountInWei, apiKey string) (decimal.Decimal, error) {
 		ProAPIKey: apiKey,
 	})
 
-	listings, err := client.CryptocurrencyListingsLatest(&cmc.CryptocurrencyListingsLatestOptions{
+	listings, err := client.Cryptocurrency.LatestListings(&cmc.ListingOptions{
 		Limit: 10,
 	})
 	if err != nil {

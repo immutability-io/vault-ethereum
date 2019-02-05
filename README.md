@@ -81,10 +81,25 @@ Of course, all secrets in Vault are encrypted.
 
 ## Quick start
 
-I recommend that you build the plugin yourself using the standard golang approach:
+This project uses "go mod" for managing project dependencies.
+[See this to learn about go modules](https://github.com/golang/go/wiki/Modules).
 
+This project was initialized to depend on the latest patch release of all transitive dependencies.
 ```
-$ go get -u github.com/immutability-io/vault-ethereum
+export GO111MODULE=on
+go mod init
+go get -u=patch
+go get github.com/miguelmota/go-coinmarketcap/pro/v1@b0b8fc089275fa7220beb289fd44448dd3b0c982 (to work around a broken dependency)
+```
+
+The project owners may lock down to use release major versions as this project matures.
+Here's how a user of this project can install and build it:
+```
+$ mkdir -p ${GOPATH}/github.com/immutability-io
+$ cd ${GOPATH}/github.com/immutability-io
+$ git clone https://github.com/immutability-io/vault-ethereum.git
+$ cd vault-ethereum
+$ go install
 ```
 
 This will put the plugin executable in your $GOPATH/bin directory: `$GOPATH/bin/vault-ethereum`. Now you have to install the plugin. For simplicity's sake, I will make some assumptions:
