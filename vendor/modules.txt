@@ -1,0 +1,214 @@
+# github.com/SermoDigital/jose v0.9.1
+github.com/SermoDigital/jose/jws
+github.com/SermoDigital/jose
+github.com/SermoDigital/jose/crypto
+github.com/SermoDigital/jose/jwt
+# github.com/allegro/bigcache v1.1.0
+github.com/allegro/bigcache
+github.com/allegro/bigcache/queue
+# github.com/aristanetworks/goarista v0.0.0-20190204200901-2166578f3448
+github.com/aristanetworks/goarista/monotime
+# github.com/armon/go-radix v1.0.0
+github.com/armon/go-radix
+# github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
+github.com/btcsuite/btcd/btcec
+# github.com/deckarep/golang-set v1.7.1
+github.com/deckarep/golang-set
+# github.com/ethereum/go-ethereum v1.8.22
+github.com/ethereum/go-ethereum
+github.com/ethereum/go-ethereum/accounts/abi/bind
+github.com/ethereum/go-ethereum/accounts/keystore
+github.com/ethereum/go-ethereum/common
+github.com/ethereum/go-ethereum/common/hexutil
+github.com/ethereum/go-ethereum/common/math
+github.com/ethereum/go-ethereum/core/types
+github.com/ethereum/go-ethereum/crypto
+github.com/ethereum/go-ethereum/ethclient
+github.com/ethereum/go-ethereum/accounts/abi
+github.com/ethereum/go-ethereum/event
+github.com/ethereum/go-ethereum/log
+github.com/ethereum/go-ethereum/accounts
+github.com/ethereum/go-ethereum/params
+github.com/ethereum/go-ethereum/rlp
+github.com/ethereum/go-ethereum/trie
+github.com/ethereum/go-ethereum/crypto/secp256k1
+github.com/ethereum/go-ethereum/rpc
+github.com/ethereum/go-ethereum/common/mclock
+github.com/ethereum/go-ethereum/common/prque
+github.com/ethereum/go-ethereum/ethdb
+github.com/ethereum/go-ethereum/metrics
+github.com/ethereum/go-ethereum/p2p/netutil
+# github.com/go-stack/stack v1.8.0
+github.com/go-stack/stack
+# github.com/golang/protobuf v1.2.0
+github.com/golang/protobuf/proto
+github.com/golang/protobuf/ptypes
+github.com/golang/protobuf/ptypes/timestamp
+github.com/golang/protobuf/ptypes/any
+github.com/golang/protobuf/ptypes/duration
+# github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
+github.com/golang/snappy
+# github.com/google/uuid v1.0.0
+github.com/google/uuid
+# github.com/hashicorp/errwrap v1.0.0
+github.com/hashicorp/errwrap
+# github.com/hashicorp/go-cleanhttp v0.5.0
+github.com/hashicorp/go-cleanhttp
+# github.com/hashicorp/go-hclog v0.0.0-20190109152822-4783caec6f2e
+github.com/hashicorp/go-hclog
+# github.com/hashicorp/go-immutable-radix v1.0.0
+github.com/hashicorp/go-immutable-radix
+# github.com/hashicorp/go-multierror v1.0.0
+github.com/hashicorp/go-multierror
+# github.com/hashicorp/go-plugin v0.0.0-20190129155509-362c99b11937
+github.com/hashicorp/go-plugin
+github.com/hashicorp/go-plugin/internal/proto
+# github.com/hashicorp/go-retryablehttp v0.5.2
+github.com/hashicorp/go-retryablehttp
+# github.com/hashicorp/go-rootcerts v1.0.0
+github.com/hashicorp/go-rootcerts
+# github.com/hashicorp/go-sockaddr v1.0.1
+github.com/hashicorp/go-sockaddr
+# github.com/hashicorp/go-uuid v1.0.1
+github.com/hashicorp/go-uuid
+# github.com/hashicorp/go-version v1.1.0
+github.com/hashicorp/go-version
+# github.com/hashicorp/golang-lru v0.5.0
+github.com/hashicorp/golang-lru
+github.com/hashicorp/golang-lru/simplelru
+# github.com/hashicorp/hcl v1.0.0
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
+# github.com/hashicorp/vault v1.0.2
+github.com/hashicorp/vault/helper/cidrutil
+github.com/hashicorp/vault/helper/pluginutil
+github.com/hashicorp/vault/logical
+github.com/hashicorp/vault/logical/framework
+github.com/hashicorp/vault/logical/plugin
+github.com/hashicorp/vault/helper/strutil
+github.com/hashicorp/vault/api
+github.com/hashicorp/vault/helper/certutil
+github.com/hashicorp/vault/helper/consts
+github.com/hashicorp/vault/helper/mlock
+github.com/hashicorp/vault/helper/wrapping
+github.com/hashicorp/vault/version
+github.com/hashicorp/vault/helper/jsonutil
+github.com/hashicorp/vault/helper/license
+github.com/hashicorp/vault/helper/logging
+github.com/hashicorp/vault/physical
+github.com/hashicorp/vault/physical/inmem
+github.com/hashicorp/vault/helper/errutil
+github.com/hashicorp/vault/helper/parseutil
+github.com/hashicorp/vault/helper/salt
+github.com/hashicorp/vault/logical/plugin/pb
+github.com/hashicorp/vault/helper/hclutil
+github.com/hashicorp/vault/helper/compressutil
+github.com/hashicorp/vault/helper/locksutil
+github.com/hashicorp/vault/helper/pathmanager
+# github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
+github.com/hashicorp/yamux
+# github.com/miguelmota/go-coinmarketcap v0.1.0
+github.com/miguelmota/go-coinmarketcap/pro/v1
+# github.com/mitchellh/go-homedir v1.0.0
+github.com/mitchellh/go-homedir
+# github.com/mitchellh/go-testing-interface v1.0.0
+github.com/mitchellh/go-testing-interface
+# github.com/mitchellh/mapstructure v1.1.2
+github.com/mitchellh/mapstructure
+# github.com/oklog/run v1.0.0
+github.com/oklog/run
+# github.com/pborman/uuid v1.2.0
+github.com/pborman/uuid
+# github.com/pierrec/lz4 v2.0.5+incompatible
+github.com/pierrec/lz4
+github.com/pierrec/lz4/internal/xxh32
+# github.com/rjeczalik/notify v0.9.2
+github.com/rjeczalik/notify
+# github.com/rs/cors v1.6.0
+github.com/rs/cors
+# github.com/ryanuber/go-glob v1.0.0
+github.com/ryanuber/go-glob
+# github.com/sethvargo/go-diceware v0.0.0-20181024230814-74428ac65346
+github.com/sethvargo/go-diceware/diceware
+# github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24
+github.com/shopspring/decimal
+# github.com/syndtr/goleveldb v0.0.0-20190203031304-2f17a3356c66
+github.com/syndtr/goleveldb/leveldb
+github.com/syndtr/goleveldb/leveldb/errors
+github.com/syndtr/goleveldb/leveldb/filter
+github.com/syndtr/goleveldb/leveldb/iterator
+github.com/syndtr/goleveldb/leveldb/opt
+github.com/syndtr/goleveldb/leveldb/util
+github.com/syndtr/goleveldb/leveldb/cache
+github.com/syndtr/goleveldb/leveldb/comparer
+github.com/syndtr/goleveldb/leveldb/journal
+github.com/syndtr/goleveldb/leveldb/memdb
+github.com/syndtr/goleveldb/leveldb/storage
+github.com/syndtr/goleveldb/leveldb/table
+# golang.org/x/crypto v0.0.0-20190131182504-b8fe1690c613
+golang.org/x/crypto/scrypt
+golang.org/x/crypto/sha3
+golang.org/x/crypto/pbkdf2
+# golang.org/x/net v0.0.0-20180906233101-161cd47e91fd
+golang.org/x/net/websocket
+golang.org/x/net/context
+golang.org/x/net/http2
+golang.org/x/net/trace
+golang.org/x/net/http/httpguts
+golang.org/x/net/http2/hpack
+golang.org/x/net/idna
+golang.org/x/net/internal/timeseries
+# golang.org/x/sys v0.0.0-20190204203706-41f3e6584952
+golang.org/x/sys/unix
+# golang.org/x/text v0.3.0
+golang.org/x/text/secure/bidirule
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+golang.org/x/text/transform
+# golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
+golang.org/x/time/rate
+# google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
+google.golang.org/genproto/googleapis/rpc/status
+# google.golang.org/grpc v1.18.0
+google.golang.org/grpc
+google.golang.org/grpc/credentials
+google.golang.org/grpc/health
+google.golang.org/grpc/health/grpc_health_v1
+google.golang.org/grpc/balancer
+google.golang.org/grpc/balancer/roundrobin
+google.golang.org/grpc/codes
+google.golang.org/grpc/connectivity
+google.golang.org/grpc/encoding
+google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/grpclog
+google.golang.org/grpc/internal
+google.golang.org/grpc/internal/backoff
+google.golang.org/grpc/internal/binarylog
+google.golang.org/grpc/internal/channelz
+google.golang.org/grpc/internal/envconfig
+google.golang.org/grpc/internal/grpcrand
+google.golang.org/grpc/internal/grpcsync
+google.golang.org/grpc/internal/transport
+google.golang.org/grpc/keepalive
+google.golang.org/grpc/metadata
+google.golang.org/grpc/naming
+google.golang.org/grpc/peer
+google.golang.org/grpc/resolver
+google.golang.org/grpc/resolver/dns
+google.golang.org/grpc/resolver/passthrough
+google.golang.org/grpc/stats
+google.golang.org/grpc/status
+google.golang.org/grpc/tap
+google.golang.org/grpc/credentials/internal
+google.golang.org/grpc/balancer/base
+google.golang.org/grpc/binarylog/grpc_binarylog_v1
+google.golang.org/grpc/internal/syscall
+# gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
+gopkg.in/natefinch/npipe.v2
