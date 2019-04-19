@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/hashicorp/go-version v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/vault v1.0.2
+	github.com/hashicorp/vault v1.1.0
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/miguelmota/go-coinmarketcap v0.1.0
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
