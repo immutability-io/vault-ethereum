@@ -18,6 +18,8 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 )
 
 // PrettyPrint prints an indented JSON payload. This is used for development debugging.
@@ -55,4 +57,21 @@ func ZeroKey(k *ecdsa.PrivateKey) {
 	for i := range b {
 		b[i] = 0
 	}
+}
+
+// ReadFile returns the contents of a file
+func ReadFile(path string) ([]byte, error) {
+	var contents []byte
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	contents, err = ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return contents, nil
+
 }

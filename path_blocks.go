@@ -19,8 +19,8 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 // Transaction is an Ethereum transaction
@@ -89,7 +89,7 @@ func (b *EthereumBackend) pathBlockRead(ctx context.Context, req *logical.Reques
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"block":             block.Number().Uint64(),
-			"time":              block.Time().Uint64(),
+			"time":              block.Time(),
 			"difficulty":        block.Difficulty().Uint64(),
 			"block_hash":        block.Hash().Hex(),
 			"transaction_count": len(block.Transactions()),

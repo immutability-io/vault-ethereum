@@ -24,8 +24,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/hashicorp/vault/logical"
-	"github.com/hashicorp/vault/logical/framework"
+	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/logical"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -71,6 +71,9 @@ Reads a JSON keystore, decrypts it and stores the passphrase.
 func (b *EthereumBackend) readJSONKeystore(keystorePath string) ([]byte, error) {
 	var jsonKeystore []byte
 	file, err := os.Open(keystorePath)
+	if err != nil {
+		return nil, err
+	}
 	defer file.Close()
 	stat, err := file.Stat()
 	if err != nil {
