@@ -371,7 +371,8 @@ This endpoint will sign the provided transaction.
 * `gas_price` (`string: <optional>`) - The price in gas for the transaction. If omitted, we will use the suggested gas price.
 * `gas_limit` (`string: <optional>`) - The gas limit for the transaction. If omitted, we will estimate the gas limit.
 * `nonce` (`string: <optional>`) - The nonce for the transaction. If omitted or zero, we will use the suggested nonce.
-* `data` (`string: <required>`) - Transaction data to sign.
+* `data` (`string: <required>`) - The data to sign or the absolute path of a file containing the data.
+* `dataIsFile` (`bool: <optional> - defaults to false`) - TThe data to sign is stored in a file.
 
 #### Sample Payload
 
@@ -380,8 +381,10 @@ This endpoint will sign the provided transaction.
 {
   "amount":"200000000000000000",
   "to": "0x36D1F896E55a6577C62FDD6b84fbF74582266700",
-  "data": "transaction data"
+  "data": "/Volumes/ext/go/src/github.com/immutability-io/vault-ethereum/scripts/transaction.data",
+  "dataIsFile": true
 }
+
 ```
 
 #### Sample Request
@@ -404,17 +407,17 @@ The example below shows output for the successful signing of a transaction by th
   "lease_duration": 0,
   "renewable": false,
   "data": {
-    "amount": "100000000000000000",
+    "address_from": "0xb404e6057248e2be41e5d35bebcb313be5097ed7",
+    "address_to": "0x36D1F896E55a6577C62FDD6b84fbF74582266700",
+    "amount": "200000000000000000",
     "amount_in_usd": "0",
-    "address_from": "0x4169c9508728285e8a9f7945d08645bb6b3576e5",
-    "address_to": "0x8AC5e6617F65c071f6dD5d7bD400bf4a46434D41",
     "gas_limit": "21000",
     "gas_price": "1000000000",
-    "signed_transaction": "0xf86b06843b9aca00825208948ac5e6617f65c071f6dd5d7bd400bf4a46434d4188016345785d8a0000802ca0ff3fccbde1964047db6be33410436a9220c91ea4080b0e14489dc35fbdabd008a0448fe3ec216a639e1b0eb87b0e4b20aab2e5ec46dad4c38cfc81a1c54e309d21",
-    "starting_balance": 8460893507395267000,
+    "signed_transaction": "0xf87b80843b9aca008252089436d1f896e55a6577c62fdd6b84fbf745822667008802c68af0bb140000907472616e73616374696f6e20646174612ba0bd3da3fdd8ca70d366ad966c5a380d659e7dd02d0c80cf42e4049cb910db78bea004dcb254858a46d0264448531ef04d9b13e9dcb8b7728d927b0ff72b3f06aeaf",
+    "starting_balance": 3000000000000000000,
     "starting_balance_in_usd": "0",
-    "total_spend": "100000000000000000",
-    "transaction_hash": "0x3a103587ea6bdeee944e5f68f90ed7b1f4c7699236167d1b1d29495b0319fb26"
+    "total_spend": "2400000000000000000",
+    "transaction_hash": "0x0a9e5b92b7d9c7bad30252d7af34519f117aa5e669e16c2287a0d11a0f9c2adf"
   },
   "warnings": null
 }

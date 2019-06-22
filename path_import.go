@@ -71,6 +71,9 @@ Reads a JSON keystore, decrypts it and stores the passphrase.
 func (b *EthereumBackend) readJSONKeystore(keystorePath string) ([]byte, error) {
 	var jsonKeystore []byte
 	file, err := os.Open(keystorePath)
+	if err != nil {
+		return nil, err
+	}
 	defer file.Close()
 	stat, err := file.Stat()
 	if err != nil {

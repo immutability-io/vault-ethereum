@@ -163,7 +163,12 @@ Send ETH from an account.
 				},
 				"data": &framework.FieldSchema{
 					Type:        framework.TypeString,
-					Description: "The data to sign.",
+					Description: "The data to sign or the absolute path of a file containing the data.",
+				},
+				"dataIsFile": &framework.FieldSchema{
+					Type:        framework.TypeBool,
+					Default:     false,
+					Description: "The data to sign is stored in a file.",
 				},
 				"amount": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -594,12 +599,22 @@ func ValidNumber(input string) *big.Int {
 
 func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	config, err := b.configured(ctx, req)
+	var txDataToSign []byte
 	if err != nil {
 		return nil, err
 	}
 
 	name := data.Get("name").(string)
-	dataToSign := data.Get("data").(string)
+	dataIsFile := data.Get("dataIsFile").(bool)
+	dataOrFile := data.Get("data").(string)
+	if dataIsFile {
+		txDataToSign, err = ReadFile(dataOrFile)
+		if err != nil {
+			return nil, fmt.Errorf("error reading data to sign from %s", dataOrFile)
+		}
+	} else {
+		txDataToSign = []byte(dataOrFile)
+	}
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
 		return nil, fmt.Errorf("error reading account")
@@ -666,7 +681,7 @@ func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, 
 	}
 
 	toAddress := common.HexToAddress(data.Get("address_to").(string))
-	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, []byte(dataToSign))
+	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, txDataToSign)
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
 	if err != nil {
 		return nil, err
