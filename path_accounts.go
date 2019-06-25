@@ -163,12 +163,12 @@ Send ETH from an account.
 				},
 				"data": &framework.FieldSchema{
 					Type:        framework.TypeString,
-					Description: "The data to sign or the absolute path of a file containing the data.",
+					Description: "The data to sign.",
 				},
-				"dataIsFile": &framework.FieldSchema{
-					Type:        framework.TypeBool,
-					Default:     false,
-					Description: "The data to sign is stored in a file.",
+				"encoding": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Default:     "utf8",
+					Description: "The encoding of the data to sign.",
 				},
 				"amount": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -605,15 +605,17 @@ func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, 
 	}
 
 	name := data.Get("name").(string)
-	dataIsFile := data.Get("dataIsFile").(bool)
 	dataOrFile := data.Get("data").(string)
-	if dataIsFile {
-		txDataToSign, err = ReadFile(dataOrFile)
+	encoding := data.Get("encoding").(string)
+	if encoding == "hex" {
+		txDataToSign, err = Decode([]byte(dataOrFile))
 		if err != nil {
-			return nil, fmt.Errorf("error reading data to sign from %s", dataOrFile)
+			return nil, err
 		}
-	} else {
+	} else if encoding == "utf8" {
 		txDataToSign = []byte(dataOrFile)
+	} else {
+		return nil, fmt.Errorf("invalid encoding encountered - %s", encoding)
 	}
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
