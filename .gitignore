@@ -11,3 +11,4 @@ scripts/**
 **/helper/*.txt
 **/helper/SHA256SUM
 **/vault-ethereum
+dist

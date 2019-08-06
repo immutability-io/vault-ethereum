@@ -1,5 +1,6 @@
 ![Immutability](/docs/tagline.png?raw=true "Changes Everything")
 
+
 Ethereum plugin for Vault
 -----------------
 
@@ -655,6 +656,38 @@ transaction_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1b
 ## More Use Cases
 
 There are many more uses cases to be explored; but, I will leave that to you. If you brave enough...
+
+## Releasing
+
+We use goreleaser to release cross-compiled versions.  The steps to release are:
+
+```
+export GITHUB_TOKEN="A_GITHUB_TOKEN_THAT_HAS_CORRECT_ACCESS_ENTITLEMENTS"
+VERSION="0.0.30"
+rm -rf dist
+git tag -a $VERSION -m "Some description of the release"
+docker run --rm --privileged \
+-v $(pwd):/go/src/github.com/immutability-io/vault-ethereum \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-w /go/src/github.com/immutability-io/vault-ethereum \
+mailchain/goreleaser-xcgo goreleaser --rm-dist
+sha256sum dist/*.zip > dist/SHA256SUMS
+gpg --detach-sign dist/SHA256SUMS
+```
+
+If you wish to run goreleaser locally, the following will give you a snapshot build for darwin, linux, and windows.
+
+```bash
+docker run --rm --privileged \
+-v $(pwd):/go/src/github.com/immutability-io/vault-ethereum \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-w /go/src/github.com/immutability-io/vault-ethereum \
+mailchain/goreleaser-xcgo goreleaser --snapshot --rm-dist
+```
+
+You can read more about goreleaser here:
+
+https://goreleaser.com/
 
 ## Credits
 
