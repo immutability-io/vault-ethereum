@@ -35,10 +35,10 @@ builds:
   - windows
   goarch:
   - amd64
-
 archives:
 - format: zip
   name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
   files:
   - README.md
   - LICENSE
+

@@ -19,11 +19,7 @@ To put it another way:  If your org is dealing in crypto you need this or someth
 
 ## No Warrantees Implied
 
-Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](docker run --rm --privileged \
--v $(pwd):/go/src/github.com/immutability-io/vault-ethereum \
--v /var/run/docker.sock:/var/run/docker.sock \
--w /go/src/github.com/immutability-io/vault-ethereum \
-mailchain/goreleaser-xcgo goreleaser --snapshot --rm-distto:jeff@immutability.io).
+Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](mailto:jeff@immutability.io).
 
 ## API
 
@@ -663,7 +659,25 @@ There are many more uses cases to be explored; but, I will leave that to you. If
 
 ## Releasing
 
-We use goreleaser for our releases.  If you wish to run goreleaser locally, the following will give you a snapshot build for darwin, linux, and windows.
+## Releasing
+
+We use goreleaser to release cross-compiled versions.  The steps to release are:
+
+```
+export GITHUB_TOKEN="A_GITHUB_TOKEN_THAT_HAS_CORRECT_ACCESS_ENTITLEMENTS"
+VERSION="0.0.30"
+rm -rf dist
+git tag -a $VERSION -m "Some description of the release"
+docker run --rm --privileged \
+-v $(pwd):/go/src/github.com/immutability-io/vault-ethereum \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-w /go/src/github.com/immutability-io/vault-ethereum \
+mailchain/goreleaser-xcgo goreleaser --rm-dist
+sha256sum dist/*.zip > dist/SHA256SUMS
+gpg --detach-sign dist/SHA256SUMS
+```
+
+If you wish to run goreleaser locally, the following will give you a snapshot build for darwin, linux, and windows.
 
 ```bash
 docker run --rm --privileged \
@@ -672,6 +686,10 @@ docker run --rm --privileged \
 -w /go/src/github.com/immutability-io/vault-ethereum \
 mailchain/goreleaser-xcgo goreleaser --snapshot --rm-dist
 ```
+
+You can read more about goreleaser here:
+
+https://goreleaser.com/
 
 ## Credits
 
