@@ -659,8 +659,6 @@ There are many more uses cases to be explored; but, I will leave that to you. If
 
 ## Releasing
 
-## Releasing
-
 We use goreleaser to release cross-compiled versions.  The steps to release are:
 
 ```
