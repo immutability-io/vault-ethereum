@@ -1,5 +1,6 @@
 ![Immutability](/docs/tagline.png?raw=true "Changes Everything")
 
+
 Ethereum plugin for Vault
 -----------------
 
@@ -18,7 +19,11 @@ To put it another way:  If your org is dealing in crypto you need this or someth
 
 ## No Warrantees Implied
 
-Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](mailto:jeff@immutability.io).
+Use of this plugin with real ETH on the mainnet is at your own risk and no warranties should be implied. The guide here describes how to install and run this plugin on a Mac laptop. This plugin can be run on any platform that Vault supports; but, each environment has its own nuances, and for clarity's sake I will only discuss the Mac laptop use case. Running Vault in a production environment in an enterprise requires planning and operational skills. If you would like help running Vault in production, please reach out to [Immutability, LLC](docker run --rm --privileged \
+-v $(pwd):/go/src/github.com/immutability-io/vault-ethereum \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-w /go/src/github.com/immutability-io/vault-ethereum \
+mailchain/goreleaser-xcgo goreleaser --snapshot --rm-distto:jeff@immutability.io).
 
 ## API
 
@@ -655,6 +660,18 @@ transaction_hash    0x2ff5dd013e5a4d00cf007a7fb689c4ebf50541c2e7ddfaf16212e7ed1b
 ## More Use Cases
 
 There are many more uses cases to be explored; but, I will leave that to you. If you brave enough...
+
+## Releasing
+
+We use goreleaser for our releases.  If you wish to run goreleaser locally, the following will give you a snapshot build for darwin, linux, and windows.
+
+```bash
+docker run --rm --privileged \
+-v $(pwd):/go/src/github.com/immutability-io/vault-ethereum \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-w /go/src/github.com/immutability-io/vault-ethereum \
+mailchain/goreleaser-xcgo goreleaser --snapshot --rm-dist
+```
 
 ## Credits
 
