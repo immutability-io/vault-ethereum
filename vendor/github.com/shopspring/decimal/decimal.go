@@ -87,6 +87,32 @@ func New(value int64, exp int32) Decimal {
 	}
 }
 
+// NewFromInt converts a int64 to Decimal.
+//
+// Example:
+//
+//     NewFromInt(123).String() // output: "123"
+//     NewFromInt(-10).String() // output: "-10"
+func NewFromInt(value int64) Decimal {
+	return Decimal{
+		value: big.NewInt(value),
+		exp:   0,
+	}
+}
+
+// NewFromInt32 converts a int32 to Decimal.
+//
+// Example:
+//
+//     NewFromInt(123).String() // output: "123"
+//     NewFromInt(-10).String() // output: "-10"
+func NewFromInt32(value int32) Decimal {
+	return Decimal{
+		value: big.NewInt(int64(value)),
+		exp:   0,
+	}
+}
+
 // NewFromBigInt returns a new Decimal from a big.Int, value * 10 ^ exp
 func NewFromBigInt(value *big.Int, exp int32) Decimal {
 	return Decimal{
@@ -130,6 +156,9 @@ func NewFromString(value string) (Decimal, error) {
 		// strip the insignificant digits for more accurate comparisons.
 		decimalPart := strings.TrimRight(parts[1], "0")
 		intString = parts[0] + decimalPart
+		if intString == "" && parts[1] != "" {
+			intString = "0"
+		}
 		expInt := -len(decimalPart)
 		exp += int64(expInt)
 	} else {
@@ -657,6 +686,7 @@ func (d Decimal) Exponent() int32 {
 
 // Coefficient returns the coefficient of the decimal.  It is scaled by 10^Exponent()
 func (d Decimal) Coefficient() *big.Int {
+	d.ensureInitialized()
 	// we copy the coefficient so that mutating the result does not mutate the
 	// Decimal.
 	return big.NewInt(0).Set(d.value)

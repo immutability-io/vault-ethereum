@@ -1,8 +1,8 @@
 #!/bin/bash
 
 function install_plugin {
-  echo "ADDING TO CATALOG: sys/plugins/catalog/ethereum-plugin"
-  vault write sys/plugins/catalog/ethereum-plugin \
+  echo "ADDING TO CATALOG: sys/plugins/catalog/secret/ethereum-plugin"
+  vault write sys/plugins/catalog/secret/ethereum-plugin \
         sha_256="$(cat SHA256SUM)" \
         command="vault-ethereum --ca-cert=$HOME/etc/vault.d/root.crt --client-cert=$HOME/etc/vault.d/vault.crt --client-key=$HOME/etc/vault.d/vault.key"
 
