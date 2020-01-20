@@ -39,6 +39,8 @@ import (
 const (
 	// Empty is the empty string
 	Empty string = ""
+	// InvalidAddress intends to prevent empty address_to
+	InvalidAddress string = "InvalidAddress"
 )
 
 // Account is an Ethereum account
@@ -121,6 +123,7 @@ Send ETH from an account.
 				"address_to": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The address of the account to send ETH to.",
+					Default:     InvalidAddress,
 				},
 				"amount": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -160,6 +163,7 @@ Send ETH from an account.
 				"address_to": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The address of the account to send ETH to.",
+					Default:     InvalidAddress,
 				},
 				"data": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -213,10 +217,12 @@ Transfer ERC20 tokens.
 				"address_to": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The address of the account to send ERC20 tokens to.",
+					Default:     InvalidAddress,
 				},
 				"token_address": &framework.FieldSchema{
 					Type:        framework.TypeString,
 					Description: "The address of the token contract.",
+					Default:     InvalidAddress,
 				},
 				"amount": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -635,7 +641,12 @@ func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, 
 	if amount.Cmp(balance) > 0 {
 		return nil, fmt.Errorf("Insufficient funds spend %v because the current account balance is %v", amount, balance)
 	}
-	if valid, err := b.validAccountConstraints(account, amount, data.Get("address_to").(string)); !valid {
+	rawAddressTo, err := nonEmptyAddress("address_to", data.Get("address_to").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	if valid, err := b.validAccountConstraints(account, amount, rawAddressTo); !valid {
 		return nil, err
 	}
 	chainID := ValidNumber(config.ChainID)
@@ -682,7 +693,7 @@ func (b *EthereumBackend) pathSignTx(ctx context.Context, req *logical.Request, 
 		}
 	}
 
-	toAddress := common.HexToAddress(data.Get("address_to").(string))
+	toAddress := common.HexToAddress(rawAddressTo)
 	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, txDataToSign)
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
 	if err != nil {
@@ -746,7 +757,13 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 	if amount.Cmp(balance) > 0 {
 		return nil, fmt.Errorf("Insufficient funds spend %v because the current account balance is %v", amount, balance)
 	}
-	if valid, err := b.validAccountConstraints(account, amount, data.Get("address_to").(string)); !valid {
+
+	rawAddressTo, err := nonEmptyAddress("address_to", data.Get("address_to").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	if valid, err := b.validAccountConstraints(account, amount, rawAddressTo); !valid {
 		return nil, err
 	}
 	chainID := ValidNumber(config.ChainID)
@@ -788,7 +805,7 @@ func (b *EthereumBackend) pathDebit(ctx context.Context, req *logical.Request, d
 		return nil, err
 	}
 
-	toAddress := common.HexToAddress(data.Get("address_to").(string))
+	toAddress := common.HexToAddress(rawAddressTo)
 	var txData []byte
 	tx := types.NewTransaction(nonce, toAddress, amount, gasLimit, gasPrice, txData)
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privateKey)
@@ -927,8 +944,18 @@ func (b *EthereumBackend) pathTransfer(ctx context.Context, req *logical.Request
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
-	toAddress := common.HexToAddress(data.Get("address_to").(string))
-	tokenAddress := common.HexToAddress(data.Get("token_address").(string))
+	rawAddressTo, err := nonEmptyAddress("address_to", data.Get("address_to").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	rawTokenAddress, err := nonEmptyAddress("token_address", data.Get("token_address").(string))
+	if err != nil {
+		return nil, err
+	}
+
+	toAddress := common.HexToAddress(rawAddressTo)
+	tokenAddress := common.HexToAddress(rawTokenAddress)
 	transferFnSignature := []byte("transfer(address,uint256)")
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(transferFnSignature)
@@ -1021,4 +1048,11 @@ func (b *EthereumBackend) readAccountBalance(ctx context.Context, req *logical.R
 		return nil, Empty, zero, err
 	}
 	return balance, account.Address, exchangeValue, nil
+}
+
+func nonEmptyAddress(name, rawAddress string) (string, error) {
+	if rawAddress == InvalidAddress || rawAddress == Empty {
+		return "", fmt.Errorf("%s must be supplied", name)
+	}
+	return rawAddress, nil
 }
