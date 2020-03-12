@@ -262,6 +262,10 @@ Sign data using a given Ethereum account.
 					Type:        framework.TypeString,
 					Description: "The data to hash (keccak) and sign.",
 				},
+				"encoding": &framework.FieldSchema{
+					Type:        framework.TypeString,
+					Description: "Encoding of the provided data.",
+				},
 			},
 			ExistenceCheck: b.pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -857,7 +861,22 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 	}
 
 	name := data.Get("name").(string)
-	dataToSign := data.Get("data").(string)
+	rawData := data.Get("data").(string)
+	encoding := data.Get("encoding").(string)
+
+	var dataToSign []byte
+
+	if encoding == "hex" {
+		dataToSign, err = Decode([]byte(rawData))
+		if err != nil {
+			return nil, err
+		}
+	} else if encoding == "utf8" {
+		dataToSign = []byte(rawData)
+	} else {
+		return nil, fmt.Errorf("invalid encoding encountered - %s", encoding)
+	}
+
 	account, err := b.readAccount(ctx, req, name)
 	if err != nil {
 		return nil, fmt.Errorf("error reading account")
