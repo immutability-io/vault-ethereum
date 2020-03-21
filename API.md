@@ -584,13 +584,27 @@ This endpoint will sign the provided data.
 
 * `name` (`string: <required>`) - Specifies the name of the account to use for signing. This is specified as part of the URL.
 * `data` (`string: <required>`) - Some data.
+* `encoding` (`string: <required>`) - The encoding of the data.
 
 #### Sample Payload
+
+##### UTF8 Payload
 
 ```sh
 
 {
-  "data": "this is very important"
+  "data": "this is very important",
+  "encoding": "utf8"
+}
+```
+
+##### Hexadecimal Payload (remove `0x` prefix)
+
+```sh
+
+{
+  "data": "de0B295669a9FD93d5F28D9Ec85E40f4cb697BAe",
+  "encoding": "hex"
 }
 ```
 
