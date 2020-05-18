@@ -891,13 +891,20 @@ func (b *EthereumBackend) pathSign(ctx context.Context, req *logical.Request, da
 	}
 	defer ZeroKey(privateKey)
 	dataBytes := []byte(dataToSign)
-	hash := crypto.Keccak256Hash(dataBytes)
+	
+	// adding prefix
+	dataMsg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(dataBytes), dataBytes)
+
+	hash := crypto.Keccak256Hash([]byte(dataMsg))
 
 	signature, err := crypto.Sign(hash.Bytes(), privateKey)
 	if err != nil {
 		return nil, err
 	}
 
+	// Transform V from 0/1 to 27/28
+	signature[64] += 27
+	
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"signature": hexutil.Encode(signature),
