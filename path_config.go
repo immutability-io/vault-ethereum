@@ -18,6 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/immutability-io/vault-ethereum/util"
+
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/helper/cidrutil"
@@ -45,9 +48,6 @@ const (
 	EthereumClassicTestnet string = "62"
 	// GethPrivateChains Chain ID
 	GethPrivateChains string = "1337"
-)
-
-const (
 	// InfuraMainnet is the default for EthereumMainnet
 	InfuraMainnet string = "https://mainnet.infura.io"
 	// InfuraRopsten is the default for Ropsten
@@ -60,29 +60,42 @@ const (
 	Local string = "http://localhost:8545"
 )
 
-// Config contains the configuration for each mount
-type Config struct {
-	BoundCIDRList       []string `json:"bound_cidr_list_list" structs:"bound_cidr_list" mapstructure:"bound_cidr_list"`
-	RPC                 string   `json:"rpc_url"`
-	CoinMarketCapAPIKey string   `json:"api_key"`
-	ChainID             string   `json:"chain_id"`
+// ConfigJSON contains the configuration for each mount
+type ConfigJSON struct {
+	BoundCIDRList []string `json:"bound_cidr_list_list" structs:"bound_cidr_list" mapstructure:"bound_cidr_list"`
+	Inclusions    []string `json:"inclusions"`
+	Exclusions    []string `json:"exclusions"`
+	RPC           string   `json:"rpc_url"`
+	ChainID       string   `json:"chain_id"`
 }
 
-func configPaths(b *EthereumBackend) []*framework.Path {
+// ValidAddress returns an error if the address is not included or if it is excluded
+func (config *ConfigJSON) ValidAddress(toAddress *common.Address) error {
+	if util.Contains(config.Exclusions, toAddress.Hex()) {
+		return fmt.Errorf("%s is excludeded by this mount", toAddress.Hex())
+	}
+
+	if len(config.Inclusions) > 0 && !util.Contains(config.Inclusions, toAddress.Hex()) {
+		return fmt.Errorf("%s is not in the set of inclusions of this mount", toAddress.Hex())
+	}
+	return nil
+}
+
+func configPaths(b *PluginBackend) []*framework.Path {
 	return []*framework.Path{
-		&framework.Path{
-			Pattern: "config",
+		{
+			Pattern: QualifiedPath("config"),
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.CreateOperation: b.pathWriteConfig,
 				logical.UpdateOperation: b.pathWriteConfig,
 				logical.ReadOperation:   b.pathReadConfig,
 			},
-			HelpSynopsis: "Configure the trustee plugin.",
+			HelpSynopsis: "Configure the Vault Ethereum plugin.",
 			HelpDescription: `
-			Configure the trustee plugin.
+			Configure the Vault Ethereum plugin.
 			`,
 			Fields: map[string]*framework.FieldSchema{
-				"chain_id": &framework.FieldSchema{
+				"chain_id": {
 					Type: framework.TypeString,
 					Description: `Ethereum network - can be one of the following values:
 
@@ -98,72 +111,55 @@ func configPaths(b *EthereumBackend) []*framework.Path {
 					1337 - Geth private chains (default)`,
 					Default: Rinkeby,
 				},
-				"rpc_url": &framework.FieldSchema{
+				"rpc_url": {
 					Type:        framework.TypeString,
-					Description: `The RPC address of the Ethereuem network.`,
+					Default:     InfuraRinkeby,
+					Description: "The RPC address of the Ethereum network",
 				},
-				"api_key": &framework.FieldSchema{
-					Type:        framework.TypeString,
-					Description: `The Coinmarketcap API Key.`,
+				"inclusions": {
+					Type:        framework.TypeCommaStringSlice,
+					Description: "Only these accounts may be transaction with",
 				},
-				"bound_cidr_list": &framework.FieldSchema{
+				"exclusions": {
+					Type:        framework.TypeCommaStringSlice,
+					Description: "These accounts can never be transacted with",
+				},
+				"bound_cidr_list": {
 					Type: framework.TypeCommaStringSlice,
-					Description: `Comma separated string or list of CIDR blocks. If set, specifies the blocks of
-IP addresses which can perform the login operation.`,
+					Description: `Comma separated string or list of CIDR blocks.
+If set, specifies the blocks of IPs which can perform the login operation;
+if unset, there are no IP restrictions.`,
 				},
 			},
 		},
 	}
 }
 
-func (config *Config) getRPCURL() string {
+func (config *ConfigJSON) getRPCURL() string {
 	return config.RPC
 }
 
-func isInfuraNetwork(url string) bool {
-	switch url {
-	case InfuraMainnet:
-		return true
-	case InfuraRopsten:
-		return true
-	case InfuraRinkeby:
-		return true
-	case InfuraKovan:
-		return true
-	}
-	return false
-}
-
-func getDefaultNetwork(chainID string) string {
-	switch chainID {
-	case EthereumMainnet:
-		return InfuraMainnet
-	case Ropsten:
-		return InfuraRopsten
-	case Rinkeby:
-		return InfuraRinkeby
-	case Kovan:
-		return InfuraKovan
-	}
-	return Local
-}
-
-func (b *EthereumBackend) pathWriteConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *PluginBackend) pathWriteConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	rpcURL := data.Get("rpc_url").(string)
-	apiKey := data.Get("api_key").(string)
 	chainID := data.Get("chain_id").(string)
-	if rpcURL == "" {
-		rpcURL = getDefaultNetwork(chainID)
-	}
 	var boundCIDRList []string
 	if boundCIDRListRaw, ok := data.GetOk("bound_cidr_list"); ok {
 		boundCIDRList = boundCIDRListRaw.([]string)
 	}
-	configBundle := Config{
-		BoundCIDRList:       boundCIDRList,
-		RPC:                 rpcURL,
-		ChainID:             chainID,
-		CoinMarketCapAPIKey: apiKey,
+	var inclusions []string
+	if inclusionsRaw, ok := data.GetOk("inclusions"); ok {
+		inclusions = inclusionsRaw.([]string)
+	}
+	var exclusions []string
+	if exclusionsRaw, ok := data.GetOk("exclusions"); ok {
+		exclusions = exclusionsRaw.([]string)
+	}
+	configBundle := ConfigJSON{
+		BoundCIDRList: boundCIDRList,
+		Inclusions:    inclusions,
+		Exclusions:    exclusions,
+		ChainID:       chainID,
+		RPC:           rpcURL,
 	}
 	entry, err := logical.StorageEntryJSON("config", configBundle)
 
@@ -178,14 +174,15 @@ func (b *EthereumBackend) pathWriteConfig(ctx context.Context, req *logical.Requ
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"bound_cidr_list": configBundle.BoundCIDRList,
-			"chain_id":        configBundle.ChainID,
-			"api_key":         configBundle.CoinMarketCapAPIKey,
+			"inclusions":      configBundle.Inclusions,
+			"exclusions":      configBundle.Exclusions,
 			"rpc_url":         configBundle.RPC,
+			"chain_id":        configBundle.ChainID,
 		},
 	}, nil
 }
 
-func (b *EthereumBackend) pathReadConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *PluginBackend) pathReadConfig(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	configBundle, err := b.readConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
@@ -199,25 +196,26 @@ func (b *EthereumBackend) pathReadConfig(ctx context.Context, req *logical.Reque
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"bound_cidr_list": configBundle.BoundCIDRList,
-			"chain_id":        configBundle.ChainID,
-			"api_key":         configBundle.CoinMarketCapAPIKey,
+			"inclusions":      configBundle.Inclusions,
+			"exclusions":      configBundle.Exclusions,
 			"rpc_url":         configBundle.RPC,
+			"chain_id":        configBundle.ChainID,
 		},
 	}, nil
 }
 
-// Config returns the configuration for this EthereumBackend.
-func (b *EthereumBackend) readConfig(ctx context.Context, s logical.Storage) (*Config, error) {
+// Config returns the configuration for this PluginBackend.
+func (b *PluginBackend) readConfig(ctx context.Context, s logical.Storage) (*ConfigJSON, error) {
 	entry, err := s.Get(ctx, "config")
 	if err != nil {
 		return nil, err
 	}
 
 	if entry == nil {
-		return nil, fmt.Errorf("the ethereum backend is not configured properly")
+		return nil, fmt.Errorf("the plugin has not been configured yet")
 	}
 
-	var result Config
+	var result ConfigJSON
 	if entry != nil {
 		if err := entry.DecodeJSON(&result); err != nil {
 			return nil, fmt.Errorf("error reading configuration: %s", err)
@@ -227,7 +225,7 @@ func (b *EthereumBackend) readConfig(ctx context.Context, s logical.Storage) (*C
 	return &result, nil
 }
 
-func (b *EthereumBackend) configured(ctx context.Context, req *logical.Request) (*Config, error) {
+func (b *PluginBackend) configured(ctx context.Context, req *logical.Request) (*ConfigJSON, error) {
 	config, err := b.readConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
@@ -239,7 +237,7 @@ func (b *EthereumBackend) configured(ctx context.Context, req *logical.Request) 
 	return config, nil
 }
 
-func (b *EthereumBackend) validIPConstraints(config *Config, req *logical.Request) (bool, error) {
+func (b *PluginBackend) validIPConstraints(config *ConfigJSON, req *logical.Request) (bool, error) {
 	if len(config.BoundCIDRList) != 0 {
 		if req.Connection == nil || req.Connection.RemoteAddr == "" {
 			return false, fmt.Errorf("failed to get connection information")
@@ -254,13 +252,4 @@ func (b *EthereumBackend) validIPConstraints(config *Config, req *logical.Reques
 		}
 	}
 	return true, nil
-}
-
-func contains(stringSlice []string, searchString string) bool {
-	for _, value := range stringSlice {
-		if value == searchString {
-			return true
-		}
-	}
-	return false
 }

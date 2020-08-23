@@ -18,12 +18,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	cmc "github.com/miguelmota/go-coinmarketcap/pro/v1"
 	"github.com/shopspring/decimal"
+	coingecko "github.com/superoo7/go-gecko/v3"
 )
 
 const (
@@ -49,15 +51,18 @@ const (
 	GIGA string = "giga"
 	// TERA is "tera", "teraether", "tether"
 	TERA string = "tera"
-	// USD is "usd"
+
+	// USD is US Dollar
 	USD string = "usd"
-	// EUR is "eur"
-	EUR string = "eur"
+	// AED is United Arab Emirates Dirham
+	AED string = "aed"
+	// ARS is Argentine Peso
+	ARS string = "ars"
 )
 
-func convertPaths(b *EthereumBackend) []*framework.Path {
+func convertPaths(b *PluginBackend) []*framework.Path {
 	return []*framework.Path{
-		&framework.Path{
+		{
 			Pattern:      "convert",
 			HelpSynopsis: "Convert any Ethereum unit to another.",
 			HelpDescription: `
@@ -65,23 +70,42 @@ func convertPaths(b *EthereumBackend) []*framework.Path {
 			Convert any Ethereum unit to another.
 `,
 			Fields: map[string]*framework.FieldSchema{
-				"unit_from": &framework.FieldSchema{
+				"unit_from": {
 					Type:        framework.TypeString,
 					Description: "The Ethereum unit to convert from.",
 				},
-				"unit_to": &framework.FieldSchema{
+				"unit_to": {
 					Type:        framework.TypeString,
 					Description: "The Ethereum unit to convert to.",
 				},
-				"amount": &framework.FieldSchema{
+				"amount": {
 					Type:        framework.TypeString,
 					Description: "Amount to convert.",
 				},
 			},
-			ExistenceCheck: b.pathExistenceCheck,
+			ExistenceCheck: pathExistenceCheck,
 			Callbacks: map[logical.Operation]framework.OperationFunc{
 				logical.CreateOperation: b.pathConvertWrite,
 				logical.UpdateOperation: b.pathConvertWrite,
+			},
+		},
+		{
+			Pattern:      "test",
+			HelpSynopsis: "Test file upload.",
+			HelpDescription: `
+
+Test file upload.
+`,
+			Fields: map[string]*framework.FieldSchema{
+				"file": {
+					Type:        framework.TypeString,
+					Description: "The file data.",
+				},
+			},
+			ExistenceCheck: pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathTest,
+				logical.UpdateOperation: b.pathTest,
 			},
 		},
 	}
@@ -193,49 +217,29 @@ func ConvertFromWei(normalizeUnit string, amount decimal.Decimal) decimal.Decima
 }
 
 // ConvertToUSD uses Coinmarketcap to estimate value of ETH in USD
-func ConvertToUSD(amountInWei, apiKey string) (decimal.Decimal, error) {
+func ConvertToUSD(amountInWei string) (decimal.Decimal, error) {
 	zero, _ := decimal.NewFromString("0")
-	if apiKey == "" {
-		return zero, nil
+	httpClient := &http.Client{
+		Timeout: time.Second * 10,
 	}
-
-	client := cmc.NewClient(&cmc.Config{
-		ProAPIKey: apiKey,
-	})
-
-	listings, err := client.Cryptocurrency.LatestListings(&cmc.ListingOptions{
-		Limit: 10,
-	})
+	client := coingecko.NewClient(httpClient)
+	singlePrice, err := client.SimpleSinglePrice("ethereum", "usd")
 	if err != nil {
 		log.Fatal(err)
-	}
-	var ethListing *cmc.Listing
-	for _, listing := range listings {
-		if listing.Symbol == "ETH" {
-			ethListing = listing
-			break
-		}
-	}
-	if ethListing == nil {
-		return zero, nil
 	}
 	balanceInWei, err := decimal.NewFromString(amountInWei)
 	if err != nil {
 		return zero, err
 	}
-	quote, ok := ethListing.Quote["USD"]
-	if ok {
-		price := decimal.NewFromFloat(quote.Price)
-		balanceInETH := ConvertFromWei(ETH, balanceInWei)
-		exchangeValue := price.Mul(balanceInETH)
-		return exchangeValue, nil
-	}
-	return zero, nil
+	price := decimal.NewFromFloat32(singlePrice.MarketPrice)
+	balanceInETH := ConvertFromWei(ETH, balanceInWei)
+	exchangeValue := price.Mul(balanceInETH)
+	return exchangeValue, nil
 
 }
 
-func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	config, err := b.configured(ctx, req)
+func (b *PluginBackend) pathConvertWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	_, err := b.configured(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +268,7 @@ func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Req
 	}
 	if unitFrom == USD || unitTo == USD {
 		oneETHInWei := ConvertToWei(ETH, oneETH)
-		exchangeValue, err = ConvertToUSD(oneETHInWei.String(), config.CoinMarketCapAPIKey)
+		exchangeValue, err = ConvertToUSD(oneETHInWei.String())
 		if err != nil {
 			return nil, err
 		}
@@ -298,6 +302,20 @@ func (b *EthereumBackend) pathConvertWrite(ctx context.Context, req *logical.Req
 			"amount_from": amount,
 			"unit_to":     unitTo,
 			"amount_to":   amountFromInUnits.String(),
+		},
+	}, nil
+}
+
+func (b *PluginBackend) pathTest(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	_, err := b.configured(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	fileData := data.Get("file").(string)
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"file_data": fileData,
 		},
 	}, nil
 }
