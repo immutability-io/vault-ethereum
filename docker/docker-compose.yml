@@ -1,0 +1,36 @@
+version: "2"
+
+services:
+  vault_server:
+    networks:
+      - develop
+    links:
+      - "ganache"
+    image: "cypherhat/vault-ethereum:latest"
+    ports:
+      - "9200:9200"
+    volumes:
+      - "./config:/home/vault/config:rw"
+    entrypoint: /home/vault/config/entrypoint.sh
+  ganache:
+    networks:
+      - develop
+    image: trufflesuite/ganache-cli:latest
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./ganache_data:/ganache_data
+    entrypoint:
+      - node
+      - /app/ganache-core.docker.cli.js
+      - --deterministic
+      - --db=/ganache_data
+      - --mnemonic
+      - "volcano story trust file before member board recycle always draw fiction when"
+      - --networkId
+      - "8545"
+      - --hostname
+      - "0.0.0.0"
+networks:
+  develop:
+    driver: bridge

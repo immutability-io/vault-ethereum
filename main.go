@@ -34,6 +34,7 @@ func main() {
 		BackendFactoryFunc: Factory,
 		TLSProviderFunc:    tlsProviderFunc,
 	})
+
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)

@@ -12,3 +12,8 @@ scripts/**
 **/helper/SHA256SUM
 **/vault-ethereum
 dist
+**/solidity
+**/solidity/*
+**/modules
+
+

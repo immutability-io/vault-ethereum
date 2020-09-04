@@ -1,15 +1,29 @@
-FROM vault:latest as build
+FROM golang:1.14-alpine as builder
 RUN apk add --update alpine-sdk
-RUN apk update && apk add go git
-WORKDIR /app
-ENV GOPATH /app
-ADD . /app/src
-RUN GO111MODULE=on go get github.com/immutability-io/vault-ethereum
-RUN GO111MODULE=on CGO_ENABLED=1 GOOS=linux go install -a github.com/immutability-io/vault-ethereum
+RUN apk update && apk add git openssh gcc musl-dev linux-headers
+
+WORKDIR /build
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY  / .
+RUN mkdir -p /build/bin \
+    && CGO_ENABLED=1 GOOS=linux go build -a -v -i -o /build/bin/vault-ethereum . \
+    && sha256sum -b /build/bin/vault-ethereum > /build/bin/SHA256SUMS
 
 FROM vault:latest
+ARG always_upgrade
+RUN echo ${always_upgrade} > /dev/null && apk update && apk upgrade
+RUN apk add bash openssl jq
+
+USER vault
 WORKDIR /app
-RUN cd /app
-COPY --from=build /app/bin/vault-ethereum /app/bin/vault-ethereum
-# Prove the binary is now an executable
-CMD /app/bin/vault-ethereum
+RUN mkdir -p /home/vault/plugins
+
+COPY --from=builder /build/bin/vault-ethereum /home/vault/plugins/vault-ethereum
+COPY --from=builder /build/bin/SHA256SUMS /home/vault/plugins/SHA256SUMS
+RUN ls -la /home/vault/plugins
+HEALTHCHECK CMD nc -zv 127.0.0.1 9200 || exit 1

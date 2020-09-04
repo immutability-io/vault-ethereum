@@ -22,6 +22,11 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
+const (
+	// Symbol is the lowercase crypto token symbol
+	Symbol string = "eth"
+)
+
 // Factory returns the backend
 func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
 	b, err := Backend(conf)
@@ -50,29 +55,20 @@ func FactoryType(backendType logical.BackendType) logical.Factory {
 }
 
 // Backend returns the backend
-func Backend(conf *logical.BackendConfig) (*EthereumBackend, error) {
-	var b EthereumBackend
+func Backend(conf *logical.BackendConfig) (*PluginBackend, error) {
+	var b PluginBackend
 	b.Backend = &framework.Backend{
 		Help: "",
 		Paths: framework.PathAppend(
-			convertPaths(&b),
 			configPaths(&b),
-			addressesPaths(&b),
-			namesPaths(&b),
-			blockPaths(&b),
-			transactionPaths(&b),
-			importPaths(&b),
-			exportPaths(&b),
-			accountsPaths(&b),
-			contractsPaths(&b),
+			accountPaths(&b),
+			convertPaths(&b),
+			erc20Paths(&b),
 		),
 		PathsSpecial: &logical.Paths{
 			Unauthenticated: []string{
-				"addresses/*",
-				"block/*",
-				"transaction/*",
-				"names/*",
 				"convert",
+				"test",
 			},
 			SealWrapStorage: []string{
 				"accounts/",
@@ -84,16 +80,24 @@ func Backend(conf *logical.BackendConfig) (*EthereumBackend, error) {
 	return &b, nil
 }
 
-// EthereumBackend implements the Backend for this plugin
-type EthereumBackend struct {
+// PluginBackend implements the Backend for this plugin
+type PluginBackend struct {
 	*framework.Backend
 }
 
-func (b *EthereumBackend) pathExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
-	out, err := req.Storage.Get(ctx, req.Path)
-	if err != nil {
-		return false, fmt.Errorf("existence check failed: %v", err)
-	}
+// QualifiedPath prepends the token symbol to the path
+func QualifiedPath(subpath string) string {
+	return subpath
+}
 
-	return out != nil, nil
+// ContractPath prepends the token symbol to the path
+func ContractPath(contract, method string) string {
+	return fmt.Sprintf("%s/%s/%s", QualifiedPath("accounts/"+framework.GenericNameRegex("name")), contract, method)
+}
+
+// SealWrappedPaths returns the paths that are seal wrapped
+func SealWrappedPaths(b *PluginBackend) []string {
+	return []string{
+		QualifiedPath("accounts/"),
+	}
 }
