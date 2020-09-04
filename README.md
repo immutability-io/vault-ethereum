@@ -4,6 +4,8 @@ The first incarnation of the `vault-ethereum` plugin was an exercise in [experim
 
 Having had several occasions to take this PoC to production with companies in the financial and blockchain communities [(plug for Immutability, LLC's custom development!)](mailto:jeff@immutability.io) I've decided to release an upgrade that tries to make the development experience better. I've also restricted the surface area of the plugin to a minimum.
 
+Excepting the `convert` API, which I keep for entertainment value.
+
 ## Testing - in one terminal...
 
 ```sh
