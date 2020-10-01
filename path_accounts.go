@@ -264,6 +264,30 @@ Deploy a smart contract to the network.
 				logical.CreateOperation: b.pathDeploy,
 			},
 		},
+		{
+			Pattern:      QualifiedPath("accounts/" + framework.GenericNameRegex("name") + "/sign"),
+			HelpSynopsis: "Sign a message",
+			HelpDescription: `
+
+Sign calculates an ECDSA signature for:
+keccack256("\x19Ethereum Signed Message:\n" + len(message) + message).
+
+https://eth.wiki/json-rpc/API#eth_sign
+
+		`,
+			Fields: map[string]*framework.FieldSchema{
+				"name": {Type: framework.TypeString},
+				"message": {
+					Type:        framework.TypeString,
+					Description: "Message to sign.",
+				},
+			},
+			ExistenceCheck: pathExistenceCheck,
+			Callbacks: map[logical.Operation]framework.OperationFunc{
+				logical.CreateOperation: b.pathSignMessage,
+				logical.UpdateOperation: b.pathSignMessage,
+			},
+		},
 	}
 }
 
@@ -844,4 +868,34 @@ func (b *PluginBackend) pathReadBalance(ctx context.Context, req *logical.Reques
 // LogTx is for debugging
 func (b *PluginBackend) LogTx(tx *types.Transaction) {
 	b.Logger().Info(fmt.Sprintf("\nTX DATA: %s\nGAS: %d\nGAS PRICE: %d\nVALUE: %d\nNONCE: %d\nTO: %s\n", hexutil.Encode(tx.Data()), tx.Gas(), tx.GasPrice(), tx.Value(), tx.Nonce(), tx.To().Hex()))
+}
+
+func (b *PluginBackend) pathSignMessage(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	message := data.Get("message").(string)
+	name := data.Get("name").(string)
+
+	accountJSON, err := readAccount(ctx, req, name)
+	if err != nil {
+		return nil, err
+	}
+
+	wallet, account, err := getWalletAndAccount(*accountJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	hashedMessage, _ := accounts.TextAndHash([]byte(message))
+
+	signedMessage, err := wallet.SignHash(*account, []byte(hashedMessage))
+	if err != nil {
+		return nil, err
+	}
+
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"signature":     hexutil.Encode(signedMessage),
+			"address":       account.Address,
+			"hashedMessage": hexutil.Encode(hashedMessage),
+		},
+	}, nil
 }

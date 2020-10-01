@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MNEMONIC="volcano story trust file before member board recycle always draw fiction when"
 CHAIN_ID=5777
@@ -6,6 +6,7 @@ PORT=8545
 RPC_URL="http://ganache:$PORT"
 PLUGIN="vault-ethereum"
 RAW_TX="f86d8202b28477359400825208944592d8f8d7b001e72cb26a73e4fa1806a51ac79d880de0b6b3a7640000802ca05924bde7ef10aa88db9c66dd4f5fb16b46dff2319b9968be983118b57bb50562a001b24b31010004f13d9a26b320845257a6cfc2bf819a3d55e3fc86263c5f0772"
+MESSAGE="HOLA VAULT"
 
 function header() {
   printf "## %s\n\n" "$@"
@@ -111,3 +112,9 @@ header "HOW TO SIGN A TRANSACTION WITH DATA"
 vault_command "vault write -format=json $PLUGIN/accounts/alice/sign-tx to='$BOB_ADDRESS' data='$RAW_TX' amount='20000000000000000'"
 curl_command $(vault write -output-curl-string $PLUGIN/accounts/alice/sign-tx to="$BOB_ADDRESS" data="$RAW_TX" amount='20000000000000000')
 log $(vault write -format=json $PLUGIN/accounts/alice/sign-tx to="$BOB_ADDRESS" data="$RAW_TX" amount='20000000000000000' | jq .)
+
+header "HOW TO SIGN MESSAGE. Message signature can be verify on: https://etherscan.io/verifySig/2156" 
+vault_command "vault write -format=json $PLUGIN/accounts/bob/sign message='$MESSAGE'"
+curl_command $(vault write -output-curl-string $PLUGIN/accounts/bob/sign message="$MESSAGE")
+log $(vault write -format=json $PLUGIN/accounts/bob/sign message="$MESSAGE"  | jq .)
+
