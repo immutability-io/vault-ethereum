@@ -396,7 +396,7 @@ func (b *PluginBackend) pathAccountsCreate(ctx context.Context, req *logical.Req
 		}
 
 		mnemonic, err = bip39.NewMnemonic(entropy)
-		b.Logger().Debug(fmt.Sprintf("Mnemonic: '%s'", mnemonic))
+
 	}
 
 	if err != nil {
