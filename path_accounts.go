@@ -858,8 +858,8 @@ func (b *PluginBackend) pathReadBalance(ctx context.Context, req *logical.Reques
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"adddress": account.Address.Hex(),
-			"balance":  balance.String(),
+			"address": account.Address.Hex(),
+			"balance": balance.String(),
 		},
 	}, nil
 
