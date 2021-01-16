@@ -83,3 +83,12 @@ Deploy a smart contract to the network.
 ## I still need help
 
 [Please reach out to me](mailto:jeff@immutability.io). 
+
+## Tip
+
+Supporting OSS is very hard. 
+
+This is my ETH address. The private keys are managed by this plugin: 
+
+`0x68350c4c58eE921B30A4B1230BF6B14441B46981`
+
