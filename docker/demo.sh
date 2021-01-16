@@ -149,7 +149,6 @@ vault_command_json "vault write -format=json $PLUGIN/accounts/bob/deploy \
 abi=@$ERC20_CONTRACTS_PATH$CONTRACT_FIXED_SUPPLY_TOKEN$ABI_FILE \
 bin=@$ERC20_CONTRACTS_PATH$CONTRACT_FIXED_SUPPLY_TOKEN$BIN_FILE"
 log_json
-
 ERC20_ADDRESS=$(echo $JSON | jq .data.contract)
 
 header "DEPLOY CONTRACT $CONTRACT_OWNED"
