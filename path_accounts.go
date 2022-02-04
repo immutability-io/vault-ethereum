@@ -501,7 +501,15 @@ func (b *PluginBackend) getData(client *ethclient.Client, fromAddress common.Add
 	}
 	var gasLimitIn *big.Int
 
-	gasLimitIn = util.ValidNumber(data.GetDefaultOrZero("gas_limit").(string))
+	gasLimitField, ok := data.GetOk("gas_limit")
+
+	if ok {
+		gasLimitIn = util.ValidNumber(gasLimitField.(string))
+	} else {
+		// if no gaslimit is provided, take default or zero value
+		gasLimitIn = util.ValidNumber(data.GetDefaultOrZero("gas_limit").(string))
+	}
+
 	gasLimit := gasLimitIn.Uint64()
 
 	return &TransactionParams{
