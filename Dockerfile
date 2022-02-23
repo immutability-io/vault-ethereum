@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine as builder
+FROM golang:1.17-alpine as builder
 RUN apk add --update alpine-sdk
 RUN apk update && apk add git openssh gcc musl-dev linux-headers
 
