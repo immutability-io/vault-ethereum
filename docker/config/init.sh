@@ -57,7 +57,7 @@ function init() {
     OPERATOR_SECRETS=$(vault operator init -key-shares=1 -key-threshold=1 -format=json | jq .)
     echo $OPERATOR_SECRETS > $OPERATOR_JSON
 }
-
+sleep 20
 if [ -f "$OPERATOR_JSON" ]; then
     unseal
     status

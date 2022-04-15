@@ -15,5 +15,15 @@ dist
 **/solidity
 **/solidity/*
 **/modules
-
+docker/README.md
+docker/config/README.md
+docker/config/operator.json
+docker/config/root.crt
+docker/config/root.key
+docker/config/root.srl
+docker/config/vault.cnf
+docker/config/vault.crt
+docker/config/vault.csr
+docker/config/vault.key
+docker/ganache_data/
 
