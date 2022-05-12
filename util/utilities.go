@@ -343,3 +343,19 @@ func TokenAmount(amount int64, decimals uint8) *big.Int {
 	var bigProduct = new(big.Int)
 	return bigProduct.Mul(bigPower, bigAmount)
 }
+func FloatToBigInt(val float64, decimals uint64) *big.Int {
+	bigval := new(big.Float)
+	bigval.SetFloat64(val)
+
+	coin := new(big.Float)
+	weiValue := big.NewInt(10)
+	weiValue.Exp(weiValue, big.NewInt(int64(decimals)), nil)
+	coin.SetInt(weiValue)
+
+	bigval.Mul(bigval, coin)
+
+	result := new(big.Int)
+	bigval.Int(result) // store converted number in result
+
+	return result
+}

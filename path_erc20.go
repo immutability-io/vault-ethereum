@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -245,7 +246,10 @@ func (b *PluginBackend) pathERC20BalanceOf(ctx context.Context, req *logical.Req
 }
 
 func (b *PluginBackend) pathERC20Transfer(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	var tokens *big.Int
+	var (
+		tokens     *big.Int
+		tokenFloat float64
+	)
 	config, err := b.configured(ctx, req)
 	if err != nil {
 		return nil, err
@@ -305,12 +309,13 @@ func (b *PluginBackend) pathERC20Transfer(ctx context.Context, req *logical.Requ
 	}
 	_, ok := data.GetOk("tokens")
 	if ok {
-		tokens = util.ValidNumber(data.Get("tokens").(string))
+		tokenFloat, _ = strconv.ParseFloat(data.Get("tokens").(string), 64)
+		tokens = util.FloatToBigInt(tokenFloat, uint64(decimals))
 		if tokens == nil {
 			return nil, fmt.Errorf("number of tokens are required")
 		}
 	} else {
-		tokens = util.ValidNumber("0")
+		return nil, err
 	}
 
 	err = config.ValidAddress(transactionParams.Address)
@@ -321,13 +326,13 @@ func (b *PluginBackend) pathERC20Transfer(ctx context.Context, req *logical.Requ
 	if err != nil {
 		return nil, err
 	}
-	tokenAmount := util.TokenAmount(tokens.Int64(), decimals)
+	tokenAmount := util.FloatToBigInt(tokenFloat, uint64(decimals))
 	transactOpts, err := b.NewWalletTransactor(chainID, wallet, account)
 	if err != nil {
 		return nil, err
 	}
 
-	//transactOpts needs gas etc.
+	// transactOpts needs gas etc.
 	tokenSession := &erc20.Erc20Session{
 		Contract:     instance,  // Generic contract caller binding to set the session for
 		CallOpts:     *callOpts, // Call options to use throughout this session
@@ -498,7 +503,7 @@ func (b *PluginBackend) pathERC20Approve(ctx context.Context, req *logical.Reque
 		return nil, err
 	}
 
-	//transactOpts needs gas etc.
+	// transactOpts needs gas etc.
 	tokenSession := &erc20.Erc20Session{
 		Contract:     instance,  // Generic contract caller binding to set the session for
 		CallOpts:     *callOpts, // Call options to use throughout this session
@@ -612,7 +617,7 @@ func (b *PluginBackend) pathERC20TransferFrom(ctx context.Context, req *logical.
 		return nil, err
 	}
 
-	//transactOpts needs gas etc.
+	// transactOpts needs gas etc.
 	tokenSession := &erc20.Erc20Session{
 		Contract:     instance,  // Generic contract caller binding to set the session for
 		CallOpts:     *callOpts, // Call options to use throughout this session
