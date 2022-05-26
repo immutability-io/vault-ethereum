@@ -41,7 +41,8 @@ const (
 	// RootstockTestnet Chain ID
 	RootstockTestnet string = "31"
 	// Kovan Chain ID
-	Kovan string = "42"
+	Kovan     string = "42"
+	BinanceId        = "97"
 	// EthereumClassicMainnet Chain ID
 	EthereumClassicMainnet string = "61"
 	// EthereumClassicTestnet Chain ID
@@ -57,7 +58,8 @@ const (
 	// InfuraRinkeby is the default for Rinkeby
 	InfuraRinkeby string = "https://rinkeby.infura.io"
 	// Local is the default for localhost
-	Local string = "http://localhost:8545"
+	Local     string = "http://localhost:8545"
+	BinaceRpc        = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 )
 
 // ConfigJSON contains the configuration for each mount
@@ -109,11 +111,11 @@ func configPaths(b *PluginBackend) []*framework.Path {
 					61 - Ethereum Classic mainnet
 					62 - Ethereum Classic testnet
 					1337 - Geth private chains (default)`,
-					Default: Rinkeby,
+					Default: BinanceId,
 				},
 				"rpc_url": {
 					Type:        framework.TypeString,
-					Default:     InfuraRinkeby,
+					Default:     BinaceRpc,
 					Description: "The RPC address of the Ethereum network",
 				},
 				"inclusions": {
