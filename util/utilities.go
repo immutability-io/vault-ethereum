@@ -346,12 +346,13 @@ func TokenAmount(amount int64, decimals uint8) *big.Int {
 func FloatToBigInt(val float64, decimals uint64) *big.Int {
 	bigval := new(big.Float)
 	bigval.SetFloat64(val)
-
+	bigval.SetPrec(big.MaxPrec)
 	coin := new(big.Float)
 	weiValue := big.NewInt(10)
 	weiValue.Exp(weiValue, big.NewInt(int64(decimals)), nil)
 	coin.SetInt(weiValue)
 
+	bigval.SetPrec(big.MaxPrec)
 	bigval.Mul(bigval, coin)
 
 	result := new(big.Int)
