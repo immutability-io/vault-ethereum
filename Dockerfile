@@ -14,7 +14,7 @@ RUN mkdir -p /build/bin \
     && CGO_ENABLED=1 GOOS=linux go build -a -v -i -o /build/bin/vault-ethereum . \
     && sha256sum -b /build/bin/vault-ethereum > /build/bin/SHA256SUMS
 
-FROM vault:latest
+FROM hashicorp/vault:latest
 ARG always_upgrade
 RUN echo ${always_upgrade} > /dev/null && apk update && apk upgrade
 RUN apk add bash openssl jq

@@ -652,7 +652,7 @@ func (b *PluginBackend) pathTransfer(ctx context.Context, req *logical.Request, 
 	}
 
 	tx := types.NewTransaction(transactionParams.Nonce, *transactionParams.Address, transactionParams.Amount, transactionParams.GasLimit, transactionParams.GasPrice, txDataToSign)
-	signedTx, err := wallet.SignTx(*account, tx, chainID)
+	signedTx, err := wallet.SignTxEIP155(*account, tx, chainID)
 	if err != nil {
 		return nil, err
 	}
@@ -816,7 +816,7 @@ func (b *PluginBackend) pathSignTx(ctx context.Context, req *logical.Request, da
 
 	tx := types.NewTransaction(transactionParams.Nonce, *transactionParams.Address, transactionParams.Amount, transactionParams.GasLimit, transactionParams.GasPrice, txDataToSign)
 
-	signedTx, err := wallet.SignTx(*account, tx, chainID)
+	signedTx, err := wallet.SignTxEIP155(*account, tx, chainID)
 	if err != nil {
 		return nil, err
 	}
